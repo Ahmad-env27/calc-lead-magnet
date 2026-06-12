@@ -5,7 +5,7 @@ Single-page Vite + React 18 lead magnet for Audr (paid media consultancy for UK 
 **Hardline rules (Ahmad, 12 Jun 2026):**
 - No pricing, offers, fees, or guarantee mechanics anywhere in the funnel. The results page teases monthly benefit only; money talk happens on the call.
 - The email ask lives at the unlock screen (after the quiz), never at the start.
-- Results framing is opportunity ("what you could be adding"), never waste/loss. The landing page loss-tease is the one deliberate exception (ad congruence).
+- Loss aversion is deliberate and rationed: the landing page is loss-framed (ad congruence), the quiz encodes loss through questions (cost-creep, frustrations), and the results page carries exactly ONE loss line — the "walks out the door again" sentence under the number. Everything else on results stays opportunity-framed ("what you could be adding"). Do not add more loss copy to results.
 
 ## Before changing UI or copy
 

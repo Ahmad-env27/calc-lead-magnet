@@ -798,6 +798,12 @@ h2 {
   color: var(--muted);
 }
 
+.leak-loss {
+  color: var(--text);
+  font-size: 14.5px;
+  margin-top: 10px;
+}
+
 .leak-sub {
   color: var(--muted);
   font-size: 14px;

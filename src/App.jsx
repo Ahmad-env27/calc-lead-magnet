@@ -1,38 +1,43 @@
 import { useEffect, useState } from 'react'
 import Landing from './Landing.jsx'
 import Quiz from './Quiz.jsx'
+import Unlock from './Unlock.jsx'
 import Loading from './Loading.jsx'
 import Results from './Results.jsx'
 import { calculateScore, getLeadTemperature } from './scoring.js'
 import { fireWebhook, fireLeadPixel, firePageView } from './webhook.js'
 
 const INITIAL_ANSWERS = {
-  email: '',
   brandName: '',
   brandType: null,
   revenue: null,
   spendTier: null,
   refreshRate: null,
   angleDiversity: null,
+  costTrend: null,
+  roasBracket: null,
+  creativeVolume: null,
+  adsMadeBy: null,
   frustrations: [],
   extraContext: '',
-  currentROAS: '',
-  bestHeadline: '',
+  email: '',
 }
 
 // Sample data for the dev panel "Preview Results" jump
 const SAMPLE_ANSWERS = {
-  email: 'founder@glowtheory.co.uk',
   brandName: 'Glow Theory',
   brandType: 'skincare',
   revenue: '60k_150k',
   spendTier: '15k_50k',
   refreshRate: 'monthly_or_less',
   angleDiversity: 'yes_same',
+  costTrend: 'up_some',
+  roasBracket: 'r_1_5_2_5',
+  creativeVolume: 'vol_3_7',
+  adsMadeBy: 'agency',
   frustrations: ['stop_performing', 'same_message', 'customer_language'],
   extraContext: '',
-  currentROAS: '2.4',
-  bestHeadline: '',
+  email: 'founder@glowtheory.co.uk',
 }
 
 function toScoringInputs(answers) {
@@ -42,14 +47,17 @@ function toScoringInputs(answers) {
     spendTier: answers.spendTier,
     refreshRate: answers.refreshRate,
     angleDiversity: answers.angleDiversity,
+    costTrend: answers.costTrend,
+    roasBracket: answers.roasBracket,
+    creativeVolume: answers.creativeVolume,
     frustrations: answers.frustrations,
     frustrationCount: answers.frustrations.filter((f) => f !== 'none').length,
-    currentROAS: parseFloat(answers.currentROAS) || null,
   }
 }
 
 export default function App() {
-  const [phase, setPhase] = useState('landing') // landing | quiz | loading | results
+  // landing | quiz | unlock | loading | results
+  const [phase, setPhase] = useState('landing')
   const [answers, setAnswers] = useState(INITIAL_ANSWERS)
   const [results, setResults] = useState(null)
 
@@ -57,15 +65,21 @@ export default function App() {
     firePageView()
   }, [])
 
-  const submitQuiz = () => {
-    const inputs = toScoringInputs(answers)
+  // Quiz finished → the report is "built"; email unlocks it
+  const completeQuiz = () => setPhase('unlock')
+
+  const unlockReport = (email) => {
+    const finalAnswers = { ...answers, email }
+    setAnswers(finalAnswers)
+
+    const inputs = toScoringInputs(finalAnswers)
     const computed = calculateScore(inputs)
     const temperature = getLeadTemperature(inputs)
     const fullResults = { ...computed, temperature }
     setResults(fullResults)
 
     // Fire-and-forget — never blocks the transition to results
-    fireWebhook({ ...answers, ...fullResults })
+    fireWebhook({ ...finalAnswers, ...fullResults })
     fireLeadPixel(fullResults)
 
     setPhase('loading')
@@ -89,7 +103,15 @@ export default function App() {
     <div className="shell">
       {phase === 'landing' && <Landing onStart={() => setPhase('quiz')} />}
       {phase === 'quiz' && (
-        <Quiz answers={answers} setAnswers={setAnswers} onSubmit={submitQuiz} />
+        <Quiz answers={answers} setAnswers={setAnswers} onComplete={completeQuiz} />
+      )}
+      {phase === 'unlock' && (
+        <Unlock
+          brandName={answers.brandName}
+          email={answers.email}
+          onSubmit={unlockReport}
+          onBack={() => setPhase('quiz')}
+        />
       )}
       {phase === 'loading' && (
         <Loading

@@ -1,11 +1,12 @@
-// Phase 2 — Quiz. 8 steps, state lives in the parent so back-navigation never
-// loses an answer. Card steps auto-advance after 400ms; the qualification
-// pixel check runs once all of brand type + revenue + spend are known.
+// Phase 2 — Quiz. 12 questions, state lives in the parent so back-navigation
+// never loses an answer. Card steps auto-advance after 400ms. No email here —
+// that's the unlock screen after the quiz (the report is the reason to give it).
+// The qualification pixel check runs once brand type + revenue + spend are known.
 
 import { useRef, useState } from 'react'
 import { fireQualificationPixel } from './webhook.js'
 
-const TOTAL_STEPS = 8
+const TOTAL_STEPS = 12
 
 const BRAND_TYPES = [
   { id: 'skincare', title: 'Skincare', desc: 'Serums, moisturisers, treatments, SPF' },
@@ -42,25 +43,52 @@ const DIVERSITY_OPTIONS = [
   { id: 'no_varied', title: 'No, we actively vary them', desc: '"Different angles, different messages"' },
 ]
 
+const COST_TREND_OPTIONS = [
+  { id: 'up_lots', title: 'Yes, noticeably', desc: '"It keeps creeping up"' },
+  { id: 'up_some', title: 'A little', desc: '"Slightly worse than last year"' },
+  { id: 'flat', title: 'About the same', desc: '"Holding steady"' },
+  { id: 'improved', title: 'It\'s actually got better', desc: '"Cheaper than it used to be"' },
+]
+
+const ROAS_BRACKETS = [
+  { id: 'under_1_5', title: 'Under £1.50', desc: '"It\'s tight right now"' },
+  { id: 'r_1_5_2_5', title: '£1.50–£2.50', desc: '"Profitable, but thin"' },
+  { id: 'r_2_5_4', title: '£2.50–£4', desc: '"Solidly profitable"' },
+  { id: 'over_4', title: 'Over £4', desc: '"Ads are working hard for us"' },
+  { id: 'not_sure', title: 'Honestly, not sure', desc: '"I don\'t watch this number"' },
+]
+
+const VOLUME_OPTIONS = [
+  { id: 'vol_1_2', title: '1–2' },
+  { id: 'vol_3_7', title: '3–7' },
+  { id: 'vol_8_12', title: '8–12' },
+  { id: 'vol_12_plus', title: 'More than 12' },
+]
+
+const ADS_MADE_BY = [
+  { id: 'agency', title: 'An agency', desc: '"We brief, they build"' },
+  { id: 'in_house', title: 'In-house team', desc: '"Our own people"' },
+  { id: 'freelancers', title: 'Freelancers & UGC creators', desc: '"A mix of outside help"' },
+  { id: 'founder', title: 'Mostly me', desc: '"Founder does everything"' },
+]
+
 const FRUSTRATIONS = [
   { id: 'stop_performing', label: 'My ads stop performing after a couple of weeks' },
   { id: 'same_message', label: 'We keep running variations of the same message' },
   { id: 'shrinking_returns', label: 'I\'m spending more but returns keep shrinking' },
+  { id: 'volatile_months', label: 'Good months and bad months — I can\'t tell why' },
   { id: 'competitor_blindspot', label: 'I can\'t figure out what competitors are doing differently' },
   { id: 'content_not_strategic', label: 'My team produces content but none of it feels strategically different' },
   { id: 'customer_language', label: 'I don\'t know how my customers actually talk about their skin' },
   { id: 'hit_wall', label: 'We\'ve hit a wall and can\'t break through' },
+  { id: 'scared_to_scale', label: 'I\'m nervous to scale spend in case results collapse' },
   { id: 'agency_burnout', label: 'I\'ve worked with agencies before and nothing changes' },
   { id: 'none', label: '⊘ None of these — my ads are performing well' },
 ]
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-export default function Quiz({ answers, setAnswers, onSubmit }) {
+export default function Quiz({ answers, setAnswers, onComplete }) {
   const [step, setStep] = useState(1)
   const [dir, setDir] = useState('fwd')
-  const [emailError, setEmailError] = useState(false)
-  const [extraOpen, setExtraOpen] = useState(false)
   const advancing = useRef(false)
   const pixelFired = useRef(false)
 
@@ -112,8 +140,6 @@ export default function Quiz({ answers, setAnswers, onSubmit }) {
     })
   }
 
-  const emailValid = EMAIL_RE.test(answers.email)
-  const step1Valid = emailValid && answers.brandName.trim().length > 0
   const frustrationCount = answers.frustrations.length
 
   const renderCards = (options, key, fromStep) =>
@@ -158,27 +184,13 @@ export default function Quiz({ answers, setAnswers, onSubmit }) {
       <div className={`quiz-step ${dir}`} key={step}>
         {step === 1 && (
           <>
-            <h2 className="step-header">Let’s start with the basics</h2>
+            <h2 className="step-header">Let’s get your report started</h2>
+            <p className="step-subtext">
+              12 quick questions, about 90 seconds. We build your report from these — no email
+              needed to start.
+            </p>
             <div className="field">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                placeholder="you@yourbrand.co.uk"
-                value={answers.email}
-                className={emailError ? 'invalid' : ''}
-                onChange={(e) => {
-                  set('email', e.target.value)
-                  if (emailError) setEmailError(false)
-                }}
-                onBlur={() => setEmailError(answers.email.length > 0 && !emailValid)}
-              />
-              {emailError && <span className="field-error">That email doesn’t look right</span>}
-            </div>
-            <div className="field">
-              <label htmlFor="brandName">Brand name</label>
+              <label htmlFor="brandName">What’s your brand called?</label>
               <input
                 id="brandName"
                 type="text"
@@ -188,7 +200,11 @@ export default function Quiz({ answers, setAnswers, onSubmit }) {
                 onChange={(e) => set('brandName', e.target.value)}
               />
             </div>
-            <button className="btn-primary" disabled={!step1Valid} onClick={() => goTo(2)}>
+            <button
+              className="btn-primary"
+              disabled={answers.brandName.trim().length === 0}
+              onClick={() => goTo(2)}
+            >
               Continue →
             </button>
           </>
@@ -231,6 +247,36 @@ export default function Quiz({ answers, setAnswers, onSubmit }) {
 
         {step === 7 && (
           <>
+            <h2 className="step-header">Has it got more expensive to win a customer this year?</h2>
+            <div className="option-grid">{renderCards(COST_TREND_OPTIONS, 'costTrend', 7)}</div>
+          </>
+        )}
+
+        {step === 8 && (
+          <>
+            <h2 className="step-header">For every £1 you put into ads, roughly what comes back?</h2>
+            <p className="step-subtext">Rough is fine — pick the closest.</p>
+            <div className="option-grid">{renderCards(ROAS_BRACKETS, 'roasBracket', 8)}</div>
+          </>
+        )}
+
+        {step === 9 && (
+          <>
+            <h2 className="step-header">How many genuinely new ads do you launch in a typical month?</h2>
+            <p className="step-subtext">New ideas — not resizes or re-edits.</p>
+            <div className="option-grid">{renderCards(VOLUME_OPTIONS, 'creativeVolume', 9)}</div>
+          </>
+        )}
+
+        {step === 10 && (
+          <>
+            <h2 className="step-header">Who makes your ads right now?</h2>
+            <div className="option-grid">{renderCards(ADS_MADE_BY, 'adsMadeBy', 10)}</div>
+          </>
+        )}
+
+        {step === 11 && (
+          <>
             <h2 className="step-header">What’s your biggest frustration with your ads right now?</h2>
             <p className="step-subtext">Pick up to 3</p>
             <div className="chip-list">
@@ -252,19 +298,22 @@ export default function Quiz({ answers, setAnswers, onSubmit }) {
                 )
               })}
             </div>
+            {frustrationCount > 0 && !answers.frustrations.includes('none') && (
+              <p className="quiz-note">These are exactly the patterns your report digs into.</p>
+            )}
             <button
               className="btn-primary"
               disabled={frustrationCount < 1 || frustrationCount > 3}
-              onClick={() => goTo(8)}
+              onClick={() => goTo(12)}
             >
               Continue →
             </button>
           </>
         )}
 
-        {step === 8 && (
+        {step === 12 && (
           <>
-            <h2 className="step-header">Nearly there — any extra context?</h2>
+            <h2 className="step-header">Last one — anything else we should know?</h2>
             <div className="field">
               <label htmlFor="extraContext">Tell us anything else about your ad situation</label>
               <textarea
@@ -275,43 +324,8 @@ export default function Quiz({ answers, setAnswers, onSubmit }) {
                 onChange={(e) => set('extraContext', e.target.value)}
               />
             </div>
-            <button
-              type="button"
-              className="collapse-toggle"
-              aria-expanded={extraOpen}
-              onClick={() => setExtraOpen((o) => !o)}
-            >
-              {extraOpen ? '– Hide extra context' : '+ Add more context'}
-            </button>
-            {extraOpen && (
-              <div className="collapse-body">
-                <div className="field">
-                  <label htmlFor="roas">Current ROAS or CAC if you know it</label>
-                  <input
-                    id="roas"
-                    type="number"
-                    inputMode="decimal"
-                    step="0.1"
-                    min="0"
-                    placeholder="e.g. 2.4"
-                    value={answers.currentROAS}
-                    onChange={(e) => set('currentROAS', e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="headline">Your best-performing ad headline right now</label>
-                  <input
-                    id="headline"
-                    type="text"
-                    placeholder="Optional"
-                    value={answers.bestHeadline}
-                    onChange={(e) => set('bestHeadline', e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-            <button className="btn-primary" onClick={onSubmit}>
-              See my results →
+            <button className="btn-primary" onClick={onComplete}>
+              Build my report →
             </button>
           </>
         )}

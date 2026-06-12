@@ -55,8 +55,8 @@ export default function Landing({ onStart }) {
       </h1>
 
       <p className="subhead reveal" style={{ '--i': 3 }}>
-        Answer 8 quick questions and we’ll build you a personalised revenue
-        recovery estimate — plus a free snapshot of what your competitors’ ads
+        Answer 12 quick questions and we’ll build you a personalised revenue
+        recovery report — plus a free snapshot of what your competitors’ ads
         are saying that yours aren’t.
       </p>
 
@@ -76,14 +76,14 @@ export default function Landing({ onStart }) {
 
       <div className="cta-zone reveal" style={{ '--i': 5 }}>
         <button className="cta-btn" onClick={onStart}>
-          Get my free score →
+          Get my free report →
         </button>
       </div>
 
       <div className="trust-zone reveal" style={{ '--i': 6 }}>
         <p className="trust-line">
-          Built for skincare brands spending{' '}
-          <span className="pill">£10k–£100k+/month</span> on Meta
+          Built for skincare brands doing{' '}
+          <span className="pill">£100k+/month</span> in revenue
         </p>
         <p className="guarantee-line">
           ✓ Free personalised Loom teardown included — no pitch unless you ask

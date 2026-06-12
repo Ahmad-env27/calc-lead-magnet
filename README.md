@@ -1,6 +1,8 @@
 # Audr Revenue Leak Calculator
 
-Lead magnet for Audr — a single-page React quiz/calculator for skincare DTC brands running Meta ads. Cold traffic lands here from Instagram ads, completes an 8-step quiz, and gets a personalised ad-fatigue risk score + revenue recovery estimate. No backend, no routing — pure client-side, deploys as a static site.
+Lead magnet for Audr — a single-page React quiz/report for skincare brands running Meta ads. Cold traffic lands here from Instagram ads, completes a 12-question quiz, unlocks the report with their email, and gets a personalised ad-fatigue risk score + revenue opportunity estimate. No backend, no routing — pure client-side, deploys as a static site.
+
+**Funnel rule (hardline):** no pricing, offers, or guarantee mechanics anywhere in this funnel. The report teases the monthly benefit; money talk happens on the call.
 
 ## Run locally
 
@@ -60,9 +62,10 @@ Events fired:
 src/
   App.jsx          — shell, phase transitions, global state, dev panel
   Landing.jsx      — Phase 1: hero/landing
-  Quiz.jsx         — Phase 2: 8-step form
+  Quiz.jsx         — Phase 2: 12-question quiz (no email — that's the unlock)
+  Unlock.jsx       — Phase 2.5: email unlock ("your report is built")
   Loading.jsx      — Phase 3: theatrical loading (6s)
-  Results.jsx      — Phase 4: gauge, leak card, angles, CTAs, formula footer
+  Results.jsx      — Phase 4: gauge → opportunity card → Loom CTA → evidence
   scoring.js       — calculator formula + lead temperature logic
   angles-data.js   — niche-specific competitor angle content
   webhook.js       — GHL webhook + Meta Pixel (commented out, ready to activate)
@@ -70,13 +73,14 @@ src/
 .claude/skills/    — C.L.E.A.R. UI framework + Product Psychology skills
                      (auto-loaded by Claude Code when iterating on this repo)
 docs/
-  design-rationale.md — how the design decisions map to the two frameworks
+  design-rationale.md  — how the design decisions map to the two frameworks
+  audit-2026-06-12.md  — the conversion audit that drove the v2 changes
 ```
 
 ## Results behaviour by lead temperature
 
 | Temperature | Sections shown |
 |---|---|
-| `super_hot` / `hot` | Full results + Loom teardown CTA + How it works + offer teaser |
-| `warm` | Full results + email course CTA (with 50% Audr discount note) |
-| `cold` | Score + leak estimate + email course CTA only |
+| `super_hot` / `hot` | Gauge + opportunity card + Loom teardown CTA (with Spend Decoder bonus + locked angles) + angles + quick win + how it works |
+| `warm` | Gauge + opportunity card + email course CTA + angles + quick win |
+| `cold` | Gauge + opportunity card (or validation card if they picked "none of these") + email course CTA |

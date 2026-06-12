@@ -1,6 +1,11 @@
 // scoring.js — calculator formula + lead temperature logic
 // All of this runs client-side. The webhook payload (webhook.js) carries the
 // computed values to GHL so routing never has to re-derive them.
+//
+// v2 recalibration (12 Jun audit): ROAS is now a required bracket (not a typed
+// optional), creative volume and cost trend feed the leak, and the output is
+// capped against the revenue tier so edge-case inputs can never produce a
+// number we couldn't defend on a call.
 
 export const SPEND_MIDPOINTS = {
   under_5k: 3000,
@@ -10,11 +15,46 @@ export const SPEND_MIDPOINTS = {
   '100k_plus': 125000,
 }
 
+export const REVENUE_MIDPOINTS = {
+  under_30k: 20000,
+  '30k_60k': 45000,
+  '60k_150k': 100000,
+  '150k_plus': 200000,
+}
+
 const FATIGUE_COEFFICIENTS = {
   weekly: 0.18,
   every_2_3_weeks: 0.22,
   monthly_or_less: 0.26,
   only_when_drops: 0.32,
+}
+
+// Bracket midpoints from the Step 8 multiple-choice. "Not sure" gets a
+// conservative default just under the 2.87x industry average.
+const ROAS_MIDPOINTS = {
+  under_1_5: 1.2,
+  r_1_5_2_5: 2.0,
+  r_2_5_4: 3.2,
+  over_4: 4.5,
+  not_sure: 2.6,
+}
+
+// Brands shipping 8–12 net-new assets/month outperform those recycling 2–3
+// hero videos at the same spend — low volume amplifies the fatigue tax.
+const VOLUME_MULTIPLIERS = {
+  vol_1_2: 1.3,
+  vol_3_7: 1.15,
+  vol_8_12: 1.0,
+  vol_12_plus: 0.85,
+}
+
+// Rising acquisition costs signal the account is already paying the fatigue
+// tax in the auction — a small additive component, not a multiplier.
+const COST_TREND_RATES = {
+  up_lots: 0.06,
+  up_some: 0.03,
+  flat: 0,
+  improved: 0,
 }
 
 // Diversity score derived from Step 5 (refresh rate) + Step 6 (angle diversity).
@@ -30,22 +70,30 @@ export function calculateDiversityScore(refreshRate, angleDiversity) {
 }
 
 export function calculateScore(inputs) {
-  // Component 1: Creative Fatigue Tax
   const spend = SPEND_MIDPOINTS[inputs.spendTier]
+  const revenueMid = REVENUE_MIDPOINTS[inputs.revenue]
+  const roasMid = ROAS_MIDPOINTS[inputs.roasBracket] || 2.6
+
+  // Component 1: Creative Fatigue Tax (volume-adjusted)
   const fatigueCoeff = FATIGUE_COEFFICIENTS[inputs.refreshRate]
   const diversityScore = calculateDiversityScore(inputs.refreshRate, inputs.angleDiversity)
+  const volumeMult = VOLUME_MULTIPLIERS[inputs.creativeVolume] || 1.0
+  const fatigueTax = spend * fatigueCoeff * (1 - diversityScore) * volumeMult
 
-  const fatigueTax = spend * fatigueCoeff * (1 - diversityScore)
+  // Component 2: Efficiency Gap vs the 3.2 benchmark for optimised brands
+  const efficiencyGap = Math.max(0, 3.2 - roasMid) * spend * 0.35
 
-  // Component 2: Efficiency Gap (only if they shared a ROAS)
-  let efficiencyGap = 0
-  if (inputs.currentROAS && inputs.currentROAS < 3.2) {
-    efficiencyGap = (3.2 - inputs.currentROAS) * spend * 0.35
-  }
+  // Component 3: Cost-creep tax
+  const costTrendTax = spend * (COST_TREND_RATES[inputs.costTrend] || 0)
 
-  const totalLeak = fatigueTax + efficiencyGap
-  // Floor at £700/month — disciplined brands shouldn't see an embarrassingly small number
-  const recoverableMonthly = Math.max(totalLeak * 0.55, 700)
+  let recoverableMonthly = (fatigueTax + efficiencyGap + costTrendTax) * 0.55
+
+  // Guardrail 1: cap against revenue so implausible spend/revenue combos can
+  // never output a fantasy number (max ~15% of monthly revenue midpoint)
+  recoverableMonthly = Math.min(recoverableMonthly, revenueMid * 0.15)
+
+  // Guardrail 2: floor the midpoint so the displayed low never reads as noise
+  recoverableMonthly = Math.max(recoverableMonthly, 1000)
 
   // Display range (±30%)
   const leakLow = Math.round(recoverableMonthly * 0.7)
@@ -72,10 +120,13 @@ export function calculateScore(inputs) {
     '50k_100k': 8,
     '100k_plus': 10,
   }[inputs.spendTier]
+  score += { up_lots: 4, up_some: 2, flat: 0, improved: -3 }[inputs.costTrend] || 0
+  score += { vol_1_2: 4, vol_3_7: 1, vol_8_12: 0, vol_12_plus: -3 }[inputs.creativeVolume] || 0
+  score += { under_1_5: 4, r_1_5_2_5: 1, r_2_5_4: 0, over_4: 0, not_sure: 1 }[inputs.roasBracket] || 0
   score = Math.max(12, Math.min(97, Math.round(score)))
 
-  // % improvement framing vs an assumed 2.5x baseline return on spend
-  const currentReturn = spend * 2.5
+  // % improvement framing, grounded in their actual return bracket
+  const currentReturn = spend * roasMid
   const impLow = Math.max(1, Math.round((leakLow / currentReturn) * 100))
   const impHigh = Math.max(impLow + 1, Math.round((leakHigh / currentReturn) * 100))
 
@@ -88,10 +139,8 @@ export function calculateScore(inputs) {
     impLow,
     impHigh,
     spend,
-    feeROI: (leakLow * 12) / 60000, // vs £60k annual fee
-    // Self-reported ROAS of 8x+ means paid is a small slice of their revenue —
-    // show the "more room to scale" note instead of pretending the leak is huge.
-    unrealisticROAS: !!inputs.currentROAS && inputs.currentROAS >= 8,
+    // 4x+ return brands get a "room to scale" note instead of a leak lecture
+    strongROAS: inputs.roasBracket === 'over_4',
   }
 }
 

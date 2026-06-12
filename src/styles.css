@@ -12,7 +12,7 @@
   --border-strong: #34343d;
   --text: #f4f2ec;
   --muted: #a3a0a9;
-  --faint: #6f6c78;
+  --faint: #84818e;
 
   --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -31,8 +31,6 @@
   --risk-critical: #e25c50;
 
   /* Tinted cards */
-  --tint-red-bg: linear-gradient(165deg, rgba(226, 92, 80, 0.16), rgba(226, 92, 80, 0.05));
-  --tint-red-border: rgba(226, 92, 80, 0.32);
   --tint-green-bg: linear-gradient(165deg, rgba(84, 201, 127, 0.13), rgba(84, 201, 127, 0.04));
   --tint-green-border: rgba(84, 201, 127, 0.3);
   --tint-purple-bg: linear-gradient(165deg, rgba(143, 124, 245, 0.18), rgba(143, 124, 245, 0.05));
@@ -591,24 +589,53 @@ h2 {
   color: var(--muted);
 }
 
-/* Step 8 collapsible */
-.collapse-toggle {
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 14px;
-  padding: 8px 0;
-  min-height: 44px;
+/* Quiet acknowledgment line (quiz) */
+.quiz-note {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 12px 0 4px;
 }
 
-.collapse-body {
-  border-left: 2px solid var(--border);
-  padding-left: 14px;
-  margin: 4px 0 8px;
+/* --------------------------------------------------------------------------
+   Phase 2.5 — Email unlock
+   -------------------------------------------------------------------------- */
+
+.unlock {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 18px 0 48px;
 }
 
-.collapse-body .field {
-  margin: 12px 0;
+.unlock-back {
+  align-self: flex-start;
+}
+
+.unlock-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding-bottom: 10vh;
+}
+
+.unlock-header {
+  font-size: 26px;
+  line-height: 1.2;
+  margin-top: 6px;
+}
+
+.unlock-sub {
+  color: var(--muted);
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.unlock-trust {
+  color: var(--faint);
+  font-size: 12.5px;
+  margin-top: 12px;
 }
 
 /* --------------------------------------------------------------------------
@@ -724,16 +751,27 @@ h2 {
 }
 
 /* Tinted cards */
-.leak-card,
+.opportunity-card,
+.validation-card,
 .quickwin-card,
 .loom-card {
   border-radius: 8px;
   padding: 22px 20px;
 }
 
-.leak-card {
-  background: var(--tint-red-bg);
-  border: 1px solid var(--tint-red-border);
+/* The payoff card — opportunity framing in the accent, never loss-red */
+.opportunity-card {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--accent) 15%, transparent),
+    color-mix(in srgb, var(--accent) 4%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+.validation-card {
+  background: var(--tint-green-bg);
+  border: 1px solid var(--tint-green-border);
 }
 
 .card-kicker {
@@ -916,6 +954,65 @@ h2 {
   padding: 14px 16px;
 }
 
+/* Teardown deliverables */
+.deliv-list {
+  list-style: none;
+  margin: 12px 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deliv-list li {
+  font-size: 13.5px;
+  color: var(--text);
+  padding-left: 18px;
+  position: relative;
+}
+
+.deliv-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* Named-but-locked angles — the curiosity gap, made concrete */
+.locked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.locked-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+.locked-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.locked-tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 999px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
 /* Section F — how it works */
 .steps-list {
   list-style: none;
@@ -967,36 +1064,13 @@ h2 {
   margin-top: 20px;
 }
 
-/* Section G — offer teaser */
-.stat-cards {
-  display: flex;
-  gap: 10px;
-}
-
-.stat-card {
-  flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px 10px;
-  text-align: center;
-}
-
-.stat-value {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--accent);
-  white-space: nowrap;
-}
-
-.stat-label {
-  display: block;
+/* Compounding tease — benefit language only, no pricing */
+.compound-note {
   color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.35;
-  margin-top: 4px;
+  font-size: 14px;
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+  margin: 18px 0 16px;
 }
 
 .expand-link {
@@ -1007,29 +1081,6 @@ h2 {
   padding: 10px 0;
   min-height: 44px;
   display: block;
-}
-
-.guarantee-detail {
-  color: var(--muted);
-  font-size: 13.5px;
-  border-left: 2px solid var(--accent);
-  padding-left: 14px;
-  margin-bottom: 8px;
-}
-
-.text-link {
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 13.5px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  padding: 8px 0;
-  min-height: 44px;
-}
-
-.text-link:hover {
-  color: var(--text);
 }
 
 /* Bottom — show the working */

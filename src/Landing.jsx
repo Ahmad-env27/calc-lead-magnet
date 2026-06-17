@@ -1,24 +1,6 @@
 // Phase 1 — Landing. Hook with curiosity + loss aversion; the perceived cost
 // is trivially low (8 questions, ~60 seconds). Everything above the fold.
 
-const VALUE_CARDS = [
-  {
-    icon: '🎯',
-    title: 'Your Risk Score',
-    desc: 'How exposed your brand is to creative fatigue',
-  },
-  {
-    icon: '💰',
-    title: 'Your Revenue Leak',
-    desc: 'The monthly opportunity you’re likely leaving on the table',
-  },
-  {
-    icon: '🔍',
-    title: 'Your Competitor Gaps',
-    desc: 'What 3 competitors are saying that you’re not',
-  },
-]
-
 export default function Landing({ onStart }) {
   return (
     <main className="landing">
@@ -55,38 +37,24 @@ export default function Landing({ onStart }) {
       </h1>
 
       <p className="subhead reveal" style={{ '--i': 3 }}>
-        Answer 12 quick questions and we’ll build you a personalised revenue
-        recovery report — plus a free snapshot of what your competitors’ ads
-        are saying that yours aren’t.
+        Answer 12 quick questions and get your Revenue Leak Report — your
+        creative fatigue risk score and how much monthly revenue your skincare
+        brand is leaving behind.
       </p>
 
-      <div className="value-cards reveal" style={{ '--i': 4 }}>
-        {VALUE_CARDS.map((c) => (
-          <div className="value-card" key={c.title}>
-            <span className="value-icon" aria-hidden="true">
-              {c.icon}
-            </span>
-            <div>
-              <span className="value-title">{c.title}</span>
-              <span className="value-desc">{c.desc}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="cta-zone reveal" style={{ '--i': 5 }}>
+      <div className="cta-zone reveal" style={{ '--i': 4 }}>
         <button className="cta-btn" onClick={onStart}>
           Get my free report →
         </button>
       </div>
 
-      <div className="trust-zone reveal" style={{ '--i': 6 }}>
+      <div className="trust-zone reveal" style={{ '--i': 5 }}>
         <p className="trust-line">
           Built for skincare brands doing{' '}
           <span className="pill">£100k+/month</span> in revenue
         </p>
         <p className="guarantee-line">
-          ✓ Free personalised Loom teardown included — no pitch unless you ask
+          ✓ Free Loom teardown included — yours to keep, no strings
         </p>
       </div>
     </main>

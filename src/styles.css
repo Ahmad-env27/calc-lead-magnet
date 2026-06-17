@@ -235,44 +235,6 @@ h2 {
   max-width: 44ch;
 }
 
-.value-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  margin-top: 4px;
-}
-
-.value-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-align: left;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 11px 14px;
-}
-
-.value-icon {
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-.value-title {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.value-desc {
-  display: block;
-  color: var(--muted);
-  font-size: 12.5px;
-  line-height: 1.4;
-}
-
 .cta-zone {
   position: relative;
   margin-top: 8px;
@@ -322,19 +284,6 @@ h2 {
   font-size: 12.5px;
 }
 
-/* Wider screens: value cards go horizontal */
-@media (min-width: 640px) {
-  .value-cards {
-    flex-direction: row;
-  }
-  .value-card {
-    flex: 1;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 14px;
-  }
-}
 
 /* --------------------------------------------------------------------------
    Phase 2 — Quiz
@@ -636,6 +585,37 @@ h2 {
   color: var(--faint);
   font-size: 12.5px;
   margin-top: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Phase 2.75 — Scoring (pre-unlock labor illusion)
+   -------------------------------------------------------------------------- */
+
+.scoring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 100dvh;
+  gap: 26px;
+}
+
+.scoring-bar-track {
+  width: 200px;
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.scoring-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 3.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* --------------------------------------------------------------------------

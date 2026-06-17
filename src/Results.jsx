@@ -163,13 +163,13 @@ function LoomCard({ answers, claimed, onClaim }) {
       {claimed ? (
         <p className="claim-confirm">
           Done — your teardown is queued. We’ll email {answers.email} within 48 hours with your
-          Loom link and a booking link for the live walkthrough. Nothing else to do for now.
+          Loom link and a booking link for your free consultation. Nothing else to do for now.
         </p>
       ) : (
         <>
           <p className="loom-body">
-            We’ll prepare a personalised Loom teardown for {brand} — a 15-minute video plus a
-            30-minute live walkthrough. It includes:
+            We’ll prepare a personalised Loom teardown for {brand} — a 5-minute video plus a
+            30-minute free consultation. It includes:
           </p>
           <ul className="deliv-list">
             <li>Your competitor messaging analysis — what brands in your lane are saying that you’re not</li>
@@ -191,9 +191,9 @@ function LoomCard({ answers, claimed, onClaim }) {
               <span className="locked-tag">IN TEARDOWN</span>
             </div>
           </div>
-          <p className="derisk">No pitch unless you ask.</p>
+          <p className="derisk">The insights are yours whether we work together or not.</p>
           <button className="cta-btn cta-full" onClick={onClaim}>
-            Claim your free Loom teardown →
+            Get your free Loom teardown →
           </button>
           <p className="delivery-note">
             Prepared within 48 hours of booking. We review every teardown with a human
@@ -357,19 +357,19 @@ export default function Results({ answers, results }) {
                 <div>
                   <span className="step-title">Watch, ask, decide</span>
                   <span className="step-desc">
-                    Live walkthrough of findings + action plan. No obligation, no pitch.
+                    Free consultation — we walk through the findings and build an action plan
+                    together. No obligation.
                   </span>
                 </div>
               </li>
             </ol>
             <p className="compound-note">
-              Worth saying: the range above is monthly. Recovered properly, it doesn’t happen
-              once — it repeats and compounds as the messaging improves. That’s the conversation
-              worth having.
+              Worth saying: this compounds. As the messaging improves month over month, each
+              cycle builds on the last. That’s the conversation worth having.
             </p>
             {!loomClaimed && (
               <button className="cta-btn cta-full" onClick={claimLoom}>
-                Claim your free Loom teardown →
+                Get your free Loom teardown →
               </button>
             )}
             <p className="powered-by">

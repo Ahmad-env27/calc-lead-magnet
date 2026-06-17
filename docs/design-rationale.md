@@ -42,6 +42,27 @@ This page exists so future iterations don't accidentally undo deliberate decisio
 - **Show the working (trust mechanic):** the formula footer admits its own limits ("brands that spray underfunded tests will read higher than they are"). One line of honesty against interest outperforms social-proof badges this brand doesn't have yet.
 - **Ethics / Regret Test:** scarcity and countdown patterns were deliberately *not* used — there is no real scarcity, and a fake one fails the Regret Test with an audience this sophisticated. The £700/month floor and the >8x-ROAS honesty note keep the calculator a Facilitator, not an Exploiter.
 
+## Changes applied 15 Jun 2026 (C.L.E.A.R. + Product Psychology audit)
+
+### Split Labor Illusion (pre-unlock + post-unlock)
+- **Before:** Quiz → instant "REPORT READY" → email → 6s loading → results. The instant jump from "Build my report" to "Your report is built" felt canned — undercuts the Labor Illusion because visible work happens after the value claim, not before it.
+- **After:** Quiz → 4s scoring screen (progress bar + "Scoring your answers…" / "Calculating your risk profile…") → unlock screen → email → 4s loading (spinner + "Pulling competitor insights…" / "Building your personalised report…") → results.
+- **Why two, not one:** They serve different psychological functions. Pre-unlock labor validates their investment and makes the "report ready" claim feel earned (primes the email ask at peak Curiosity Gap + Sunk Cost). Post-unlock labor builds anticipation for the peak moment (gauge + number reveal). Different visuals (progress bar vs. spinning ring) prevent repetition.
+
+### "No pitch unless you ask" → positive reframe
+- **Principle:** Priming effect (Block). Saying "no pitch" plants the word "pitch" and surfaces the anxiety it's trying to neutralise. Repeating it three times across the funnel reads as defensive.
+- **Fix:** Replaced with positive framing that addresses the same objection via generosity, not restraint: "yours to keep, no strings" (landing), "The insights are yours whether we work together or not" (Loom card), "No obligation" (How it Works).
+
+### "Claim" → "Get" in CTA
+- **Principle:** "Claim" carries Scarcity connotation (claim before it's gone). The design rationale explicitly avoids fake scarcity — "Claim" was an inconsistency. "Get" is Feedforward without the urgency implication.
+
+### Video length + format correction
+- Loom video: 15 minutes → 5 minutes. "Live walkthrough" → "free consultation." Copy now matches the actual deliverable.
+
+### Compound-note softened
+- **Before:** "Worth saying: the range above is monthly. Recovered properly, it doesn't happen once — it repeats and compounds…" — re-states the monthly loss, echoing the one permitted loss line.
+- **After:** "Worth saying: this compounds. As the messaging improves month over month, each cycle builds on the last." — keeps the compounding insight but frames it as growing returns (opportunity), not recurring loss. One-loss-line rule preserved.
+
 ## Things intentionally NOT done
 
 - No gradient blobs, glassmorphism, or icon libraries (template signals).

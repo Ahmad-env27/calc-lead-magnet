@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Landing from './Landing.jsx'
 import Quiz from './Quiz.jsx'
+import Scoring from './Scoring.jsx'
 import Unlock from './Unlock.jsx'
 import Loading from './Loading.jsx'
 import Results from './Results.jsx'
@@ -56,7 +57,7 @@ function toScoringInputs(answers) {
 }
 
 export default function App() {
-  // landing | quiz | unlock | loading | results
+  // landing | quiz | scoring | unlock | loading | results
   const [phase, setPhase] = useState('landing')
   const [answers, setAnswers] = useState(INITIAL_ANSWERS)
   const [results, setResults] = useState(null)
@@ -65,8 +66,8 @@ export default function App() {
     firePageView()
   }, [])
 
-  // Quiz finished → the report is "built"; email unlocks it
-  const completeQuiz = () => setPhase('unlock')
+  // Quiz finished → scoring animation → then email unlock
+  const completeQuiz = () => setPhase('scoring')
 
   const unlockReport = (email) => {
     const finalAnswers = { ...answers, email }
@@ -104,6 +105,12 @@ export default function App() {
       {phase === 'landing' && <Landing onStart={() => setPhase('quiz')} />}
       {phase === 'quiz' && (
         <Quiz answers={answers} setAnswers={setAnswers} onComplete={completeQuiz} />
+      )}
+      {phase === 'scoring' && (
+        <Scoring
+          brandName={answers.brandName}
+          onDone={() => setPhase('unlock')}
+        />
       )}
       {phase === 'unlock' && (
         <Unlock

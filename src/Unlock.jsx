@@ -61,8 +61,7 @@ export default function Unlock({ brandName, email, onSubmit, onBack }) {
         </button>
 
         <p className="unlock-trust">
-          No spam, no pitch unless you ask. One short course email a day for five days, then we
-          leave you alone.
+          No spam. One short email a day for five days, then we leave you alone.
         </p>
       </div>
     </main>

@@ -122,18 +122,26 @@ export async function fireWebhook(data) {
     timestamp: new Date().toISOString(),
   }
   const payload = mapPayload(raw)
+  const body = JSON.stringify(payload)
 
-  try {
-    await fetch(GHL_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-  } catch (e) {
-    console.error('Webhook failed:', e)
+  const fetchConfig = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
   }
 
-  console.log('[DEV] Webhook payload:', JSON.stringify(payload, null, 2))
+  console.log('[WEBHOOK] URL:', GHL_WEBHOOK_URL)
+  console.log('[WEBHOOK] Config:', JSON.stringify({ method: fetchConfig.method, headers: fetchConfig.headers }, null, 2))
+  console.log('[WEBHOOK] Body:', body)
+
+  try {
+    const res = await fetch(GHL_WEBHOOK_URL, fetchConfig)
+    console.log('[WEBHOOK] Response status:', res.status)
+    const text = await res.text().catch(() => '(unreadable)')
+    console.log('[WEBHOOK] Response body:', text)
+  } catch (e) {
+    console.error('[WEBHOOK] Network error:', e)
+  }
 }
 
 // Fires when someone clicks "Claim your free Loom teardown" or the email-course

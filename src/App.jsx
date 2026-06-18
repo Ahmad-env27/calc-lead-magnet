@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Landing from './Landing.jsx'
 import Quiz from './Quiz.jsx'
 import Scoring from './Scoring.jsx'
@@ -61,6 +61,7 @@ export default function App() {
   const [phase, setPhase] = useState('landing')
   const [answers, setAnswers] = useState(INITIAL_ANSWERS)
   const [results, setResults] = useState(null)
+  const webhookFired = useRef(false)
 
   useEffect(() => {
     firePageView()
@@ -70,6 +71,9 @@ export default function App() {
   const completeQuiz = () => setPhase('scoring')
 
   const unlockReport = (email) => {
+    if (webhookFired.current) return
+    webhookFired.current = true
+
     const finalAnswers = { ...answers, email }
     setAnswers(finalAnswers)
 
@@ -87,6 +91,7 @@ export default function App() {
   }
 
   const reset = () => {
+    webhookFired.current = false
     setAnswers(INITIAL_ANSWERS)
     setResults(null)
     setPhase('landing')

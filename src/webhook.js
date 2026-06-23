@@ -110,6 +110,7 @@ export async function fireWebhook(data) {
   const raw = {
     email: data.email,
     brand_name: data.brandName,
+    website_url: data.websiteUrl || null,
     brand_type: data.brandType,
     revenue_tier: data.revenue,
     spend_tier: data.spendTier,
@@ -120,6 +121,7 @@ export async function fireWebhook(data) {
     cost_trend: data.costTrend,
     roas_bracket: data.roasBracket,
     creative_volume: data.creativeVolume,
+    best_hook: data.bestHook || null,
     ads_made_by: data.adsMadeBy,
     frustrations: data.frustrations,
     extra_context: data.extraContext,

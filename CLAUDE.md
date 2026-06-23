@@ -1,6 +1,8 @@
 # Audr Lead Magnet — project notes
 
-Single-page Vite + React 18 lead magnet for Audr (paid media consultancy for UK skincare brands). Six state-driven phases in `App.jsx`: landing → quiz (13 questions, no email) → scoring (11s labor illusion + LLM insights) → email unlock → loading (4s theatrical) → results. Express backend (`server/`) serves the built SPA and a `/api/insights` endpoint (Claude Haiku for personalised insights). GHL webhook + Meta Pixel are written but commented out (search `ACTIVATE:` in `src/webhook.js` and `index.html`).
+Single-page Vite + React 18 lead magnet for Audr (paid media consultancy for UK skincare brands). Six state-driven phases in `App.jsx`: landing → quiz (14 questions, no email) → scoring (11s labor illusion + LLM insights) → email unlock → loading (4s theatrical) → results. Express backend (`server/`) serves the built SPA and a `/api/insights` endpoint (Claude Haiku for 4-part personalised diagnosis). GHL webhook + Meta Pixel are written but commented out (search `ACTIVATE:` in `src/webhook.js` and `index.html`).
+
+Quiz additions (23 Jun 2026): optional website URL on Step 1 (for hyper-personalised results), best-performing hook question at Step 11 (maps creative angle coverage), updated Q14 extraContext microcopy. Results page now includes: fatigue decay curve (parameterised SVG by spend tier × refresh rate), creative angle radar chart (5 axes derived from quiz answers), and 4-part AI diagnosis (what's working / the leak / missing angle / test brief) instead of the previous 3-bullet format.
 
 **Hardline rules (Ahmad, 12 Jun 2026):**
 - No pricing, offers, fees, or guarantee mechanics anywhere in the funnel. The results page teases monthly benefit only; money talk happens on the call.

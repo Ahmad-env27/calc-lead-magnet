@@ -266,19 +266,228 @@ function SpendDecoder({ answers, results }) {
   )
 }
 
-// --- Section: LLM-generated personalised insights ---------------------------
+// --- Section: 4-part AI diagnosis -------------------------------------------
 
-function PersonalisedInsights({ insights, brandName }) {
-  if (!insights || insights.length === 0) return null
+const DIAGNOSIS_LABELS = {
+  whats_working: "What's working",
+  the_leak: 'Where the leak is',
+  missing_angle: "The angle you're missing",
+  test_brief: 'Test this week',
+}
+
+const DIAGNOSIS_ICONS = {
+  whats_working: '✓',
+  the_leak: '⚠',
+  missing_angle: '→',
+  test_brief: '⚡',
+}
+
+function DiagnosisSection({ insights, brandName }) {
+  if (!insights || typeof insights !== 'object') return null
+  if (!insights.whats_working) return null
+
+  const keys = ['whats_working', 'the_leak', 'missing_angle', 'test_brief']
 
   return (
-    <div className="insights-section">
-      <h3 className="insights-title">What this means for {brandName || 'your brand'}</h3>
-      <ul className="insights-list">
-        {insights.map((insight, i) => (
-          <li key={i} className="insight-item">{insight}</li>
+    <div className="diagnosis-section">
+      <h3 className="diagnosis-title">What this means for {brandName || 'your brand'}</h3>
+      <div className="diagnosis-grid">
+        {keys.map((key) => {
+          const val = insights[key]
+          if (!val) return null
+          return (
+            <div key={key} className={`diagnosis-card diagnosis-${key}`}>
+              <span className="diagnosis-icon">{DIAGNOSIS_ICONS[key]}</span>
+              <div>
+                <span className="diagnosis-label">{DIAGNOSIS_LABELS[key]}</span>
+                <p className="diagnosis-text">{val}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// --- Section: Decay curve placeholder (spend x refresh) --------------------
+
+const SPEND_INDEX = { under_5k: 0, '5k_15k': 1, '15k_50k': 2, '50k_100k': 3, '100k_plus': 3 }
+const REFRESH_INDEX = { weekly: 0, every_2_3_weeks: 1, monthly_or_less: 2, only_when_drops: 3 }
+const REFRESH_WEEK = { weekly: 1, every_2_3_weeks: 2, monthly_or_less: 4, only_when_drops: 8 }
+
+function getDecayCurve(spendTier, refreshRate) {
+  const base = 0.04 + SPEND_INDEX[spendTier] * 0.06
+  const accel = 1.0 + REFRESH_INDEX[refreshRate] * 0.4
+  const points = []
+  for (let w = 1; w <= 12; w++) {
+    const cpa = 1.0 + base * Math.pow(w, accel * 0.65)
+    points.push({ week: w, cpa: Math.min(cpa, 5.2) })
+  }
+  return points
+}
+
+function DecayCurve({ spendTier, refreshRate }) {
+  const points = getDecayCurve(spendTier, refreshRate)
+  const markerWeek = REFRESH_WEEK[refreshRate] || 4
+
+  const W = 440
+  const H = 200
+  const PAD_L = 40
+  const PAD_R = 10
+  const PAD_T = 10
+  const PAD_B = 30
+  const plotW = W - PAD_L - PAD_R
+  const plotH = H - PAD_T - PAD_B
+
+  const maxCPA = 5.2
+  const x = (w) => PAD_L + ((w - 1) / 11) * plotW
+  const y = (cpa) => PAD_T + plotH - ((cpa - 1) / (maxCPA - 1)) * plotH
+
+  const pathD = points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(p.week).toFixed(1)} ${y(p.cpa).toFixed(1)}`)
+    .join(' ')
+
+  const dangerY = y(1.5)
+  const marker = points.find((p) => p.week === markerWeek) || points[3]
+  const cliffWeek = points.find((p) => p.cpa >= 2.0)?.week
+
+  return (
+    <div className="decay-curve">
+      <p className="card-kicker">YOUR FATIGUE DECAY CURVE</p>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" aria-label="CPA decay curve showing how your cost per acquisition rises over weeks without a creative refresh">
+        <rect x={PAD_L} y={dangerY} width={plotW} height={y(1) - dangerY} fill="rgba(226, 92, 80, 0.08)" />
+        <line x1={PAD_L} y1={dangerY} x2={PAD_L + plotW} y2={dangerY} stroke="var(--risk-critical)" strokeWidth="0.5" strokeDasharray="4 3" opacity="0.5" />
+        <text x={PAD_L + 4} y={dangerY - 3} fill="var(--risk-critical)" fontSize="8" opacity="0.7">danger zone</text>
+
+        {[1.0, 2.0, 3.0, 4.0, 5.0].map((v) => (
+          <g key={v}>
+            <line x1={PAD_L} y1={y(v)} x2={PAD_L + plotW} y2={y(v)} stroke="var(--border)" strokeWidth="0.5" />
+            <text x={PAD_L - 4} y={y(v) + 3} fill="var(--faint)" fontSize="8" textAnchor="end">{v.toFixed(1)}x</text>
+          </g>
         ))}
-      </ul>
+
+        {[1, 3, 5, 7, 9, 11].map((w) => (
+          <text key={w} x={x(w)} y={H - 6} fill="var(--faint)" fontSize="8" textAnchor="middle">W{w}</text>
+        ))}
+
+        <path d={pathD} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+        <circle cx={x(marker.week)} cy={y(marker.cpa)} r="5" fill="var(--accent)" stroke="var(--bg)" strokeWidth="2" />
+        <text x={x(marker.week)} y={y(marker.cpa) - 10} fill="var(--accent)" fontSize="9" fontWeight="600" textAnchor="middle">you are here</text>
+      </svg>
+      <div className="decay-legend">
+        <span className="decay-axis-label">Weeks since last creative refresh</span>
+        {cliffWeek && (
+          <span className="decay-cliff-note">
+            Your fatigue cliff: ~week {cliffWeek}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// --- Section: Radar chart placeholder (5 creative angles) -------------------
+
+function estimateCoverage(answers) {
+  let pain = 30, transformation = 30, social = 30, science = 30, founder = 30
+
+  if (answers.angleDiversity === 'yes_same') {
+    pain = 20; transformation = 20; social = 15; science = 15; founder = 10
+  } else if (answers.angleDiversity === 'probably') {
+    pain = 45; transformation = 35; social = 25; science = 30; founder = 15
+  } else if (answers.angleDiversity === 'no_varied') {
+    pain = 55; transformation = 50; social = 45; science = 50; founder = 35
+  }
+
+  if (answers.brandType === 'skincare') { science += 20; pain += 10 }
+  if (answers.brandType === 'wellness') { transformation += 20; science += 10 }
+  if (answers.brandType === 'beauty') { social += 15; transformation += 15 }
+
+  if (answers.frustrations?.includes('same_message')) { pain += 15; transformation -= 5 }
+  if (answers.frustrations?.includes('customer_language')) { social -= 15 }
+  if (answers.adsMadeBy === 'founder') { founder += 20 }
+
+  const hook = (answers.bestHook || '').toLowerCase()
+  if (hook.includes('before') || hook.includes('after') || hook.includes('transform')) transformation += 25
+  if (hook.includes('review') || hook.includes('ugc') || hook.includes('testimonial')) social += 25
+  if (hook.includes('ingredient') || hook.includes('science') || hook.includes('clinical')) science += 25
+  if (hook.includes('pain') || hook.includes('problem') || hook.includes('frustrat')) pain += 25
+  if (hook.includes('founder') || hook.includes('story') || hook.includes('mission')) founder += 25
+
+  const clamp = (v) => Math.max(5, Math.min(95, v))
+  return [
+    { label: 'Pain / Problem', value: clamp(pain) },
+    { label: 'Transformation', value: clamp(transformation) },
+    { label: 'Social Proof', value: clamp(social) },
+    { label: 'Science / Ingredient', value: clamp(science) },
+    { label: 'Founder Story', value: clamp(founder) },
+  ]
+}
+
+function RadarChart({ answers }) {
+  const axes = estimateCoverage(answers)
+  const N = axes.length
+  const CX = 150, CY = 140, R = 100
+  const IDEAL = 70
+
+  const angle = (i) => (Math.PI * 2 * i) / N - Math.PI / 2
+  const px = (i, pct) => CX + R * (pct / 100) * Math.cos(angle(i))
+  const py = (i, pct) => CY + R * (pct / 100) * Math.sin(angle(i))
+
+  const userPath = axes.map((a, i) => `${i === 0 ? 'M' : 'L'} ${px(i, a.value).toFixed(1)} ${py(i, a.value).toFixed(1)}`).join(' ') + ' Z'
+  const idealPath = axes.map((_, i) => `${i === 0 ? 'M' : 'L'} ${px(i, IDEAL).toFixed(1)} ${py(i, IDEAL).toFixed(1)}`).join(' ') + ' Z'
+
+  const weakest = axes.reduce((min, a) => a.value < min.value ? a : min, axes[0])
+  const strongest = axes.reduce((max, a) => a.value > max.value ? a : max, axes[0])
+
+  return (
+    <div className="radar-chart">
+      <p className="card-kicker">YOUR CREATIVE ANGLE COVERAGE</p>
+      <div className="radar-legend">
+        <span className="radar-legend-item"><span className="radar-dot radar-dot-user" /> Your estimated coverage</span>
+        <span className="radar-legend-item"><span className="radar-dot radar-dot-ideal" /> Ideal balanced coverage</span>
+      </div>
+      <svg viewBox="0 0 300 290" width="100%" aria-label="Radar chart showing creative angle coverage across 5 dimensions">
+        {[25, 50, 75, 100].map((ring) => (
+          <polygon
+            key={ring}
+            points={axes.map((_, i) => `${px(i, ring).toFixed(1)},${py(i, ring).toFixed(1)}`).join(' ')}
+            fill="none" stroke="var(--border)" strokeWidth="0.5"
+          />
+        ))}
+
+        {axes.map((_, i) => (
+          <line key={i} x1={CX} y1={CY} x2={px(i, 100)} y2={py(i, 100)} stroke="var(--border)" strokeWidth="0.5" />
+        ))}
+
+        <path d={idealPath} fill="rgba(84, 201, 127, 0.08)" stroke="var(--risk-low)" strokeWidth="1" strokeDasharray="4 3" />
+        <path d={userPath} fill="rgba(240, 166, 60, 0.15)" stroke="var(--accent)" strokeWidth="2" />
+
+        {axes.map((a, i) => (
+          <circle key={i} cx={px(i, a.value)} cy={py(i, a.value)} r="4" fill="var(--accent)" stroke="var(--bg)" strokeWidth="1.5" />
+        ))}
+
+        {axes.map((a, i) => {
+          const labelR = R + 22
+          const lx = CX + labelR * Math.cos(angle(i))
+          const ly = CY + labelR * Math.sin(angle(i))
+          return (
+            <text key={i} x={lx} y={ly} fill="var(--muted)" fontSize="9" textAnchor="middle" dominantBaseline="middle">
+              {a.label}
+            </text>
+          )
+        })}
+      </svg>
+      <div className="radar-insight">
+        <p className="radar-insight-text">
+          <strong>Biggest gap:</strong> {weakest.label} ({weakest.value}%) — this is likely your next creative brief.
+          {strongest.label !== weakest.label && (
+            <> Your strongest signal is {strongest.label} ({strongest.value}%).</>
+          )}
+        </p>
+      </div>
     </div>
   )
 }
@@ -364,10 +573,24 @@ export default function Results({ answers, results, insights }) {
         </section>
       )}
 
-      {/* Personalised insights from LLM */}
-      {insights && insights.length > 0 && (
+      {/* Decay curve — personalised to spend tier x refresh rate */}
+      {!disqualified && answers.spendTier && answers.refreshRate && (
         <section className="rsection" style={stagger()}>
-          <PersonalisedInsights insights={insights} brandName={answers.brandName} />
+          <DecayCurve spendTier={answers.spendTier} refreshRate={answers.refreshRate} />
+        </section>
+      )}
+
+      {/* Radar chart — creative angle coverage */}
+      {!disqualified && (
+        <section className="rsection" style={stagger()}>
+          <RadarChart answers={answers} />
+        </section>
+      )}
+
+      {/* 4-part AI diagnosis */}
+      {insights && insights.whats_working && (
+        <section className="rsection" style={stagger()}>
+          <DiagnosisSection insights={insights} brandName={answers.brandName} />
         </section>
       )}
 

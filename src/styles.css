@@ -849,47 +849,159 @@ h2 {
   margin-top: 14px;
 }
 
-/* Personalised insights */
-.insights-section {
+/* 4-part AI diagnosis */
+.diagnosis-section {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 24px 20px;
 }
 
-.insights-title {
+.diagnosis-title {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 16px;
-  margin: 0 0 14px 0;
+  margin: 0 0 16px 0;
 }
 
-.insights-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.diagnosis-grid {
   display: flex;
   flex-direction: column;
+  gap: 14px;
+}
+
+.diagnosis-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+.diagnosis-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 13px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+.diagnosis-whats_working .diagnosis-icon { background: rgba(84, 201, 127, 0.15); color: var(--risk-low); }
+.diagnosis-the_leak .diagnosis-icon { background: rgba(240, 166, 60, 0.15); color: var(--accent); }
+.diagnosis-missing_angle .diagnosis-icon { background: rgba(143, 124, 245, 0.15); color: #a78bfa; }
+.diagnosis-test_brief .diagnosis-icon { background: rgba(240, 166, 60, 0.15); color: var(--accent); }
+
+.diagnosis-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  margin-bottom: 4px;
+}
+
+.diagnosis-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* Decay curve */
+.decay-curve {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 20px;
+}
+
+.decay-curve svg {
+  display: block;
+  margin-top: 12px;
+}
+
+.decay-legend {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
   gap: 12px;
 }
 
-.insight-item {
-  position: relative;
-  padding-left: 16px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.55;
+.decay-axis-label {
+  font-size: 10px;
+  color: var(--faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.insight-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 8px;
-  width: 6px;
-  height: 6px;
+.decay-cliff-note {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--risk-critical);
+}
+
+/* Radar chart */
+.radar-chart {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 20px;
+}
+
+.radar-chart svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 300px;
+}
+
+.radar-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.radar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--faint);
+}
+
+.radar-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.radar-dot-user { background: var(--accent); }
+.radar-dot-ideal { background: var(--risk-low); opacity: 0.6; }
+
+.radar-insight {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.radar-insight-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0;
+}
+
+.radar-insight-text strong {
+  color: var(--text);
 }
 
 /* Section C — angle cards */

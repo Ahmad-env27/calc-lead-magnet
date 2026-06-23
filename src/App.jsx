@@ -11,6 +11,7 @@ import { fetchInsights } from './api.js'
 
 const INITIAL_ANSWERS = {
   brandName: '',
+  websiteUrl: '',
   brandType: null,
   revenue: null,
   spendTier: null,
@@ -21,6 +22,7 @@ const INITIAL_ANSWERS = {
   costTrend: null,
   roasBracket: null,
   creativeVolume: null,
+  bestHook: '',
   adsMadeBy: null,
   frustrations: [],
   extraContext: '',
@@ -30,6 +32,7 @@ const INITIAL_ANSWERS = {
 // Sample data for the dev panel "Preview Results" jump
 const SAMPLE_ANSWERS = {
   brandName: 'Glow Theory',
+  websiteUrl: 'glowtheory.co.uk',
   brandType: 'skincare',
   revenue: '60k_150k',
   spendTier: '15k_50k',
@@ -40,6 +43,7 @@ const SAMPLE_ANSWERS = {
   costTrend: 'up_some',
   roasBracket: 'r_1_5_2_5',
   creativeVolume: 'vol_3_7',
+  bestHook: 'Before/after transformation reels',
   adsMadeBy: 'agency',
   frustrations: ['stop_performing', 'same_message', 'customer_language'],
   extraContext: '',

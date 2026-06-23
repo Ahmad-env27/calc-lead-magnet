@@ -6,7 +6,7 @@
 import { useRef, useState } from 'react'
 import { fireQualificationPixel } from './webhook.js'
 
-const TOTAL_STEPS = 13
+const TOTAL_STEPS = 14
 
 const BRAND_TYPES = [
   { id: 'skincare', title: 'Skincare', desc: 'Serums, moisturisers, treatments, SPF' },
@@ -193,7 +193,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
           <>
             <h2 className="step-header">Let's get your report started</h2>
             <p className="step-subtext">
-              13 quick questions, about 90 seconds. We build your report from these — no email
+              14 quick questions, about 90 seconds. We build your report from these — no email
               needed to start.
             </p>
             <div className="field">
@@ -205,6 +205,17 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
                 placeholder="Your brand"
                 value={answers.brandName}
                 onChange={(e) => set('brandName', e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="websiteUrl">For hyper-personalised results, add your website</label>
+              <input
+                id="websiteUrl"
+                type="url"
+                autoComplete="url"
+                placeholder="yourbrand.com"
+                value={answers.websiteUrl}
+                onChange={(e) => set('websiteUrl', e.target.value)}
               />
             </div>
             <button
@@ -315,12 +326,35 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
 
         {step === 11 && (
           <>
-            <h2 className="step-header">Who makes your ads right now?</h2>
-            <div className="option-grid">{renderCards(ADS_MADE_BY, 'adsMadeBy', 11)}</div>
+            <h2 className="step-header">What's your best-performing hook or ad angle right now?</h2>
+            <p className="step-subtext">Even a rough description helps — we use it to map your creative coverage.</p>
+            <div className="field">
+              <label htmlFor="bestHook">Your top hook or angle</label>
+              <input
+                id="bestHook"
+                type="text"
+                placeholder='e.g. "Before/after transformation reels"'
+                value={answers.bestHook}
+                onChange={(e) => set('bestHook', e.target.value)}
+              />
+            </div>
+            <button
+              className="btn-primary"
+              onClick={() => goTo(12)}
+            >
+              Continue →
+            </button>
           </>
         )}
 
         {step === 12 && (
+          <>
+            <h2 className="step-header">Who makes your ads right now?</h2>
+            <div className="option-grid">{renderCards(ADS_MADE_BY, 'adsMadeBy', 12)}</div>
+          </>
+        )}
+
+        {step === 13 && (
           <>
             <h2 className="step-header">What's your biggest frustration with your ads right now?</h2>
             <p className="step-subtext">Pick up to 3</p>
@@ -349,22 +383,24 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
             <button
               className="btn-primary"
               disabled={frustrationCount < 1 || frustrationCount > 3}
-              onClick={() => goTo(13)}
+              onClick={() => goTo(14)}
             >
               Continue →
             </button>
           </>
         )}
 
-        {step === 13 && (
+        {step === 14 && (
           <>
             <h2 className="step-header">Last one — anything else we should know?</h2>
             <div className="field">
-              <label htmlFor="extraContext">Tell us anything else about your ad situation</label>
+              <label htmlFor="extraContext">
+                For the most personalised insights, tell us as much as possible — what you've already tried, what messaging works best for your audience, what's frustrating you most right now
+              </label>
               <textarea
                 id="extraContext"
                 rows={4}
-                placeholder="Optional — whatever feels relevant"
+                placeholder="The more detail, the sharper your report"
                 value={answers.extraContext}
                 onChange={(e) => set('extraContext', e.target.value)}
               />

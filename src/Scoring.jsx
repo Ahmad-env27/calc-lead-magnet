@@ -1,27 +1,70 @@
-// Phase 2.75 — Pre-unlock scoring. A brief (4s) labor moment between quiz
-// completion and the unlock screen. Visually distinct from the post-unlock
-// loading (progress bar, not a ring) so the two never feel repetitive.
-// Purpose: make the "report ready" claim on the unlock screen feel earned.
+// Phase 2.75 — Pre-unlock scoring. An 11-second labor moment between quiz
+// completion and the unlock screen. Dual-gated: advances only when BOTH the
+// minimum time has elapsed AND the LLM insights call has resolved (or the
+// hard max of 15s is reached). The extended time is justified by the LLM
+// processing happening in the background.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const MESSAGES = [
   'Scoring your answers…',
-  'Calculating your risk profile…',
-  'Your report is ready',
+  'Analysing your ad patterns…',
+  'Mapping creative refresh against benchmarks…',
+  'Comparing with top skincare performers…',
+  'Calculating your opportunity range…',
+  'Cross-referencing competitor strategies…',
+  'Generating personalised insights…',
+  'Finalising your report…',
 ]
 
-export default function Scoring({ brandName, onDone }) {
+const MIN_DURATION = 11000
+const MAX_DURATION = 15000
+const MSG_INTERVAL = 1400
+
+export default function Scoring({ brandName, insightsPromise, onDone }) {
   const reduced =
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   const [msgIndex, setMsgIndex] = useState(0)
   const [progress, setProgress] = useState(0)
+  const resolvedInsights = useRef(null)
+  const insightsReady = useRef(false)
+  const minElapsed = useRef(false)
+  const fired = useRef(false)
+
+  const tryAdvance = () => {
+    if (fired.current) return
+    if (minElapsed.current && insightsReady.current) {
+      fired.current = true
+      onDone(resolvedInsights.current)
+    }
+  }
 
   useEffect(() => {
+    if (insightsPromise) {
+      insightsPromise
+        .then((insights) => { resolvedInsights.current = insights })
+        .catch(() => { resolvedInsights.current = null })
+        .finally(() => {
+          insightsReady.current = true
+          tryAdvance()
+        })
+    } else {
+      insightsReady.current = true
+    }
+
     if (reduced) {
-      const t = setTimeout(onDone, 600)
+      minElapsed.current = true
+      const t = setTimeout(() => {
+        if (!insightsReady.current) {
+          insightsReady.current = true
+        }
+        if (!fired.current) {
+          fired.current = true
+          onDone(resolvedInsights.current)
+        }
+      }, 600)
       return () => clearTimeout(t)
     }
 
@@ -29,16 +72,34 @@ export default function Scoring({ brandName, onDone }) {
 
     const cycle = setInterval(
       () => setMsgIndex((i) => Math.min(i + 1, MESSAGES.length - 1)),
-      1300,
+      MSG_INTERVAL,
     )
-    const done = setTimeout(onDone, 4000)
+
+    const minTimer = setTimeout(() => {
+      minElapsed.current = true
+      tryAdvance()
+    }, MIN_DURATION)
+
+    const maxTimer = setTimeout(() => {
+      if (!fired.current) {
+        fired.current = true
+        insightsReady.current = true
+        onDone(resolvedInsights.current)
+      }
+    }, MAX_DURATION)
+
     return () => {
       cancelAnimationFrame(pTimer)
       clearInterval(cycle)
-      clearTimeout(done)
+      clearTimeout(minTimer)
+      clearTimeout(maxTimer)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const personalMsg = msgIndex === 1 && brandName
+    ? `Analysing ${brandName}'s ad patterns…`
+    : MESSAGES[msgIndex]
 
   return (
     <main className="scoring" aria-live="polite">
@@ -49,7 +110,7 @@ export default function Scoring({ brandName, onDone }) {
         />
       </div>
       <p className="loading-msg" key={msgIndex}>
-        {MESSAGES[msgIndex]}
+        {personalMsg}
       </p>
       <p className="loading-foot">Crunching data for {brandName || 'your brand'}</p>
     </main>

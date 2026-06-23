@@ -22,6 +22,13 @@ export const REVENUE_MIDPOINTS = {
   '150k_plus': 200000,
 }
 
+export const AOV_MIDPOINTS = {
+  aov_25_40: 32,
+  aov_40_60: 50,
+  aov_60_100: 80,
+  aov_100_plus: 140,
+}
+
 const FATIGUE_COEFFICIENTS = {
   weekly: 0.18,
   every_2_3_weeks: 0.22,
@@ -139,7 +146,7 @@ export function calculateScore(inputs) {
     impLow,
     impHigh,
     spend,
-    // 4x+ return brands get a "room to scale" note instead of a leak lecture
+    recoverableMonthly,
     strongROAS: inputs.roasBracket === 'over_4',
   }
 }
@@ -166,6 +173,15 @@ export function getLeadTemperature(inputs) {
   if (isSkincareBrand || (highRevenue && qualifiedSpend)) return 'warm'
 
   return 'cold'
+}
+
+export function calculateSpendDecoder(recoverableMonthly, aovMidpoint) {
+  const rawPerMonth = recoverableMonthly / aovMidpoint
+  const ordersPerMonth = Math.round(rawPerMonth / 10) * 10
+  const rawPerYear = rawPerMonth * 12
+  const ordersPerYear = Math.round(rawPerYear / 50) * 50
+  const revenuePerYear = ordersPerYear * aovMidpoint
+  return { ordersPerMonth, ordersPerYear, revenuePerYear }
 }
 
 export function formatGBP(n) {

@@ -6,7 +6,7 @@
 import { useRef, useState } from 'react'
 import { fireQualificationPixel } from './webhook.js'
 
-const TOTAL_STEPS = 12
+const TOTAL_STEPS = 13
 
 const BRAND_TYPES = [
   { id: 'skincare', title: 'Skincare', desc: 'Serums, moisturisers, treatments, SPF' },
@@ -70,6 +70,13 @@ const ADS_MADE_BY = [
   { id: 'in_house', title: 'In-house team', desc: '"Our own people"' },
   { id: 'freelancers', title: 'Freelancers & UGC creators', desc: '"A mix of outside help"' },
   { id: 'founder', title: 'Mostly me', desc: '"Founder does everything"' },
+]
+
+const AOV_BRACKETS = [
+  { id: 'aov_25_40', title: '£25–£40' },
+  { id: 'aov_40_60', title: '£40–£60' },
+  { id: 'aov_60_100', title: '£60–£100' },
+  { id: 'aov_100_plus', title: 'Over £100' },
 ]
 
 const FRUSTRATIONS = [
@@ -184,13 +191,13 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
       <div className={`quiz-step ${dir}`} key={step}>
         {step === 1 && (
           <>
-            <h2 className="step-header">Let’s get your report started</h2>
+            <h2 className="step-header">Let's get your report started</h2>
             <p className="step-subtext">
-              12 quick questions, about 90 seconds. We build your report from these — no email
+              13 quick questions, about 90 seconds. We build your report from these — no email
               needed to start.
             </p>
             <div className="field">
-              <label htmlFor="brandName">What’s your brand called?</label>
+              <label htmlFor="brandName">What's your brand called?</label>
               <input
                 id="brandName"
                 type="text"
@@ -219,7 +226,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
 
         {step === 3 && (
           <>
-            <h2 className="step-header">What’s your brand’s monthly revenue?</h2>
+            <h2 className="step-header">What's your brand's monthly revenue?</h2>
             <div className="option-grid">{renderCards(REVENUE_TIERS, 'revenue', 3)}</div>
           </>
         )}
@@ -233,51 +240,89 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
 
         {step === 5 && (
           <>
-            <h2 className="step-header">How often do you refresh your ad creatives?</h2>
-            <div className="option-grid">{renderCards(REFRESH_RATES, 'refreshRate', 5)}</div>
+            <h2 className="step-header">What does a typical customer spend per order?</h2>
+            <p className="step-subtext">Rough is fine — your average order value.</p>
+            <div className="option-grid">
+              {renderCards(AOV_BRACKETS, 'aov', 5)}
+              <button
+                type="button"
+                className={`option-card${answers.aov === 'aov_other' ? ' selected' : ''}`}
+                onClick={() => set('aov', 'aov_other')}
+              >
+                <span className="option-title">Other</span>
+              </button>
+            </div>
+            {answers.aov === 'aov_other' && (
+              <div className="field aov-custom-field">
+                <label htmlFor="aovCustom">Your average order value (£)</label>
+                <input
+                  id="aovCustom"
+                  type="number"
+                  inputMode="numeric"
+                  min="1"
+                  placeholder="e.g. 35"
+                  value={answers.aovCustom}
+                  onChange={(e) => set('aovCustom', e.target.value)}
+                />
+                <button
+                  className="btn-primary"
+                  disabled={!answers.aovCustom || Number(answers.aovCustom) < 1}
+                  onClick={() => goTo(6)}
+                >
+                  Continue →
+                </button>
+              </div>
+            )}
           </>
         )}
 
         {step === 6 && (
           <>
-            <h2 className="step-header">Do your ads keep leaning on the same ideas?</h2>
-            <div className="option-grid">{renderCards(DIVERSITY_OPTIONS, 'angleDiversity', 6)}</div>
+            <h2 className="step-header">How often do you refresh your ad creatives?</h2>
+            <div className="option-grid">{renderCards(REFRESH_RATES, 'refreshRate', 6)}</div>
           </>
         )}
 
         {step === 7 && (
           <>
-            <h2 className="step-header">Has it got more expensive to win a customer this year?</h2>
-            <div className="option-grid">{renderCards(COST_TREND_OPTIONS, 'costTrend', 7)}</div>
+            <h2 className="step-header">Do your ads keep leaning on the same ideas?</h2>
+            <div className="option-grid">{renderCards(DIVERSITY_OPTIONS, 'angleDiversity', 7)}</div>
           </>
         )}
 
         {step === 8 && (
           <>
-            <h2 className="step-header">For every £1 you put into ads, roughly what comes back?</h2>
-            <p className="step-subtext">Rough is fine — pick the closest.</p>
-            <div className="option-grid">{renderCards(ROAS_BRACKETS, 'roasBracket', 8)}</div>
+            <h2 className="step-header">Has it got more expensive to win a customer this year?</h2>
+            <div className="option-grid">{renderCards(COST_TREND_OPTIONS, 'costTrend', 8)}</div>
           </>
         )}
 
         {step === 9 && (
           <>
-            <h2 className="step-header">How many genuinely new ads do you launch in a typical month?</h2>
-            <p className="step-subtext">New ideas — not resizes or re-edits.</p>
-            <div className="option-grid">{renderCards(VOLUME_OPTIONS, 'creativeVolume', 9)}</div>
+            <h2 className="step-header">For every £1 you put into ads, roughly what comes back?</h2>
+            <p className="step-subtext">Rough is fine — pick the closest.</p>
+            <div className="option-grid">{renderCards(ROAS_BRACKETS, 'roasBracket', 9)}</div>
           </>
         )}
 
         {step === 10 && (
           <>
-            <h2 className="step-header">Who makes your ads right now?</h2>
-            <div className="option-grid">{renderCards(ADS_MADE_BY, 'adsMadeBy', 10)}</div>
+            <h2 className="step-header">How many genuinely new ads do you launch in a typical month?</h2>
+            <p className="step-subtext">New ideas — not resizes or re-edits.</p>
+            <div className="option-grid">{renderCards(VOLUME_OPTIONS, 'creativeVolume', 10)}</div>
           </>
         )}
 
         {step === 11 && (
           <>
-            <h2 className="step-header">What’s your biggest frustration with your ads right now?</h2>
+            <h2 className="step-header">Who makes your ads right now?</h2>
+            <div className="option-grid">{renderCards(ADS_MADE_BY, 'adsMadeBy', 11)}</div>
+          </>
+        )}
+
+        {step === 12 && (
+          <>
+            <h2 className="step-header">What's your biggest frustration with your ads right now?</h2>
             <p className="step-subtext">Pick up to 3</p>
             <div className="chip-list">
               {FRUSTRATIONS.map((f) => {
@@ -304,14 +349,14 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
             <button
               className="btn-primary"
               disabled={frustrationCount < 1 || frustrationCount > 3}
-              onClick={() => goTo(12)}
+              onClick={() => goTo(13)}
             >
               Continue →
             </button>
           </>
         )}
 
-        {step === 12 && (
+        {step === 13 && (
           <>
             <h2 className="step-header">Last one — anything else we should know?</h2>
             <div className="field">

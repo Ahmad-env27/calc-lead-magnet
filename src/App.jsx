@@ -7,12 +7,15 @@ import Loading from './Loading.jsx'
 import Results from './Results.jsx'
 import { calculateScore, getLeadTemperature } from './scoring.js'
 import { fireWebhook, fireLeadPixel, firePageView } from './webhook.js'
+import { fetchInsights } from './api.js'
 
 const INITIAL_ANSWERS = {
   brandName: '',
   brandType: null,
   revenue: null,
   spendTier: null,
+  aov: null,
+  aovCustom: '',
   refreshRate: null,
   angleDiversity: null,
   costTrend: null,
@@ -30,6 +33,8 @@ const SAMPLE_ANSWERS = {
   brandType: 'skincare',
   revenue: '60k_150k',
   spendTier: '15k_50k',
+  aov: 'aov_25_40',
+  aovCustom: '',
   refreshRate: 'monthly_or_less',
   angleDiversity: 'yes_same',
   costTrend: 'up_some',
@@ -61,14 +66,19 @@ export default function App() {
   const [phase, setPhase] = useState('landing')
   const [answers, setAnswers] = useState(INITIAL_ANSWERS)
   const [results, setResults] = useState(null)
+  const [insights, setInsights] = useState(null)
+  const [insightsPromise, setInsightsPromise] = useState(null)
   const webhookFired = useRef(false)
 
   useEffect(() => {
     firePageView()
   }, [])
 
-  // Quiz finished → scoring animation → then email unlock
-  const completeQuiz = () => setPhase('scoring')
+  const completeQuiz = () => {
+    const promise = fetchInsights(answers)
+    setInsightsPromise(promise)
+    setPhase('scoring')
+  }
 
   const unlockReport = (email) => {
     if (webhookFired.current) return
@@ -94,6 +104,8 @@ export default function App() {
     webhookFired.current = false
     setAnswers(INITIAL_ANSWERS)
     setResults(null)
+    setInsights(null)
+    setInsightsPromise(null)
     setPhase('landing')
   }
 
@@ -114,7 +126,11 @@ export default function App() {
       {phase === 'scoring' && (
         <Scoring
           brandName={answers.brandName}
-          onDone={() => setPhase('unlock')}
+          insightsPromise={insightsPromise}
+          onDone={(resolvedInsights) => {
+            setInsights(resolvedInsights)
+            setPhase('unlock')
+          }}
         />
       )}
       {phase === 'unlock' && (
@@ -132,7 +148,7 @@ export default function App() {
           onDone={() => setPhase('results')}
         />
       )}
-      {phase === 'results' && <Results answers={answers} results={results} />}
+      {phase === 'results' && <Results answers={answers} results={results} insights={insights} />}
 
       {import.meta.env.DEV && (
         <DevPanel onPreview={previewResults} onReset={reset} />

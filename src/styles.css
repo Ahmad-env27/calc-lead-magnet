@@ -499,6 +499,14 @@ h2 {
   font-size: 13px;
 }
 
+/* AOV custom input */
+.aov-custom-field {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* Frustration chips (multi-select) */
 .chip-list {
   display: flex;
@@ -615,7 +623,7 @@ h2 {
   border-radius: 2px;
   transform-origin: left;
   transform: scaleX(0);
-  transition: transform 3.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 10.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* --------------------------------------------------------------------------
@@ -794,6 +802,94 @@ h2 {
   color: var(--faint);
   font-size: 13px;
   margin-top: 10px;
+}
+
+/* Spend Decoder */
+.spend-decoder {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 20px;
+}
+
+.decoder-stat {
+  margin-top: 16px;
+}
+
+.decoder-stat-annual {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.decoder-number {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+.decoder-label {
+  display: block;
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+.decoder-label strong {
+  color: var(--text);
+}
+
+.decoder-footnote {
+  color: var(--faint);
+  font-size: 12px;
+  margin-top: 14px;
+}
+
+/* Personalised insights */
+.insights-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 20px;
+}
+
+.insights-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0 0 14px 0;
+}
+
+.insights-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.insight-item {
+  position: relative;
+  padding-left: 16px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.insight-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 
 /* Section C — angle cards */

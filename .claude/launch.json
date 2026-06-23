@@ -5,7 +5,8 @@
       "name": "audr-calculator",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 5173
+      "port": 5000,
+      "autoPort": true
     }
   ]
 }

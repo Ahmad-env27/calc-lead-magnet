@@ -63,6 +63,13 @@ const LABEL_MAP = {
     freelancers: 'Freelancers & UGC creators',
     founder: 'Mostly the founder',
   },
+  aov: {
+    aov_25_40: '£25–£40',
+    aov_40_60: '£40–£60',
+    aov_60_100: '£60–£100',
+    aov_100_plus: 'Over £100',
+    aov_other: 'Custom',
+  },
   frustrations: {
     stop_performing: 'Ads stop performing after a couple of weeks',
     same_message: 'Running variations of the same message',
@@ -106,6 +113,8 @@ export async function fireWebhook(data) {
     brand_type: data.brandType,
     revenue_tier: data.revenue,
     spend_tier: data.spendTier,
+    aov: data.aov,
+    aov_custom: data.aov === 'aov_other' ? data.aovCustom : null,
     refresh_rate: data.refreshRate,
     angle_diversity: data.angleDiversity,
     cost_trend: data.costTrend,

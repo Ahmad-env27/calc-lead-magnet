@@ -5,8 +5,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,
-    port: 5000,
+    port: parseInt(process.env.PORT || '5000'),
     allowedHosts: true,
+    proxy: {
+      '/api': 'http://localhost:3001',
+    },
   },
   preview: {
     host: true,

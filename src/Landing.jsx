@@ -37,7 +37,7 @@ export default function Landing({ onStart }) {
       </h1>
 
       <p className="subhead reveal" style={{ '--i': 3 }}>
-        Answer 12 quick questions and get your Revenue Leak Report — your
+        Answer 13 quick questions and get your Revenue Leak Report — your
         creative fatigue risk score and how much monthly revenue your skincare
         brand is leaving behind.
       </p>

@@ -4,7 +4,7 @@
 // a lead magnet; money talk happens on the call.
 
 import { useEffect, useRef, useState } from 'react'
-import { getRiskBand, formatGBP } from './scoring.js'
+import { getRiskBand, formatGBP, calculateSpendDecoder, AOV_MIDPOINTS } from './scoring.js'
 import { getAngles, getQuickWin } from './angles-data.js'
 import { fireFollowupEvent } from './webhook.js'
 
@@ -230,9 +230,62 @@ function CourseCard({ answers, claimed, onClaim }) {
   )
 }
 
+// --- Section: Spend Decoder (orders + revenue framing) ----------------------
+
+function SpendDecoder({ answers, results }) {
+  const aovMid = answers.aov === 'aov_other'
+    ? Number(answers.aovCustom)
+    : AOV_MIDPOINTS[answers.aov]
+
+  if (!aovMid || aovMid < 1) return null
+
+  const { ordersPerMonth, ordersPerYear, revenuePerYear } =
+    calculateSpendDecoder(results.recoverableMonthly, aovMid)
+
+  return (
+    <div className="spend-decoder">
+      <p className="card-kicker">SPEND DECODER</p>
+      <div className="decoder-stat">
+        <span className="decoder-number">~{ordersPerMonth.toLocaleString('en-GB')}</span>
+        <span className="decoder-label">
+          orders a month your brand is leaving on the table
+        </span>
+      </div>
+      <div className="decoder-stat decoder-stat-annual">
+        <span className="decoder-number">~{ordersPerYear.toLocaleString('en-GB')}</span>
+        <span className="decoder-label">
+          orders a year — worth approximately{' '}
+          <strong>{formatGBP(revenuePerYear)}</strong> in revenue your ads could
+          be recovering
+        </span>
+      </div>
+      <p className="decoder-footnote">
+        Based on your average order value and the opportunity range above.
+      </p>
+    </div>
+  )
+}
+
+// --- Section: LLM-generated personalised insights ---------------------------
+
+function PersonalisedInsights({ insights, brandName }) {
+  if (!insights || insights.length === 0) return null
+
+  return (
+    <div className="insights-section">
+      <h3 className="insights-title">What this means for {brandName || 'your brand'}</h3>
+      <ul className="insights-list">
+        {insights.map((insight, i) => (
+          <li key={i} className="insight-item">{insight}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 // --- Main results page -------------------------------------------------------
 
-export default function Results({ answers, results }) {
+export default function Results({ answers, results, insights }) {
   const [formulaOpen, setFormulaOpen] = useState(false)
   const [loomClaimed, setLoomClaimed] = useState(false)
   const [courseClaimed, setCourseClaimed] = useState(false)
@@ -301,6 +354,20 @@ export default function Results({ answers, results }) {
               being given — the opportunity here is headroom, not repair.
             </p>
           )}
+        </section>
+      )}
+
+      {/* Spend Decoder — orders + revenue framing */}
+      {!disqualified && answers.aov && (
+        <section className="rsection" style={stagger()}>
+          <SpendDecoder answers={answers} results={results} />
+        </section>
+      )}
+
+      {/* Personalised insights from LLM */}
+      {insights && insights.length > 0 && (
+        <section className="rsection" style={stagger()}>
+          <PersonalisedInsights insights={insights} brandName={answers.brandName} />
         </section>
       )}
 

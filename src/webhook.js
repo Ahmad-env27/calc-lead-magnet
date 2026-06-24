@@ -8,6 +8,16 @@
 const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/bYHWAwpEHfl9GAV4TMqs/webhook-trigger/0a6a87b2-6547-4f8d-8f64-47878bbe1325'
 
 const LABEL_MAP = {
+  job_title: {
+    role_founder: 'Owner / Founder',
+    role_md: 'Managing Director',
+    role_csuite: 'C-Suite',
+    role_marketing: 'Marketing Director / Manager',
+    role_growth: 'Head of Growth / Performance',
+    role_ecom: 'Ecommerce Director / Manager',
+    role_agency: 'Agency',
+    role_freelance: 'Freelance / Consultant',
+  },
   brand_type: {
     skincare: 'Skincare',
     beauty: 'Beauty & cosmetics',
@@ -107,10 +117,14 @@ function mapPayload(raw) {
 }
 
 export async function fireWebhook(data) {
+  const tl = data.threeLane
+  const coi = data.costOfInaction
   const raw = {
     email: data.email,
     brand_name: data.brandName,
     website_url: data.websiteUrl || null,
+    job_title: data.jobTitle,
+    responsibilities: data.responsibilities || [],
     brand_type: data.brandType,
     revenue_tier: data.revenue,
     spend_tier: data.spendTier,
@@ -129,7 +143,17 @@ export async function fireWebhook(data) {
     revenue_leak_low: data.leakLow,
     revenue_leak_high: data.leakHigh,
     lead_temperature: data.temperature,
-    source: 'calculator_v1',
+    threeLane_lane2Low: tl?.lane2?.low || null,
+    threeLane_lane2High: tl?.lane2?.high || null,
+    threeLane_combinedLow: tl?.combined?.low || null,
+    threeLane_combinedHigh: tl?.combined?.high || null,
+    threeLane_sixMonthLow: tl?.sixMonth?.low || null,
+    threeLane_sixMonthHigh: tl?.sixMonth?.high || null,
+    threeLane_multiplierUsed: tl?.multiplier ? `${tl.multiplier.low}-${tl.multiplier.high}x` : null,
+    costOfInaction_90day: coi?.revenue?.high || null,
+    costOfInaction_orders: coi?.orders?.high || null,
+    scenarioMatch: data.scenarioMatch || null,
+    source: 'calculator_v2',
     timestamp: new Date().toISOString(),
   }
   const payload = mapPayload(raw)

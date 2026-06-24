@@ -5,13 +5,15 @@ import Scoring from './Scoring.jsx'
 import Unlock from './Unlock.jsx'
 import Loading from './Loading.jsx'
 import Results from './Results.jsx'
-import { calculateScore, getLeadTemperature } from './scoring.js'
+import { calculateScore, getLeadTemperature, calculateThreeLaneImpact, calculateCostOfInaction, getScenarioMatch, AOV_MIDPOINTS } from './scoring.js'
 import { fireWebhook, fireLeadPixel, firePageView } from './webhook.js'
 import { fetchInsights } from './api.js'
 
 const INITIAL_ANSWERS = {
   brandName: '',
   websiteUrl: '',
+  jobTitle: null,
+  responsibilities: [],
   brandType: null,
   revenue: null,
   spendTier: null,
@@ -33,6 +35,8 @@ const INITIAL_ANSWERS = {
 const SAMPLE_ANSWERS = {
   brandName: 'Glow Theory',
   websiteUrl: 'glowtheory.co.uk',
+  jobTitle: 'role_founder',
+  responsibilities: ['resp_paid', 'resp_creative'],
   brandType: 'skincare',
   revenue: '60k_150k',
   spendTier: '15k_50k',
@@ -94,10 +98,17 @@ export default function App() {
     const inputs = toScoringInputs(finalAnswers)
     const computed = calculateScore(inputs)
     const temperature = getLeadTemperature(inputs)
-    const fullResults = { ...computed, temperature }
+
+    const threeLane = calculateThreeLaneImpact(computed.leakLow, computed.leakHigh, finalAnswers.spendTier)
+    const aovMid = finalAnswers.aov === 'aov_other'
+      ? Number(finalAnswers.aovCustom)
+      : (AOV_MIDPOINTS[finalAnswers.aov] || null)
+    const costOfInaction = calculateCostOfInaction(computed.leakLow, computed.leakHigh, aovMid)
+    const scenarioMatch = getScenarioMatch(computed.score)
+
+    const fullResults = { ...computed, temperature, threeLane, costOfInaction, scenarioMatch }
     setResults(fullResults)
 
-    // Fire-and-forget — never blocks the transition to results
     fireWebhook({ ...finalAnswers, ...fullResults })
     fireLeadPixel(fullResults)
 
@@ -117,7 +128,12 @@ export default function App() {
     setAnswers(SAMPLE_ANSWERS)
     const inputs = toScoringInputs(SAMPLE_ANSWERS)
     const computed = calculateScore(inputs)
-    setResults({ ...computed, temperature: getLeadTemperature(inputs) })
+    const temperature = getLeadTemperature(inputs)
+    const threeLane = calculateThreeLaneImpact(computed.leakLow, computed.leakHigh, SAMPLE_ANSWERS.spendTier)
+    const aovMid = AOV_MIDPOINTS[SAMPLE_ANSWERS.aov] || 32
+    const costOfInaction = calculateCostOfInaction(computed.leakLow, computed.leakHigh, aovMid)
+    const scenarioMatch = getScenarioMatch(computed.score)
+    setResults({ ...computed, temperature, threeLane, costOfInaction, scenarioMatch })
     setPhase('results')
   }
 

@@ -1382,6 +1382,360 @@ h2 {
 }
 
 /* --------------------------------------------------------------------------
+   Three-Lane Impact Stack
+   -------------------------------------------------------------------------- */
+
+.three-lane-stack {
+  text-align: center;
+}
+
+.lane-intro {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.lane-section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--faint);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.lane-card {
+  border-radius: 8px;
+  padding: 14px 16px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.lane-card-title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lane-card-subtitle {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.lane-card-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 8px;
+}
+
+.lane-card-value-sm {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 6px;
+}
+
+.lane-card-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 6px;
+}
+
+.lane-card-badge-locked {
+  color: var(--faint);
+}
+
+.lane-card-orders {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.lane-card-note {
+  display: block;
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.lane-card-amber {
+  background: linear-gradient(165deg, rgba(240, 166, 60, 0.14), rgba(240, 166, 60, 0.04));
+  border: 1px solid rgba(240, 166, 60, 0.25);
+}
+
+.lane-card-highlight {
+  border-width: 1px;
+  border-color: rgba(240, 166, 60, 0.5);
+}
+
+.lane-card-teal {
+  background: linear-gradient(165deg, rgba(84, 201, 180, 0.12), rgba(84, 201, 180, 0.03));
+  border: 1px solid rgba(84, 201, 180, 0.2);
+}
+
+.lane-card-purple {
+  background: var(--tint-purple-bg);
+  border: 1px solid var(--tint-purple-border);
+}
+
+.lane-card-green {
+  background: var(--tint-green-bg);
+  border: 1px solid var(--tint-green-border);
+}
+
+.lane-card-muted {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.lane-card-single {
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lane-card-combined {
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lane-cards-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 540px) {
+  .lane-cards-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lane-divider {
+  height: 1px;
+  background: var(--border);
+  opacity: 0.3;
+  margin: 18px 0;
+}
+
+.lane-converge-arrow {
+  font-size: 18px;
+  color: var(--faint);
+  opacity: 0.5;
+  margin: 4px 0;
+}
+
+.lane-cross-sell {
+  font-size: 12px;
+  color: var(--faint);
+  margin-top: 14px;
+  font-style: italic;
+}
+
+.lane-methodology {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--faint);
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   Cost of Inaction
+   -------------------------------------------------------------------------- */
+
+.cost-of-inaction {
+  text-align: center;
+}
+
+.coi-header {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.coi-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.coi-card {
+  background: linear-gradient(165deg, rgba(226, 92, 80, 0.12), rgba(226, 92, 80, 0.03));
+  border: 1px solid rgba(226, 92, 80, 0.2);
+  border-radius: 8px;
+  padding: 20px 16px;
+}
+
+.coi-number {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--risk-critical);
+}
+
+.coi-label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Credit Stack
+   -------------------------------------------------------------------------- */
+
+.credit-stack {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.credit-stack-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+.credit-stack-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.credit-stack-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.credit-stack-icon {
+  flex-shrink: 0;
+  width: 22px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.credit-stack-unlocked .credit-stack-icon {
+  color: var(--risk-low);
+}
+
+.credit-stack-locked .credit-stack-icon {
+  color: var(--faint);
+  font-size: 13px;
+}
+
+.credit-stack-name {
+  flex: 1;
+  color: var(--text);
+}
+
+.credit-stack-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--risk-low);
+}
+
+.credit-stack-locked .credit-stack-status {
+  color: var(--faint);
+}
+
+.credit-stack-waived {
+  color: var(--risk-low);
+}
+
+/* --------------------------------------------------------------------------
+   Gauge benchmark gap
+   -------------------------------------------------------------------------- */
+
+.gauge-benchmark-gap {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--faint);
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Radar benchmark text
+   -------------------------------------------------------------------------- */
+
+.radar-benchmark-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--faint);
+  margin-top: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Decay curve enhancements
+   -------------------------------------------------------------------------- */
+
+.decay-status {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.decay-status-green {
+  color: var(--risk-low);
+  background: rgba(84, 201, 127, 0.06);
+}
+
+.decay-status-amber {
+  color: var(--risk-high);
+  background: rgba(240, 166, 60, 0.06);
+}
+
+.decay-status-coral {
+  color: var(--risk-critical);
+  background: rgba(226, 92, 80, 0.06);
+}
+
+.decay-escalation {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Angle kicker override
+   -------------------------------------------------------------------------- */
+
+.angle-kicker {
+  margin-bottom: 12px;
+}
+
+/* --------------------------------------------------------------------------
    Reduced motion — disable all animation, show content immediately
    -------------------------------------------------------------------------- */
 

@@ -6,7 +6,27 @@
 import { useRef, useState } from 'react'
 import { fireQualificationPixel } from './webhook.js'
 
-const TOTAL_STEPS = 14
+const TOTAL_STEPS = 16
+
+const JOB_TITLES = [
+  { id: 'role_founder', title: 'Owner / Founder' },
+  { id: 'role_md', title: 'Managing Director' },
+  { id: 'role_csuite', title: 'C-Suite' },
+  { id: 'role_marketing', title: 'Marketing Director / Manager' },
+  { id: 'role_growth', title: 'Head of Growth / Performance' },
+  { id: 'role_ecom', title: 'Ecommerce Director / Manager' },
+  { id: 'role_agency', title: 'Agency — managing client accounts' },
+  { id: 'role_freelance', title: 'Freelance / Consultant' },
+]
+
+const RESPONSIBILITIES = [
+  { id: 'resp_paid', label: 'Paid ads (Meta / social)' },
+  { id: 'resp_email', label: 'Email marketing' },
+  { id: 'resp_creative', label: 'Creative / Content' },
+  { id: 'resp_seo', label: 'SEO / Organic' },
+  { id: 'resp_cro', label: 'CRO / Landing pages' },
+  { id: 'resp_strategy', label: 'Strategy / Planning' },
+]
 
 const BRAND_TYPES = [
   { id: 'skincare', title: 'Skincare', desc: 'Serums, moisturisers, treatments, SPF' },
@@ -93,6 +113,20 @@ const FRUSTRATIONS = [
   { id: 'none', label: '⊘ None of these — my ads are performing well' },
 ]
 
+function trackStepProgress(stepNumber, stepName) {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('trackCustom', 'QuizStep', { step: stepNumber, name: stepName })
+  }
+  window.dataLayer = window.dataLayer || []
+  window.dataLayer.push({ event: 'quiz_step', step: stepNumber, name: stepName })
+}
+
+const STEP_NAMES = [
+  '', 'brand_name', 'job_title', 'responsibilities', 'brand_type', 'revenue',
+  'spend_tier', 'aov', 'refresh_rate', 'angle_diversity', 'cost_trend',
+  'roas_bracket', 'creative_volume', 'best_hook', 'ads_made_by', 'frustrations', 'extra_context',
+]
+
 export default function Quiz({ answers, setAnswers, onComplete }) {
   const [step, setStep] = useState(1)
   const [dir, setDir] = useState('fwd')
@@ -104,6 +138,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
   const goTo = (n, d = 'fwd') => {
     setDir(d)
     setStep(n)
+    if (d === 'fwd' && STEP_NAMES[n]) trackStepProgress(n, STEP_NAMES[n])
   }
 
   const maybeFireQualificationPixel = (a) => {
@@ -128,7 +163,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
     set(key, value)
     setTimeout(() => {
       advancing.current = false
-      if (fromStep === 4) maybeFireQualificationPixel({ ...answers, [key]: value })
+      if (fromStep === 6) maybeFireQualificationPixel({ ...answers, [key]: value })
       goTo(fromStep + 1)
     }, 400)
   }
@@ -147,7 +182,16 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
     })
   }
 
+  const toggleResponsibility = (id) => {
+    setAnswers((a) => {
+      const r = a.responsibilities || []
+      if (r.includes(id)) return { ...a, responsibilities: r.filter((x) => x !== id) }
+      return { ...a, responsibilities: [...r, id] }
+    })
+  }
+
   const frustrationCount = answers.frustrations.length
+  const respCount = (answers.responsibilities || []).length
 
   const renderCards = (options, key, fromStep) =>
     options.map((o) => (
@@ -193,7 +237,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
           <>
             <h2 className="step-header">Let's get your report started</h2>
             <p className="step-subtext">
-              14 quick questions, about 90 seconds. We build your report from these — no email
+              16 quick questions, about two minutes. We build your report from these — no email
               needed to start.
             </p>
             <div className="field">
@@ -230,31 +274,68 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
 
         {step === 2 && (
           <>
-            <h2 className="step-header">What type of brand are you?</h2>
-            <div className="option-grid">{renderCards(BRAND_TYPES, 'brandType', 2)}</div>
+            <h2 className="step-header">What best describes your role?</h2>
+            <div className="option-grid">{renderCards(JOB_TITLES, 'jobTitle', 2)}</div>
           </>
         )}
 
         {step === 3 && (
           <>
-            <h2 className="step-header">What's your brand's monthly revenue?</h2>
-            <div className="option-grid">{renderCards(REVENUE_TIERS, 'revenue', 3)}</div>
+            <h2 className="step-header">Which of these do you personally own or manage?</h2>
+            <p className="step-subtext">Select all that apply</p>
+            <div className="chip-list">
+              {RESPONSIBILITIES.map((r) => {
+                const selected = (answers.responsibilities || []).includes(r.id)
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    className={`chip${selected ? ' selected' : ''}`}
+                    aria-pressed={selected}
+                    onClick={() => toggleResponsibility(r.id)}
+                  >
+                    {r.label}
+                  </button>
+                )
+              })}
+            </div>
+            <button
+              className="btn-primary"
+              disabled={respCount < 1}
+              onClick={() => goTo(4)}
+            >
+              Continue →
+            </button>
           </>
         )}
 
         {step === 4 && (
           <>
-            <h2 className="step-header">Roughly how much are you spending on Meta ads per month?</h2>
-            <div className="option-grid">{renderCards(SPEND_TIERS, 'spendTier', 4)}</div>
+            <h2 className="step-header">What type of brand are you?</h2>
+            <div className="option-grid">{renderCards(BRAND_TYPES, 'brandType', 4)}</div>
           </>
         )}
 
         {step === 5 && (
           <>
+            <h2 className="step-header">What's your brand's monthly revenue?</h2>
+            <div className="option-grid">{renderCards(REVENUE_TIERS, 'revenue', 5)}</div>
+          </>
+        )}
+
+        {step === 6 && (
+          <>
+            <h2 className="step-header">Roughly how much are you spending on Meta ads per month?</h2>
+            <div className="option-grid">{renderCards(SPEND_TIERS, 'spendTier', 6)}</div>
+          </>
+        )}
+
+        {step === 7 && (
+          <>
             <h2 className="step-header">What does a typical customer spend per order?</h2>
             <p className="step-subtext">Rough is fine — your average order value.</p>
             <div className="option-grid">
-              {renderCards(AOV_BRACKETS, 'aov', 5)}
+              {renderCards(AOV_BRACKETS, 'aov', 7)}
               <button
                 type="button"
                 className={`option-card${answers.aov === 'aov_other' ? ' selected' : ''}`}
@@ -278,7 +359,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
                 <button
                   className="btn-primary"
                   disabled={!answers.aovCustom || Number(answers.aovCustom) < 1}
-                  onClick={() => goTo(6)}
+                  onClick={() => goTo(8)}
                 >
                   Continue →
                 </button>
@@ -287,44 +368,44 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
           </>
         )}
 
-        {step === 6 && (
-          <>
-            <h2 className="step-header">How often do you refresh your ad creatives?</h2>
-            <div className="option-grid">{renderCards(REFRESH_RATES, 'refreshRate', 6)}</div>
-          </>
-        )}
-
-        {step === 7 && (
-          <>
-            <h2 className="step-header">Do your ads keep leaning on the same ideas?</h2>
-            <div className="option-grid">{renderCards(DIVERSITY_OPTIONS, 'angleDiversity', 7)}</div>
-          </>
-        )}
-
         {step === 8 && (
           <>
-            <h2 className="step-header">Has it got more expensive to win a customer this year?</h2>
-            <div className="option-grid">{renderCards(COST_TREND_OPTIONS, 'costTrend', 8)}</div>
+            <h2 className="step-header">How often do you refresh your ad creatives?</h2>
+            <div className="option-grid">{renderCards(REFRESH_RATES, 'refreshRate', 8)}</div>
           </>
         )}
 
         {step === 9 && (
           <>
-            <h2 className="step-header">For every £1 you put into ads, roughly what comes back?</h2>
-            <p className="step-subtext">Rough is fine — pick the closest.</p>
-            <div className="option-grid">{renderCards(ROAS_BRACKETS, 'roasBracket', 9)}</div>
+            <h2 className="step-header">Do your ads keep leaning on the same ideas?</h2>
+            <div className="option-grid">{renderCards(DIVERSITY_OPTIONS, 'angleDiversity', 9)}</div>
           </>
         )}
 
         {step === 10 && (
           <>
-            <h2 className="step-header">How many genuinely new ads do you launch in a typical month?</h2>
-            <p className="step-subtext">New ideas — not resizes or re-edits.</p>
-            <div className="option-grid">{renderCards(VOLUME_OPTIONS, 'creativeVolume', 10)}</div>
+            <h2 className="step-header">Has it got more expensive to win a customer this year?</h2>
+            <div className="option-grid">{renderCards(COST_TREND_OPTIONS, 'costTrend', 10)}</div>
           </>
         )}
 
         {step === 11 && (
+          <>
+            <h2 className="step-header">For every £1 you put into ads, roughly what comes back?</h2>
+            <p className="step-subtext">Rough is fine — pick the closest.</p>
+            <div className="option-grid">{renderCards(ROAS_BRACKETS, 'roasBracket', 11)}</div>
+          </>
+        )}
+
+        {step === 12 && (
+          <>
+            <h2 className="step-header">How many genuinely new ads do you launch in a typical month?</h2>
+            <p className="step-subtext">New ideas — not resizes or re-edits.</p>
+            <div className="option-grid">{renderCards(VOLUME_OPTIONS, 'creativeVolume', 12)}</div>
+          </>
+        )}
+
+        {step === 13 && (
           <>
             <h2 className="step-header">What's your best-performing hook or ad angle right now?</h2>
             <p className="step-subtext">Even a rough description helps — we use it to map your creative coverage.</p>
@@ -340,21 +421,21 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
             </div>
             <button
               className="btn-primary"
-              onClick={() => goTo(12)}
+              onClick={() => goTo(14)}
             >
               Continue →
             </button>
           </>
         )}
 
-        {step === 12 && (
+        {step === 14 && (
           <>
             <h2 className="step-header">Who makes your ads right now?</h2>
-            <div className="option-grid">{renderCards(ADS_MADE_BY, 'adsMadeBy', 12)}</div>
+            <div className="option-grid">{renderCards(ADS_MADE_BY, 'adsMadeBy', 14)}</div>
           </>
         )}
 
-        {step === 13 && (
+        {step === 15 && (
           <>
             <h2 className="step-header">What's your biggest frustration with your ads right now?</h2>
             <p className="step-subtext">Pick up to 3</p>
@@ -383,14 +464,14 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
             <button
               className="btn-primary"
               disabled={frustrationCount < 1 || frustrationCount > 3}
-              onClick={() => goTo(14)}
+              onClick={() => goTo(16)}
             >
               Continue →
             </button>
           </>
         )}
 
-        {step === 14 && (
+        {step === 16 && (
           <>
             <h2 className="step-header">Last one — anything else we should know?</h2>
             <div className="field">

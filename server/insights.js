@@ -51,11 +51,49 @@ function buildUserPrompt(answers) {
     ? `- Additional context from the founder: ${answers.extraContext}`
     : ''
 
-  return `Analyse this skincare brand's quiz data and produce a 4-part diagnosis. Be specific to THIS brand — reference their actual data points, not generic advice.
+  const JOB_LABELS = {
+    role_founder: 'Owner / Founder',
+    role_md: 'Managing Director',
+    role_csuite: 'C-Suite executive',
+    role_marketing: 'Marketing Director / Manager',
+    role_growth: 'Head of Growth / Performance',
+    role_ecom: 'Ecommerce Director / Manager',
+    role_agency: 'Agency managing client accounts',
+    role_freelance: 'Freelance / Consultant',
+  }
+
+  const RESP_LABELS = {
+    resp_paid: 'Paid ads (Meta / social)',
+    resp_email: 'Email marketing',
+    resp_creative: 'Creative / Content',
+    resp_seo: 'SEO / Organic',
+    resp_cro: 'CRO / Landing pages',
+    resp_strategy: 'Strategy / Planning',
+  }
+
+  const jobLabel = JOB_LABELS[answers.jobTitle] || ''
+  const respLabels = (answers.responsibilities || []).map((r) => RESP_LABELS[r] || r).join(', ')
+  const isAgency = answers.jobTitle === 'role_agency' || answers.jobTitle === 'role_freelance'
+
+  let roleContext = ''
+  if (jobLabel) {
+    roleContext = `\n\nROLE CONTEXT:
+The person completing this is a ${jobLabel} who personally manages: ${respLabels || 'not specified'}.
+Frame insights in terms relevant to their role:
+- Founders/MDs: revenue, profit, business impact — "your business"
+- C-Suite: strategic positioning, competitive advantage — "your brand's position"
+- Marketing Directors / Heads of Growth: performance metrics, CPA, efficiency — "your campaigns"
+- Ecommerce Directors: order volume, AOV optimisation, conversion — "your store"
+- Agency / Freelance: frame as "your client's" not "your" — they're evaluating for someone else`
+  }
+
+  return `Analyse this ${isAgency ? "brand's" : 'skincare brand\'s'} quiz data and produce a 4-part diagnosis. Be specific to THIS brand — reference their actual data points, not generic advice.
 
 BRAND DATA:
 - Brand: ${answers.brandName}
 ${websiteLine}
+${jobLabel ? `- Role: ${jobLabel}` : ''}
+${respLabels ? `- Manages: ${respLabels}` : ''}
 - Type: ${answers.brandType}
 - Monthly revenue: ${label('revenue', answers.revenue)}
 - Monthly Meta ad spend: ${label('spendTier', answers.spendTier)}
@@ -68,7 +106,7 @@ ${websiteLine}
 ${hookLine}
 - Ads made by: ${label('adsMadeBy', answers.adsMadeBy)}
 - Frustrations: ${frustrationLabels || 'None selected'}
-${extraLine}
+${extraLine}${roleContext}
 
 OUTPUT FORMAT — respond with a JSON object, no markdown, no preamble:
 {

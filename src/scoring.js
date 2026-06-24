@@ -187,3 +187,176 @@ export function calculateSpendDecoder(recoverableMonthly, aovMidpoint) {
 export function formatGBP(n) {
   return '£' + Math.round(n).toLocaleString('en-GB')
 }
+
+// --- Three-Lane Impact Stack ------------------------------------------------
+
+const LANE_MULTIPLIERS = {
+  under_5k:   { low: 3.5, high: 5.0 },
+  '5k_15k':   { low: 3.5, high: 5.0 },
+  '15k_50k':  { low: 3.5, high: 4.5 },
+  '50k_100k': { low: 3.0, high: 4.0 },
+  '100k_plus': { low: 3.0, high: 3.5 },
+}
+
+export function calculateThreeLaneImpact(lane2Low, lane2High, spendTier) {
+  const multiplier = LANE_MULTIPLIERS[spendTier] || LANE_MULTIPLIERS['15k_50k']
+
+  const combinedLow = Math.round(lane2Low * multiplier.low / 100) * 100
+  const combinedHigh = Math.round(lane2High * multiplier.high / 100) * 100
+
+  const lane1Low = Math.round(lane2Low * 1.5 / 100) * 100
+  const lane1High = Math.round(lane2High * 2.5 / 100) * 100
+  const lane3Low = Math.round(lane2Low * 1.0 / 100) * 100
+  const lane3High = Math.round(lane2High * 1.5 / 100) * 100
+
+  const sixMonthLow = combinedLow * 6
+  const sixMonthHigh = combinedHigh * 6
+  const annualizedLow = combinedLow * 12
+  const annualizedHigh = combinedHigh * 15
+
+  return {
+    lane2: { low: lane2Low, high: lane2High },
+    lane1: { low: lane1Low, high: lane1High, locked: true },
+    lane3: { low: lane3Low, high: lane3High, locked: true },
+    combined: { low: combinedLow, high: combinedHigh },
+    sixMonth: { low: sixMonthLow, high: sixMonthHigh },
+    annualized: { low: annualizedLow, high: annualizedHigh },
+    multiplier,
+  }
+}
+
+// --- Cost of Inaction -------------------------------------------------------
+
+export function calculateCostOfInaction(lane2Low, lane2High, aovMidpoint) {
+  const ninetyDayLow = Math.round(lane2Low * 3 / 100) * 100
+  const ninetyDayHigh = Math.round(lane2High * 2 * 3 / 100) * 100
+
+  const ordersLow = aovMidpoint ? Math.round(ninetyDayLow / aovMidpoint / 10) * 10 : null
+  const ordersHigh = aovMidpoint ? Math.round(ninetyDayHigh / aovMidpoint / 10) * 10 : null
+
+  return {
+    revenue: { low: ninetyDayLow, high: ninetyDayHigh },
+    orders: ordersLow ? { low: ordersLow, high: ordersHigh } : null,
+  }
+}
+
+// --- Scenario Match ---------------------------------------------------------
+
+export function getScenarioMatch(fatigueScore) {
+  if (fatigueScore >= 70) return 'red'
+  if (fatigueScore >= 45) return 'orange'
+  return 'green'
+}
+
+// --- Radar Inference Matrix -------------------------------------------------
+// Axes order: [Pain/Problem, Transformation, Social Proof, Science/Ingredient, Founder Story]
+
+const RADAR_MATRIX = {
+  skincare: {
+    '1_2':    [20, 75, 15, 85, 10],
+    '3_4':    [70, 80, 45, 85, 20],
+    '5_plus': [75, 85, 70, 90, 50],
+  },
+  beauty: {
+    '1_2':    [15, 80, 85, 20, 10],
+    '3_4':    [25, 80, 85, 40, 65],
+    '5_plus': [50, 85, 90, 65, 70],
+  },
+  wellness: {
+    '1_2':    [80, 20, 15, 75, 10],
+    '3_4':    [85, 45, 40, 80, 65],
+    '5_plus': [85, 70, 65, 85, 70],
+  },
+}
+
+const RADAR_BENCHMARKS = {
+  skincare: [80, 85, 65, 90, 55],
+  beauty:   [45, 85, 90, 60, 70],
+  wellness: [85, 70, 60, 85, 65],
+}
+
+export function getRadarScores(brandType, angleDiversity) {
+  const type = RADAR_MATRIX[brandType] ? brandType : 'skincare'
+  let countKey = '3_4'
+  if (angleDiversity === 'yes_same') countKey = '1_2'
+  else if (angleDiversity === 'no_varied') countKey = '5_plus'
+
+  return {
+    scores: RADAR_MATRIX[type][countKey],
+    benchmark: RADAR_BENCHMARKS[type],
+  }
+}
+
+// --- Benchmark Scores (top quartile by spend tier) --------------------------
+
+export const BENCHMARK_SCORES = {
+  under_5k: 45,
+  '5k_15k': 38,
+  '15k_50k': 32,
+  '50k_100k': 28,
+  '100k_plus': 25,
+}
+
+// --- Sigmoid Decay Curve Params ---------------------------------------------
+
+export const DECAY_PARAMS = {
+  under_5k: {
+    weekly:          { cliff: 8,   steepness: 0.45, markerWeek: 2 },
+    every_2_3_weeks: { cliff: 6,   steepness: 0.50, markerWeek: 4 },
+    monthly_or_less: { cliff: 5,   steepness: 0.55, markerWeek: 6 },
+    only_when_drops: { cliff: 4,   steepness: 0.60, markerWeek: 9 },
+  },
+  '5k_15k': {
+    weekly:          { cliff: 7,   steepness: 0.55, markerWeek: 2 },
+    every_2_3_weeks: { cliff: 5.5, steepness: 0.65, markerWeek: 4 },
+    monthly_or_less: { cliff: 4.5, steepness: 0.75, markerWeek: 6 },
+    only_when_drops: { cliff: 3.5, steepness: 0.85, markerWeek: 9 },
+  },
+  '15k_50k': {
+    weekly:          { cliff: 6,   steepness: 0.70, markerWeek: 2 },
+    every_2_3_weeks: { cliff: 5,   steepness: 0.85, markerWeek: 4 },
+    monthly_or_less: { cliff: 4,   steepness: 1.00, markerWeek: 6 },
+    only_when_drops: { cliff: 3,   steepness: 1.10, markerWeek: 9 },
+  },
+  '50k_100k': {
+    weekly:          { cliff: 5,   steepness: 0.90, markerWeek: 2 },
+    every_2_3_weeks: { cliff: 4,   steepness: 1.10, markerWeek: 4 },
+    monthly_or_less: { cliff: 3,   steepness: 1.30, markerWeek: 6 },
+    only_when_drops: { cliff: 2.5, steepness: 1.50, markerWeek: 9 },
+  },
+  '100k_plus': {
+    weekly:          { cliff: 5,   steepness: 0.90, markerWeek: 2 },
+    every_2_3_weeks: { cliff: 4,   steepness: 1.10, markerWeek: 4 },
+    monthly_or_less: { cliff: 3,   steepness: 1.30, markerWeek: 6 },
+    only_when_drops: { cliff: 2.5, steepness: 1.50, markerWeek: 9 },
+  },
+}
+
+export function effectiveness(week, cliffPoint, steepness) {
+  return Math.round(5 + 90 / (1 + Math.exp(steepness * (week - cliffPoint))))
+}
+
+// --- CPA Escalation Lookup --------------------------------------------------
+
+const CPA_ESCALATION = [
+  { max: 2, low: 15, high: 25 },
+  { max: 4, low: 25, high: 45 },
+  { max: 8, low: 40, high: 80 },
+  { max: 12, low: 60, high: 120 },
+  { max: Infinity, low: 80, high: 150 },
+]
+
+export function getCPAEscalation(weeksPastCliff) {
+  if (weeksPastCliff <= 0) return null
+  const tier = CPA_ESCALATION.find((t) => weeksPastCliff <= t.max)
+  return tier ? { low: tier.low, high: tier.high } : { low: 80, high: 150 }
+}
+
+// --- Display Rounding -------------------------------------------------------
+
+export function roundForDisplay(n) {
+  if (n < 1000) return Math.round(n / 50) * 50
+  if (n < 10000) return Math.round(n / 100) * 100
+  if (n < 50000) return Math.round(n / 500) * 500
+  return Math.round(n / 1000) * 1000
+}

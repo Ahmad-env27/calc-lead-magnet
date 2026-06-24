@@ -1,10 +1,9 @@
-// Phase 4 — Results. The big number is the hero; the gauge fill is the one
-// mandatory animated moment. Hierarchy: your number → what the teardown adds →
-// CTA → supporting evidence. No pricing, no offer mechanics anywhere — this is
-// a lead magnet; money talk happens on the call.
-
 import { useEffect, useRef, useState } from 'react'
-import { getRiskBand, formatGBP, calculateSpendDecoder, AOV_MIDPOINTS } from './scoring.js'
+import {
+  getRiskBand, formatGBP, calculateSpendDecoder, AOV_MIDPOINTS,
+  getRadarScores, BENCHMARK_SCORES, DECAY_PARAMS, effectiveness,
+  getCPAEscalation, roundForDisplay, getScenarioMatch,
+} from './scoring.js'
 import { getAngles, getQuickWin } from './angles-data.js'
 import { fireFollowupEvent } from './webhook.js'
 
@@ -29,6 +28,48 @@ const SPEND_LABELS = {
   '100k_plus': '£100k+',
 }
 
+const JOB_TITLE_LABELS = {
+  role_founder: 'Founder',
+  role_md: 'Managing Director',
+  role_csuite: 'C-Suite',
+  role_marketing: 'Marketing Director',
+  role_growth: 'Head of Growth',
+  role_ecom: 'Ecommerce Director',
+  role_agency: 'Agency',
+  role_freelance: 'Freelance',
+}
+
+function isAgencyOrFreelance(jobTitle) {
+  return jobTitle === 'role_agency' || jobTitle === 'role_freelance'
+}
+
+function isFounderOrMD(jobTitle) {
+  return jobTitle === 'role_founder' || jobTitle === 'role_md'
+}
+
+function getHeadlineCopy(brand, jobTitle) {
+  if (isAgencyOrFreelance(jobTitle)) return `Here's what ${brand}'s account is leaving on the table`
+  if (jobTitle === 'role_csuite') return `Here's where ${brand}'s competitive edge is leaking`
+  if (jobTitle === 'role_marketing' || jobTitle === 'role_growth' || jobTitle === 'role_ecom')
+    return "Here's where your paid performance is leaking"
+  return `Here's what ${brand} is leaving on the table`
+}
+
+function getCtaText(jobTitle) {
+  if (jobTitle === 'role_agency') return 'Book a partner call'
+  if (jobTitle === 'role_marketing' || jobTitle === 'role_growth' || jobTitle === 'role_ecom')
+    return 'Book a performance review'
+  return 'Book a strategy call'
+}
+
+function getLaneIntro(jobTitle) {
+  if (isAgencyOrFreelance(jobTitle))
+    return "This calculator measures one of three levers for your client's account."
+  if (jobTitle === 'role_marketing' || jobTitle === 'role_growth' || jobTitle === 'role_ecom')
+    return 'This calculator measures one of three performance levers.'
+  return 'This calculator measures one of three revenue levers.'
+}
+
 function interpretation(answers, results) {
   const brand = answers.brandName || 'Your brand'
   const freq = FREQUENCY_LABELS[answers.refreshRate]
@@ -45,9 +86,9 @@ function interpretation(answers, results) {
   return `Your answers suggest significant creative fatigue across your account. At ${spend} per month, the same messaging patterns are leaving the most on the table — the range below is the floor of what's recoverable, not the ceiling.`
 }
 
-// --- Section A: animated semicircle gauge -----------------------------------
+// --- Section A: animated semicircle gauge with benchmark ---------------------
 
-function Gauge({ score }) {
+function Gauge({ score, spendTier }) {
   const reduced =
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -58,13 +99,12 @@ function Gauge({ score }) {
 
   useEffect(() => {
     if (reduced) return
-    // Kick the CSS transition one frame after mount, count the number up in sync
     const kick = requestAnimationFrame(() => setDrawn(true))
     let start
     const tick = (t) => {
       if (start === undefined) start = t
       const p = Math.min((t - start) / 2000, 1)
-      const eased = 1 - Math.pow(1 - p, 3) // ease-out-cubic, matches the arc
+      const eased = 1 - Math.pow(1 - p, 3)
       setDisplay(Math.round(eased * score))
       if (p < 1) rafRef.current = requestAnimationFrame(tick)
     }
@@ -79,10 +119,15 @@ function Gauge({ score }) {
   const R = 90
   const LEN = Math.PI * R
   const band = getRiskBand(score)
+  const benchmark = BENCHMARK_SCORES[spendTier] || 35
+  const benchmarkFraction = benchmark / 100
+  const benchmarkAngle = Math.PI * benchmarkFraction
+  const bx = 110 - R * Math.cos(benchmarkAngle)
+  const by = 110 - R * Math.sin(benchmarkAngle)
 
   return (
     <div className="gauge">
-      <svg viewBox="0 0 220 122" width="100%" aria-hidden="true">
+      <svg viewBox="0 0 220 130" width="100%" aria-hidden="true">
         <path
           d="M 20 110 A 90 90 0 0 1 200 110"
           fill="none"
@@ -100,6 +145,16 @@ function Gauge({ score }) {
           strokeDashoffset={drawn ? LEN * (1 - score / 100) : LEN}
           style={{ transition: 'stroke-dashoffset 2s cubic-bezier(0.33, 1, 0.68, 1)' }}
         />
+        <line
+          x1={bx} y1={by} x2={bx + (bx < 110 ? -6 : 6)} y2={by - 6}
+          stroke="var(--risk-low)" strokeWidth="2" strokeLinecap="round"
+        />
+        <text
+          x={bx + (bx < 110 ? -10 : 10)} y={by - 10}
+          fill="var(--risk-low)" fontSize="7" textAnchor={bx < 110 ? 'end' : 'start'}
+        >
+          Top brands: {benchmark}
+        </text>
       </svg>
       <div className="gauge-readout">
         <span className="gauge-score" style={{ color: `var(--risk-${band.key})` }}>
@@ -110,18 +165,26 @@ function Gauge({ score }) {
       <p className="gauge-label" style={{ color: `var(--risk-${band.key})` }}>
         {band.label}
       </p>
+      {score > benchmark && (
+        <p className="gauge-benchmark-gap">
+          Gap: {score - benchmark} points above top performers at your spend level
+        </p>
+      )}
     </div>
   )
 }
 
-// --- Section C: expandable angle cards --------------------------------------
+// --- Section: expandable angle cards ----------------------------------------
 
-function AngleCards({ brandType }) {
+function AngleCards({ brandType, showCreativeHeader }) {
   const angles = getAngles(brandType)
   const [open, setOpen] = useState(0)
 
   return (
     <div className="angle-list">
+      {showCreativeHeader && (
+        <p className="card-kicker angle-kicker">TEST BRIEFS YOU CAN ACTION THIS WEEK</p>
+      )}
       {angles.map((a, i) => (
         <div className={`angle-card${open === i ? ' open' : ''}`} key={a.name}>
           <button
@@ -152,9 +215,9 @@ function AngleCards({ brandType }) {
   )
 }
 
-// --- Loom teardown card (the conversion point) -------------------------------
+// --- Loom teardown card (the conversion point) ------------------------------
 
-function LoomCard({ answers, claimed, onClaim }) {
+function LoomCard({ answers, claimed, onClaim, ctaText }) {
   const brand = answers.brandName || 'your brand'
 
   return (
@@ -162,20 +225,20 @@ function LoomCard({ answers, claimed, onClaim }) {
       <h2 className="loom-title">Want the full picture?</h2>
       {claimed ? (
         <p className="claim-confirm">
-          Done — your teardown is queued. We’ll email {answers.email} within 48 hours with your
+          Done — your teardown is queued. We'll email {answers.email} within 48 hours with your
           Loom link and a booking link for your free consultation. Nothing else to do for now.
         </p>
       ) : (
         <>
           <p className="loom-body">
-            We’ll prepare a personalised Loom teardown for {brand} — a 5-minute video plus a
+            We'll prepare a personalised Loom teardown for {brand} — a 5-minute video plus a
             30-minute free consultation. It includes:
           </p>
           <ul className="deliv-list">
-            <li>Your competitor messaging analysis — what brands in your lane are saying that you’re not</li>
+            <li>Your competitor messaging analysis — what brands in your lane are saying that you're not</li>
             <li>
-              Your top 3 competitors run through our Spend Decoder — what they’re spending and
-              how hard they’re testing
+              Your top 3 competitors run through our Spend Decoder — what they're spending and
+              how hard they're testing
             </li>
             <li>A concrete plan for your next creative batch</li>
           </ul>
@@ -193,7 +256,7 @@ function LoomCard({ answers, claimed, onClaim }) {
           </div>
           <p className="derisk">The insights are yours whether we work together or not.</p>
           <button className="cta-btn cta-full" onClick={onClaim}>
-            Get your free Loom teardown →
+            {ctaText || 'Get your free Loom teardown'} →
           </button>
           <p className="delivery-note">
             Prepared within 48 hours of booking. We review every teardown with a human
@@ -205,7 +268,7 @@ function LoomCard({ answers, claimed, onClaim }) {
   )
 }
 
-// --- Email course card (warm / cold) -----------------------------------------
+// --- Email course card (warm / cold) ----------------------------------------
 
 function CourseCard({ answers, claimed, onClaim }) {
   return (
@@ -213,7 +276,7 @@ function CourseCard({ answers, claimed, onClaim }) {
       <h2 className="loom-title">Learn to fix this yourself</h2>
       {claimed ? (
         <p className="claim-confirm">
-          You’re in — lesson one lands at {answers.email} tomorrow morning.
+          You're in — lesson one lands at {answers.email} tomorrow morning.
         </p>
       ) : (
         <>
@@ -266,6 +329,172 @@ function SpendDecoder({ answers, results }) {
   )
 }
 
+// --- Section: Three-Lane Impact Stack ---------------------------------------
+
+function ThreeLaneStack({ results, answers }) {
+  const tl = results.threeLane
+  if (!tl) return null
+
+  const jobTitle = answers.jobTitle
+  const aovMid = answers.aov === 'aov_other'
+    ? Number(answers.aovCustom)
+    : AOV_MIDPOINTS[answers.aov]
+  const hasOrders = aovMid && aovMid > 0
+
+  const combinedOrdersLow = hasOrders ? Math.round(tl.combined.low / aovMid / 10) * 10 : null
+  const combinedOrdersHigh = hasOrders ? Math.round(tl.combined.high / aovMid / 10) * 10 : null
+
+  const respHasCro = (answers.responsibilities || []).includes('resp_cro')
+  const respHasEmail = (answers.responsibilities || []).includes('resp_email')
+
+  return (
+    <div className="three-lane-stack">
+      <p className="lane-intro">{getLaneIntro(jobTitle)}</p>
+
+      <p className="lane-section-label">WHAT THE CALCULATOR COVERS TODAY</p>
+      <div className="lane-card lane-card-amber lane-card-single">
+        <span className="lane-card-title">Meta optimisation</span>
+        <span className="lane-card-subtitle">How you spend</span>
+        <span className="lane-card-value">
+          ~{formatGBP(roundForDisplay(tl.lane2.low))}–{formatGBP(roundForDisplay(tl.lane2.high))} / month
+        </span>
+        <span className="lane-card-badge">Calculated from your answers</span>
+      </div>
+
+      <div className="lane-divider" />
+
+      <p className="lane-section-label">THE FULL PICTURE — ALL THREE LEVERS</p>
+      <div className="lane-cards-row">
+        <div className="lane-card lane-card-teal">
+          <span className="lane-card-title">Audience intelligence</span>
+          <span className="lane-card-subtitle">Knowing what to say</span>
+          <span className="lane-card-value-sm">
+            ~{formatGBP(roundForDisplay(tl.lane1.low))}–{formatGBP(roundForDisplay(tl.lane1.high))} / mo
+          </span>
+          <span className="lane-card-badge lane-card-badge-locked">Requires audit</span>
+        </div>
+        <div className="lane-card lane-card-amber lane-card-highlight">
+          <span className="lane-card-title">Meta optimisation</span>
+          <span className="lane-card-subtitle">How you spend</span>
+          <span className="lane-card-value-sm">
+            ~{formatGBP(roundForDisplay(tl.lane2.low))}–{formatGBP(roundForDisplay(tl.lane2.high))} / mo
+          </span>
+          <span className="lane-card-badge">Calculated</span>
+        </div>
+        <div className="lane-card lane-card-purple">
+          <span className="lane-card-title">Signal stack</span>
+          <span className="lane-card-subtitle">How Meta reads you</span>
+          <span className="lane-card-value-sm">
+            ~{formatGBP(roundForDisplay(tl.lane3.low))}–{formatGBP(roundForDisplay(tl.lane3.high))} / mo
+          </span>
+          <span className="lane-card-badge lane-card-badge-locked">Requires audit</span>
+          {respHasCro && (
+            <span className="lane-card-note">This one's yours — signal quality is a CRO lever.</span>
+          )}
+        </div>
+      </div>
+
+      <div className="lane-converge-arrow" aria-hidden="true">↓</div>
+
+      <div className="lane-card lane-card-green lane-card-combined">
+        <span className="lane-card-title">Combined opportunity</span>
+        <span className="lane-card-value">
+          {formatGBP(roundForDisplay(tl.combined.low))}–{formatGBP(roundForDisplay(tl.combined.high))} / month
+        </span>
+        {hasOrders && combinedOrdersLow > 0 && (
+          <span className="lane-card-orders">
+            ≈ {combinedOrdersLow}–{combinedOrdersHigh} orders recovered monthly
+            {aovMid ? ` (at your AOV of £${aovMid})` : ''}
+          </span>
+        )}
+        <span className="lane-card-badge">First 6 months estimated</span>
+      </div>
+
+      <div className="lane-converge-arrow" aria-hidden="true">↓</div>
+
+      <div className="lane-card lane-card-muted">
+        <span className="lane-card-title">6-month projection</span>
+        <span className="lane-card-value-sm">
+          ~{formatGBP(roundForDisplay(tl.sixMonth.low))}–{formatGBP(roundForDisplay(tl.sixMonth.high))}
+        </span>
+      </div>
+
+      <div className="lane-converge-arrow" aria-hidden="true">↓</div>
+
+      <div className="lane-card lane-card-green lane-card-muted">
+        <span className="lane-card-title">12–18 month target</span>
+        <span className="lane-card-value-sm">
+          {formatGBP(roundForDisplay(tl.annualized.low))}–{formatGBP(roundForDisplay(tl.annualized.high))}+ annualised
+        </span>
+      </div>
+
+      {respHasEmail && (
+        <p className="lane-cross-sell">
+          Every order lost on Meta is a subscriber you never captured for email.
+        </p>
+      )}
+
+      <p className="lane-methodology">
+        Lanes 1 and 3 estimated based on industry benchmarks for brands at your spend level. Requires full audit to confirm.
+      </p>
+    </div>
+  )
+}
+
+// --- Section: Cost of Inaction Countdown ------------------------------------
+
+function CostOfInaction({ results, aovMid }) {
+  const coi = results.costOfInaction
+  if (!coi) return null
+
+  return (
+    <div className="cost-of-inaction">
+      <h3 className="coi-header">If nothing changes in the next 90 days...</h3>
+      <div className="coi-cards">
+        <div className="coi-card">
+          <span className="coi-number">{formatGBP(roundForDisplay(coi.revenue.low))}–{formatGBP(roundForDisplay(coi.revenue.high))}</span>
+          <span className="coi-label">in preventable lost revenue</span>
+        </div>
+        {coi.orders && coi.orders.low > 0 && (
+          <div className="coi-card">
+            <span className="coi-number">{coi.orders.low}–{coi.orders.high}</span>
+            <span className="coi-label">orders that won't come back</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// --- Section: Credit Stack --------------------------------------------------
+
+function CreditStack({ isHotLead }) {
+  return (
+    <div className="credit-stack">
+      <h3 className="credit-stack-title">You've unlocked diagnostic credit</h3>
+      <div className="credit-stack-items">
+        <div className="credit-stack-item credit-stack-unlocked">
+          <span className="credit-stack-icon" aria-hidden="true">&#10003;</span>
+          <span className="credit-stack-name">Audience Precision System</span>
+          <span className="credit-stack-status">FREE</span>
+        </div>
+        <div className="credit-stack-item credit-stack-unlocked">
+          <span className="credit-stack-icon" aria-hidden="true">&#10003;</span>
+          <span className="credit-stack-name">Atomic Audience & Ad Audit</span>
+          <span className="credit-stack-status">FREE</span>
+        </div>
+        <div className="credit-stack-item credit-stack-locked">
+          <span className="credit-stack-icon" aria-hidden="true">&#128274;</span>
+          <span className="credit-stack-name">Signal Stack Guide</span>
+          <span className="credit-stack-status">
+            {isHotLead ? <span className="credit-stack-waived">WAIVED</span> : 'IN AUDIT'}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // --- Section: 4-part AI diagnosis -------------------------------------------
 
 const DIAGNOSIS_LABELS = {
@@ -310,173 +539,190 @@ function DiagnosisSection({ insights, brandName }) {
   )
 }
 
-// --- Section: Decay curve placeholder (spend x refresh) --------------------
+// --- Section: Sigmoid Decay Curve -------------------------------------------
 
-const SPEND_INDEX = { under_5k: 0, '5k_15k': 1, '15k_50k': 2, '50k_100k': 3, '100k_plus': 3 }
-const REFRESH_INDEX = { weekly: 0, every_2_3_weeks: 1, monthly_or_less: 2, only_when_drops: 3 }
-const REFRESH_WEEK = { weekly: 1, every_2_3_weeks: 2, monthly_or_less: 4, only_when_drops: 8 }
+function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore }) {
+  const params = DECAY_PARAMS[spendTier]?.[refreshRate]
+  if (!params) return null
 
-function getDecayCurve(spendTier, refreshRate) {
-  const base = 0.04 + SPEND_INDEX[spendTier] * 0.06
-  const accel = 1.0 + REFRESH_INDEX[refreshRate] * 0.4
-  const points = []
-  for (let w = 1; w <= 12; w++) {
-    const cpa = 1.0 + base * Math.pow(w, accel * 0.65)
-    points.push({ week: w, cpa: Math.min(cpa, 5.2) })
-  }
-  return points
-}
-
-function DecayCurve({ spendTier, refreshRate }) {
-  const points = getDecayCurve(spendTier, refreshRate)
-  const markerWeek = REFRESH_WEEK[refreshRate] || 4
-
-  const W = 440
-  const H = 200
-  const PAD_L = 40
-  const PAD_R = 10
-  const PAD_T = 10
-  const PAD_B = 30
+  const { cliff, steepness, markerWeek } = params
+  const W = 440, H = 220
+  const PAD_L = 44, PAD_R = 10, PAD_T = 10, PAD_B = 30
   const plotW = W - PAD_L - PAD_R
   const plotH = H - PAD_T - PAD_B
 
-  const maxCPA = 5.2
-  const x = (w) => PAD_L + ((w - 1) / 11) * plotW
-  const y = (cpa) => PAD_T + plotH - ((cpa - 1) / (maxCPA - 1)) * plotH
+  const points = []
+  for (let w = 0; w <= 12; w += 0.5) {
+    points.push({ week: w, eff: effectiveness(w, cliff, steepness) })
+  }
+
+  const x = (w) => PAD_L + (w / 12) * plotW
+  const y = (eff) => PAD_T + plotH - (eff / 100) * plotH
 
   const pathD = points
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(p.week).toFixed(1)} ${y(p.cpa).toFixed(1)}`)
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(p.week).toFixed(1)} ${y(p.eff).toFixed(1)}`)
     .join(' ')
 
-  const dangerY = y(1.5)
-  const marker = points.find((p) => p.week === markerWeek) || points[3]
-  const cliffWeek = points.find((p) => p.cpa >= 2.0)?.week
+  const markerEff = effectiveness(markerWeek, cliff, steepness)
+  const weeksPastCliff = Math.max(0, markerWeek - cliff)
+  const weeksToCliff = Math.max(0, cliff - markerWeek)
+  const escalation = getCPAEscalation(weeksPastCliff)
+
+  const cliffX = x(cliff)
+
+  let statusClass = 'decay-status-green'
+  let statusText = ''
+  if (weeksToCliff > 0.5) {
+    statusText = `You're ~${Math.round(weeksToCliff)} weeks from your fatigue cliff. Budget effectiveness still at ${markerEff}% — refresh now to stay safe.`
+  } else if (weeksPastCliff <= 0.5) {
+    statusClass = 'decay-status-amber'
+    statusText = `You're at your fatigue cliff right now. Performance has dropped to ${markerEff}% and is about to fall fast.`
+  } else {
+    statusClass = 'decay-status-coral'
+    statusText = `You passed your cliff ~${Math.round(weeksPastCliff)} weeks ago. Roughly ${100 - markerEff}% of your ad budget is underperforming. Every week of inaction deepens the bleed.`
+  }
 
   return (
     <div className="decay-curve">
-      <p className="card-kicker">YOUR FATIGUE DECAY CURVE</p>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" aria-label="CPA decay curve showing how your cost per acquisition rises over weeks without a creative refresh">
-        <rect x={PAD_L} y={dangerY} width={plotW} height={y(1) - dangerY} fill="rgba(226, 92, 80, 0.08)" />
-        <line x1={PAD_L} y1={dangerY} x2={PAD_L + plotW} y2={dangerY} stroke="var(--risk-critical)" strokeWidth="0.5" strokeDasharray="4 3" opacity="0.5" />
-        <text x={PAD_L + 4} y={dangerY - 3} fill="var(--risk-critical)" fontSize="8" opacity="0.7">danger zone</text>
+      <p className="card-kicker">YOUR BUDGET EFFECTIVENESS CURVE</p>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" aria-label="Budget effectiveness curve showing how your ad spend declines over weeks without a creative refresh">
+        <defs>
+          <linearGradient id="decayFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--risk-low)" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="var(--risk-critical)" stopOpacity="0.05" />
+          </linearGradient>
+        </defs>
 
-        {[1.0, 2.0, 3.0, 4.0, 5.0].map((v) => (
+        {cliff <= 12 && (
+          <rect x={cliffX} y={PAD_T} width={x(12) - cliffX} height={plotH} fill="rgba(226, 92, 80, 0.06)" />
+        )}
+
+        {[0, 25, 50, 75, 100].map((v) => (
           <g key={v}>
             <line x1={PAD_L} y1={y(v)} x2={PAD_L + plotW} y2={y(v)} stroke="var(--border)" strokeWidth="0.5" />
-            <text x={PAD_L - 4} y={y(v) + 3} fill="var(--faint)" fontSize="8" textAnchor="end">{v.toFixed(1)}x</text>
+            <text x={PAD_L - 4} y={y(v) + 3} fill="var(--faint)" fontSize="8" textAnchor="end">{v}%</text>
           </g>
         ))}
 
-        {[1, 3, 5, 7, 9, 11].map((w) => (
+        {[0, 2, 4, 6, 8, 10, 12].map((w) => (
           <text key={w} x={x(w)} y={H - 6} fill="var(--faint)" fontSize="8" textAnchor="middle">W{w}</text>
         ))}
 
+        <path d={`${pathD} L ${x(12).toFixed(1)} ${y(0).toFixed(1)} L ${x(0).toFixed(1)} ${y(0).toFixed(1)} Z`} fill="url(#decayFill)" />
         <path d={pathD} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-        <circle cx={x(marker.week)} cy={y(marker.cpa)} r="5" fill="var(--accent)" stroke="var(--bg)" strokeWidth="2" />
-        <text x={x(marker.week)} y={y(marker.cpa) - 10} fill="var(--accent)" fontSize="9" fontWeight="600" textAnchor="middle">you are here</text>
+        {cliff <= 12 && (
+          <>
+            <line x1={cliffX} y1={PAD_T} x2={cliffX} y2={PAD_T + plotH} stroke="var(--risk-critical)" strokeWidth="0.5" strokeDasharray="4 3" opacity="0.6" />
+            <text x={cliffX + 4} y={PAD_T + 12} fill="var(--risk-critical)" fontSize="8" opacity="0.7">fatigue cliff</text>
+          </>
+        )}
+
+        <line x1={x(markerWeek)} y1={PAD_T} x2={x(markerWeek)} y2={y(markerEff)} stroke="var(--accent)" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
+        <circle cx={x(markerWeek)} cy={y(markerEff)} r="6" fill="var(--accent)" stroke="var(--bg)" strokeWidth="2" />
+        <text x={x(markerWeek)} y={y(markerEff) - 12} fill="var(--accent)" fontSize="9" fontWeight="600" textAnchor="middle">you are here</text>
+        <text x={x(markerWeek)} y={y(markerEff) - 3} fill="var(--accent)" fontSize="7" textAnchor="middle">{markerEff}%</text>
       </svg>
+
+      <p className={`decay-status ${statusClass}`}>{statusText}</p>
+
+      {escalation && weeksPastCliff > 0.5 && (
+        <p className="decay-escalation">
+          Based on your refresh cadence, your cost per acquisition has likely increased {escalation.low}–{escalation.high}% since your cliff.
+        </p>
+      )}
+
       <div className="decay-legend">
         <span className="decay-axis-label">Weeks since last creative refresh</span>
-        {cliffWeek && (
-          <span className="decay-cliff-note">
-            Your fatigue cliff: ~week {cliffWeek}
-          </span>
-        )}
       </div>
     </div>
   )
 }
 
-// --- Section: Radar chart placeholder (5 creative angles) -------------------
+// --- Section: Expanded Radar Chart (8 axes) ---------------------------------
 
-function estimateCoverage(answers) {
-  let pain = 30, transformation = 30, social = 30, science = 30, founder = 30
-
-  if (answers.angleDiversity === 'yes_same') {
-    pain = 20; transformation = 20; social = 15; science = 15; founder = 10
-  } else if (answers.angleDiversity === 'probably') {
-    pain = 45; transformation = 35; social = 25; science = 30; founder = 15
-  } else if (answers.angleDiversity === 'no_varied') {
-    pain = 55; transformation = 50; social = 45; science = 50; founder = 35
-  }
-
-  if (answers.brandType === 'skincare') { science += 20; pain += 10 }
-  if (answers.brandType === 'wellness') { transformation += 20; science += 10 }
-  if (answers.brandType === 'beauty') { social += 15; transformation += 15 }
-
-  if (answers.frustrations?.includes('same_message')) { pain += 15; transformation -= 5 }
-  if (answers.frustrations?.includes('customer_language')) { social -= 15 }
-  if (answers.adsMadeBy === 'founder') { founder += 20 }
-
-  const hook = (answers.bestHook || '').toLowerCase()
-  if (hook.includes('before') || hook.includes('after') || hook.includes('transform')) transformation += 25
-  if (hook.includes('review') || hook.includes('ugc') || hook.includes('testimonial')) social += 25
-  if (hook.includes('ingredient') || hook.includes('science') || hook.includes('clinical')) science += 25
-  if (hook.includes('pain') || hook.includes('problem') || hook.includes('frustrat')) pain += 25
-  if (hook.includes('founder') || hook.includes('story') || hook.includes('mission')) founder += 25
-
-  const clamp = (v) => Math.max(5, Math.min(95, v))
-  return [
-    { label: 'Pain / Problem', value: clamp(pain) },
-    { label: 'Transformation', value: clamp(transformation) },
-    { label: 'Social Proof', value: clamp(social) },
-    { label: 'Science / Ingredient', value: clamp(science) },
-    { label: 'Founder Story', value: clamp(founder) },
-  ]
-}
+const RADAR_LABELS_5 = ['Pain / Problem', 'Transformation', 'Social Proof', 'Science / Ingredient', 'Founder Story']
+const RADAR_LABELS_LOCKED = ['Audience Precision', 'Signal Quality', 'Competitive Position']
 
 function RadarChart({ answers }) {
-  const axes = estimateCoverage(answers)
-  const N = axes.length
-  const CX = 150, CY = 140, R = 100
-  const IDEAL = 70
+  const { scores, benchmark } = getRadarScores(answers.brandType, answers.angleDiversity)
+  const N_SCORED = 5
+  const N_TOTAL = 8
+  const CX = 150, CY = 150, R = 100
 
-  const angle = (i) => (Math.PI * 2 * i) / N - Math.PI / 2
+  const angle = (i) => (Math.PI * 2 * i) / N_TOTAL - Math.PI / 2
   const px = (i, pct) => CX + R * (pct / 100) * Math.cos(angle(i))
   const py = (i, pct) => CY + R * (pct / 100) * Math.sin(angle(i))
 
-  const userPath = axes.map((a, i) => `${i === 0 ? 'M' : 'L'} ${px(i, a.value).toFixed(1)} ${py(i, a.value).toFixed(1)}`).join(' ') + ' Z'
-  const idealPath = axes.map((_, i) => `${i === 0 ? 'M' : 'L'} ${px(i, IDEAL).toFixed(1)} ${py(i, IDEAL).toFixed(1)}`).join(' ') + ' Z'
+  const userPath = scores.map((s, i) => `${i === 0 ? 'M' : 'L'} ${px(i, s).toFixed(1)} ${py(i, s).toFixed(1)}`).join(' ') + ' Z'
+  const benchmarkPath = benchmark.map((b, i) => `${i === 0 ? 'M' : 'L'} ${px(i, b).toFixed(1)} ${py(i, b).toFixed(1)}`).join(' ') + ' Z'
 
-  const weakest = axes.reduce((min, a) => a.value < min.value ? a : min, axes[0])
-  const strongest = axes.reduce((max, a) => a.value > max.value ? a : max, axes[0])
+  const aboveFifty = scores.filter((s) => s > 50).length
+  const weakest = scores.reduce((min, s, i) => s < min.value ? { value: s, label: RADAR_LABELS_5[i] } : min, { value: 100, label: '' })
+  const strongest = scores.reduce((max, s, i) => s > max.value ? { value: s, label: RADAR_LABELS_5[i] } : max, { value: 0, label: '' })
 
   return (
     <div className="radar-chart">
       <p className="card-kicker">YOUR CREATIVE ANGLE COVERAGE</p>
       <div className="radar-legend">
         <span className="radar-legend-item"><span className="radar-dot radar-dot-user" /> Your estimated coverage</span>
-        <span className="radar-legend-item"><span className="radar-dot radar-dot-ideal" /> Ideal balanced coverage</span>
+        <span className="radar-legend-item"><span className="radar-dot radar-dot-ideal" /> Top-performing benchmark</span>
+        <span className="radar-legend-item"><span className="radar-dot radar-dot-locked" /> Requires audit</span>
       </div>
-      <svg viewBox="0 0 300 290" width="100%" aria-label="Radar chart showing creative angle coverage across 5 dimensions">
+      <svg viewBox="0 0 300 310" width="100%" aria-label="Radar chart showing creative angle coverage across 8 dimensions">
         {[25, 50, 75, 100].map((ring) => (
           <polygon
             key={ring}
-            points={axes.map((_, i) => `${px(i, ring).toFixed(1)},${py(i, ring).toFixed(1)}`).join(' ')}
+            points={Array.from({ length: N_TOTAL }, (_, i) => `${px(i, ring).toFixed(1)},${py(i, ring).toFixed(1)}`).join(' ')}
             fill="none" stroke="var(--border)" strokeWidth="0.5"
           />
         ))}
 
-        {axes.map((_, i) => (
-          <line key={i} x1={CX} y1={CY} x2={px(i, 100)} y2={py(i, 100)} stroke="var(--border)" strokeWidth="0.5" />
-        ))}
+        {Array.from({ length: N_TOTAL }, (_, i) => {
+          const isLocked = i >= N_SCORED
+          return (
+            <line
+              key={i} x1={CX} y1={CY} x2={px(i, 100)} y2={py(i, 100)}
+              stroke={isLocked ? 'var(--border)' : 'var(--border)'}
+              strokeWidth="0.5"
+              strokeDasharray={isLocked ? '3 3' : 'none'}
+              opacity={isLocked ? 0.4 : 1}
+            />
+          )
+        })}
 
-        <path d={idealPath} fill="rgba(84, 201, 127, 0.08)" stroke="var(--risk-low)" strokeWidth="1" strokeDasharray="4 3" />
+        <path d={benchmarkPath} fill="rgba(84, 201, 127, 0.08)" stroke="var(--risk-low)" strokeWidth="1" strokeDasharray="4 3" />
         <path d={userPath} fill="rgba(240, 166, 60, 0.15)" stroke="var(--accent)" strokeWidth="2" />
 
-        {axes.map((a, i) => (
-          <circle key={i} cx={px(i, a.value)} cy={py(i, a.value)} r="4" fill="var(--accent)" stroke="var(--bg)" strokeWidth="1.5" />
+        {scores.map((s, i) => (
+          <circle key={i} cx={px(i, s)} cy={py(i, s)} r="4" fill="var(--accent)" stroke="var(--bg)" strokeWidth="1.5" />
         ))}
 
-        {axes.map((a, i) => {
+        {RADAR_LABELS_5.map((label, i) => {
           const labelR = R + 22
           const lx = CX + labelR * Math.cos(angle(i))
           const ly = CY + labelR * Math.sin(angle(i))
           return (
             <text key={i} x={lx} y={ly} fill="var(--muted)" fontSize="9" textAnchor="middle" dominantBaseline="middle">
-              {a.label}
+              {label}
             </text>
+          )
+        })}
+
+        {RADAR_LABELS_LOCKED.map((label, idx) => {
+          const i = N_SCORED + idx
+          const labelR = R + 22
+          const lx = CX + labelR * Math.cos(angle(i))
+          const ly = CY + labelR * Math.sin(angle(i))
+          return (
+            <g key={i}>
+              <text x={lx} y={ly - 6} fill="var(--faint)" fontSize="8" textAnchor="middle" dominantBaseline="middle" opacity="0.4">
+                {label}
+              </text>
+              <text x={lx} y={ly + 6} fill="var(--faint)" fontSize="7" textAnchor="middle" dominantBaseline="middle" opacity="0.3">
+                ?
+              </text>
+            </g>
           )
         })}
       </svg>
@@ -486,6 +732,9 @@ function RadarChart({ answers }) {
           {strongest.label !== weakest.label && (
             <> Your strongest signal is {strongest.label} ({strongest.value}%).</>
           )}
+        </p>
+        <p className="radar-benchmark-text">
+          Your coverage: {aboveFifty} of 5 angles above 50%. Best-in-class: 4 of 5.
         </p>
       </div>
     </div>
@@ -504,6 +753,13 @@ export default function Results({ answers, results, insights }) {
   const isCold = temp === 'cold'
   const disqualified = answers.frustrations.includes('none')
   const brand = answers.brandName || 'your brand'
+  const jobTitle = answers.jobTitle
+  const ctaText = getCtaText(jobTitle)
+  const hasCreativeResp = (answers.responsibilities || []).includes('resp_creative')
+
+  const aovMid = answers.aov === 'aov_other'
+    ? Number(answers.aovCustom)
+    : (AOV_MIDPOINTS[answers.aov] || null)
 
   const claimLoom = () => {
     setLoomClaimed(true)
@@ -520,14 +776,14 @@ export default function Results({ answers, results, insights }) {
 
   return (
     <main className="results">
-      {/* A — Score header & gauge */}
+      {/* A — Score header & gauge with benchmark overlay */}
       <section className="rsection" style={stagger()}>
         <p className="eyebrow">YOUR AD FATIGUE RISK SCORE</p>
-        <Gauge score={results.score} />
+        <Gauge score={results.score} spendTier={answers.spendTier} />
         <p className="interp">{interpretation(answers, results)}</p>
       </section>
 
-      {/* B — The number. Opportunity framing, not loss framing. */}
+      {/* B — The number. Opportunity framing with role-conditional headline. */}
       {disqualified ? (
         <section className="rsection validation-card" style={stagger()}>
           <p className="card-kicker">GOOD NEWS</p>
@@ -538,31 +794,37 @@ export default function Results({ answers, results, insights }) {
         </section>
       ) : (
         <section className="rsection opportunity-card" style={stagger()}>
-          <p className="card-kicker">WHAT {(answers.brandName || 'YOUR BRAND').toUpperCase()} COULD BE ADDING EACH MONTH</p>
+          <p className="card-kicker">{getHeadlineCopy(brand, jobTitle).toUpperCase()}</p>
           <p className="leak-number">
             {formatGBP(results.leakLow)} – {formatGBP(results.leakHigh)}
             <span className="leak-per"> / month</span>
           </p>
-          {/* The one loss line in the results — exactly one, per Ahmad */}
           <p className="leak-loss">
-            And it’s monthly — every month it goes unaddressed, the same range walks out the
+            And it's monthly — every month it goes unaddressed, the same range walks out the
             door again.
           </p>
           <p className="leak-sub">
-            Based on your answers, that’s an estimated {formatGBP(results.annualLow)} –{' '}
+            Based on your answers, that's an estimated {formatGBP(results.annualLow)} –{' '}
             {formatGBP(results.annualHigh)} a year that fresher, audience-driven ad messaging
             could capture for {brand}.
           </p>
           <p className="leak-note">
-            That’s a {results.impLow}–{results.impHigh}% improvement on your current return —
+            That's a {results.impLow}–{results.impHigh}% improvement on your current return —
             conservative against benchmarks for optimised skincare brands.
           </p>
           {results.strongROAS && (
             <p className="leak-note">
-              Returns over £4 usually mean your paid channel has more room to scale than it’s
+              Returns over £4 usually mean your paid channel has more room to scale than it's
               being given — the opportunity here is headroom, not repair.
             </p>
           )}
+        </section>
+      )}
+
+      {/* C — Three-Lane Impact Stack */}
+      {!disqualified && results.threeLane && results.leakLow >= 200 && (
+        <section className="rsection" style={stagger()}>
+          <ThreeLaneStack results={results} answers={answers} />
         </section>
       )}
 
@@ -573,14 +835,25 @@ export default function Results({ answers, results, insights }) {
         </section>
       )}
 
-      {/* Decay curve — personalised to spend tier x refresh rate */}
-      {!disqualified && answers.spendTier && answers.refreshRate && (
+      {/* Cost of Inaction countdown */}
+      {!disqualified && results.costOfInaction && (
         <section className="rsection" style={stagger()}>
-          <DecayCurve spendTier={answers.spendTier} refreshRate={answers.refreshRate} />
+          <CostOfInaction results={results} aovMid={aovMid} />
         </section>
       )}
 
-      {/* Radar chart — creative angle coverage */}
+      {/* Decay curve — parameterised sigmoid */}
+      {!disqualified && answers.spendTier && answers.refreshRate && (
+        <section className="rsection" style={stagger()}>
+          <SigmoidDecayCurve
+            spendTier={answers.spendTier}
+            refreshRate={answers.refreshRate}
+            fatigueScore={results.score}
+          />
+        </section>
+      )}
+
+      {/* Radar chart — 8-axis creative angle coverage */}
       {!disqualified && (
         <section className="rsection" style={stagger()}>
           <RadarChart answers={answers} />
@@ -594,10 +867,17 @@ export default function Results({ answers, results, insights }) {
         </section>
       )}
 
-      {/* The conversion point — in the same attention span as the number */}
+      {/* Credit Stack — warm+ leads only */}
+      {!isCold && !disqualified && (
+        <div className="rsection" style={stagger()}>
+          <CreditStack isHotLead={isHot} />
+        </div>
+      )}
+
+      {/* The conversion point */}
       <div className="rsection" style={stagger()}>
         {isHot ? (
-          <LoomCard answers={answers} claimed={loomClaimed} onClaim={claimLoom} />
+          <LoomCard answers={answers} claimed={loomClaimed} onClaim={claimLoom} ctaText={ctaText} />
         ) : (
           <CourseCard answers={answers} claimed={courseClaimed} onClaim={claimCourse} />
         )}
@@ -607,8 +887,8 @@ export default function Results({ answers, results, insights }) {
         <>
           {/* Supporting evidence — competitor angles */}
           <section className="rsection" style={stagger()}>
-            <h2 className="section-title">What competitors are saying that you’re not</h2>
-            <AngleCards brandType={answers.brandType} />
+            <h2 className="section-title">What competitors are saying that you're not</h2>
+            <AngleCards brandType={answers.brandType} showCreativeHeader={hasCreativeResp} />
           </section>
 
           {/* Quick win */}
@@ -629,7 +909,7 @@ export default function Results({ answers, results, insights }) {
                 <span className="step-num">1</span>
                 <div>
                   <span className="step-title">Book a time</span>
-                  <span className="step-desc">Pick a 30-minute slot. We’ll confirm within 2 hours.</span>
+                  <span className="step-desc">Pick a 30-minute slot. We'll confirm within 2 hours.</span>
                 </div>
               </li>
               <li>
@@ -638,7 +918,7 @@ export default function Results({ answers, results, insights }) {
                   <span className="step-title">We build your teardown</span>
                   <span className="step-desc">
                     Our team analyses your ad account, competitor landscape, and audience data
-                    using Audr. You’ll get a personalised Loom video within 48 hours.
+                    using Audr. You'll get a personalised Loom video within 48 hours.
                   </span>
                 </div>
               </li>
@@ -655,11 +935,11 @@ export default function Results({ answers, results, insights }) {
             </ol>
             <p className="compound-note">
               Worth saying: this compounds. As the messaging improves month over month, each
-              cycle builds on the last. That’s the conversation worth having.
+              cycle builds on the last. That's the conversation worth having.
             </p>
             {!loomClaimed && (
               <button className="cta-btn cta-full" onClick={claimLoom}>
-                Get your free Loom teardown →
+                {ctaText} →
               </button>
             )}
             <p className="powered-by">

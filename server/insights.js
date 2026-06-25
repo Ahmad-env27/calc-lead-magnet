@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { REFERENCE_DOC } from './reference-doc.js'
+import { scrapeWebsite } from './scrape.js'
 
 const LABEL_MAP = {
   revenue: { under_30k: 'Under £30k', '30k_80k': '£30k-£80k', '80k_120k': '£80k-£120k', '120k_plus': '£120k+' },
@@ -29,7 +30,7 @@ function label(field, value) {
   return LABEL_MAP[field]?.[value] || value
 }
 
-function buildUserPrompt(answers) {
+function buildUserPrompt(answers, websiteContent) {
   const frustrationLabels = (answers.frustrations || [])
     .filter((f) => f !== 'none')
     .map((f) => label('frustrations', f))
@@ -42,6 +43,10 @@ function buildUserPrompt(answers) {
   const websiteLine = answers.websiteUrl
     ? `- Website: ${answers.websiteUrl}`
     : '- Website: not provided'
+
+  const websiteSection = websiteContent
+    ? `\nSCRAPED WEBSITE CONTENT (from ${answers.websiteUrl}):\n${websiteContent}\n\nIMPORTANT: Use this real website content to ground your diagnosis. Reference specific products, claims, messaging, and brand positioning you can see. Don't make generic statements — cite what's actually on their site.`
+    : ''
 
   const hookLine = answers.bestHook
     ? `- Best-performing hook/angle: ${answers.bestHook}`
@@ -106,7 +111,7 @@ ${respLabels ? `- Manages: ${respLabels}` : ''}
 ${hookLine}
 - Ads made by: ${label('adsMadeBy', answers.adsMadeBy)}
 - Frustrations: ${frustrationLabels || 'None selected'}
-${extraLine}${roleContext}
+${extraLine}${roleContext}${websiteSection}
 
 OUTPUT FORMAT — respond with a JSON object, no markdown, no preamble:
 {
@@ -167,18 +172,46 @@ export async function generateInsights(answers) {
     return null
   }
 
+  let websiteData = { markdown: null, screenshotUrl: null }
+  if (answers.websiteUrl) {
+    console.log('[INSIGHTS] Scraping website:', answers.websiteUrl)
+    websiteData = await scrapeWebsite(answers.websiteUrl)
+  }
+
   const client = new Anthropic({ apiKey })
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 8000)
+  const timeout = setTimeout(() => controller.abort(), 10000)
 
   try {
+    const promptText = buildUserPrompt(answers, websiteData.markdown)
+    let messageContent
+
+    if (websiteData.screenshotUrl) {
+      console.log('[INSIGHTS] Sending multimodal request (screenshot + text)')
+      messageContent = [
+        {
+          type: 'image',
+          source: {
+            type: 'url',
+            url: websiteData.screenshotUrl,
+          },
+        },
+        {
+          type: 'text',
+          text: promptText + '\n\nA screenshot of the brand\'s website is attached above. Use the visual design, product photography, layout, and creative style you can see to inform your diagnosis — especially the "missing_angle" and "test_brief" fields. Note their colour palette, imagery style, and how they present their products visually.',
+        },
+      ]
+    } else {
+      messageContent = promptText
+    }
+
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 600,
+      max_tokens: websiteData.markdown ? 800 : 600,
       temperature: 0.7,
       system: REFERENCE_DOC,
-      messages: [{ role: 'user', content: buildUserPrompt(answers) }],
+      messages: [{ role: 'user', content: messageContent }],
     }, { signal: controller.signal })
 
     clearTimeout(timeout)
@@ -204,7 +237,7 @@ export async function generateInsights(answers) {
   } catch (err) {
     clearTimeout(timeout)
     if (err.name === 'AbortError') {
-      console.warn('[INSIGHTS] API call timed out (8s)')
+      console.warn('[INSIGHTS] API call timed out (10s)')
     } else {
       console.error('[INSIGHTS] API error:', err.message)
     }

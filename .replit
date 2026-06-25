@@ -1,4 +1,4 @@
-run = "npm run dev"
+run = "npm run dev:full"
 entrypoint = "src/App.jsx"
 modules = ["nodejs-20"]
 
@@ -28,7 +28,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "npm run dev:full"
 waitForPort = 5000
 
 [workflows.workflow.metadata]

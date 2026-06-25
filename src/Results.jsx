@@ -957,8 +957,7 @@ export default function Results({ answers, results, insights }) {
               </button>
             )}
             <p className="powered-by">
-              Powered by Audr audience intelligence + human creative strategists behind £100M+ of
-              skincare ad spend
+              Powered by Audr audience intelligence + human creative strategists
             </p>
           </section>
         </>

@@ -39,7 +39,7 @@ const SAMPLE_ANSWERS = {
   responsibilities: ['resp_paid', 'resp_creative'],
   brandType: 'skincare',
   revenue: '80k_120k',
-  spendTier: '15k_50k',
+  spendTier: '30k_50k',
   aov: 'aov_25_40',
   aovCustom: '',
   refreshRate: 'monthly_or_less',

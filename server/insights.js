@@ -3,7 +3,7 @@ import { REFERENCE_DOC } from './reference-doc.js'
 
 const LABEL_MAP = {
   revenue: { under_30k: 'Under £30k', '30k_80k': '£30k-£80k', '80k_120k': '£80k-£120k', '120k_plus': '£120k+' },
-  spendTier: { under_5k: 'Under £5k', '5k_15k': '£5k-£15k', '15k_50k': '£15k-£50k', '50k_100k': '£50k-£100k', '100k_plus': '£100k+' },
+  spendTier: { under_10k: 'Under £10k', '10k_30k': '£10k-£30k', '30k_50k': '£30k-£50k', '50k_100k': '£50k-£100k', '100k_plus': '£100k+' },
   aov: { aov_25_40: '£25-£40', aov_40_60: '£40-£60', aov_60_100: '£60-£100', aov_100_plus: 'Over £100', aov_other: 'Custom' },
   refreshRate: { weekly: 'Every week', every_2_3_weeks: 'Every 2-3 weeks', monthly_or_less: 'Monthly or less', only_when_drops: 'Only when performance drops' },
   angleDiversity: { yes_same: 'Same angles, no diversity', probably: 'Probably the same', no_varied: 'Actively varied' },

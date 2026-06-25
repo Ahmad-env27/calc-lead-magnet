@@ -8,9 +8,9 @@
 // number we couldn't defend on a call.
 
 export const SPEND_MIDPOINTS = {
-  under_5k: 3000,
-  '5k_15k': 10000,
-  '15k_50k': 32500,
+  under_10k: 6000,
+  '10k_30k': 20000,
+  '30k_50k': 40000,
   '50k_100k': 75000,
   '100k_plus': 125000,
 }
@@ -121,9 +121,9 @@ export function calculateScore(inputs) {
     no_varied: 0,
   }[inputs.angleDiversity]
   score += {
-    under_5k: 0,
-    '5k_15k': 3,
-    '15k_50k': 5,
+    under_10k: 0,
+    '10k_30k': 3,
+    '30k_50k': 6,
     '50k_100k': 8,
     '100k_plus': 10,
   }[inputs.spendTier]
@@ -161,7 +161,7 @@ export function getRiskBand(score) {
 export function getLeadTemperature(inputs) {
   const isSkincareBrand = ['skincare', 'beauty'].includes(inputs.brandType)
   const highRevenue = ['80k_120k', '120k_plus'].includes(inputs.revenue)
-  const qualifiedSpend = !['under_5k'].includes(inputs.spendTier)
+  const qualifiedSpend = !['under_10k'].includes(inputs.spendTier)
   const highPain = inputs.frustrationCount >= 2
   const selectedDisqualifier = inputs.frustrations.includes('none')
 
@@ -191,15 +191,15 @@ export function formatGBP(n) {
 // --- Three-Lane Impact Stack ------------------------------------------------
 
 const LANE_MULTIPLIERS = {
-  under_5k:   { low: 3.5, high: 5.0 },
-  '5k_15k':   { low: 3.5, high: 5.0 },
-  '15k_50k':  { low: 3.5, high: 4.5 },
-  '50k_100k': { low: 3.0, high: 4.0 },
+  under_10k:   { low: 3.5, high: 5.0 },
+  '10k_30k':   { low: 3.5, high: 5.0 },
+  '30k_50k':   { low: 3.5, high: 4.5 },
+  '50k_100k':  { low: 3.0, high: 4.0 },
   '100k_plus': { low: 3.0, high: 3.5 },
 }
 
 export function calculateThreeLaneImpact(lane2Low, lane2High, spendTier) {
-  const multiplier = LANE_MULTIPLIERS[spendTier] || LANE_MULTIPLIERS['15k_50k']
+  const multiplier = LANE_MULTIPLIERS[spendTier] || LANE_MULTIPLIERS['30k_50k']
 
   const combinedLow = Math.round(lane2Low * multiplier.low / 100) * 100
   const combinedHigh = Math.round(lane2High * multiplier.high / 100) * 100
@@ -290,9 +290,9 @@ export function getRadarScores(brandType, angleDiversity) {
 // --- Benchmark Scores (top quartile by spend tier) --------------------------
 
 export const BENCHMARK_SCORES = {
-  under_5k: 45,
-  '5k_15k': 38,
-  '15k_50k': 32,
+  under_10k: 42,
+  '10k_30k': 35,
+  '30k_50k': 30,
   '50k_100k': 28,
   '100k_plus': 25,
 }
@@ -300,19 +300,19 @@ export const BENCHMARK_SCORES = {
 // --- Sigmoid Decay Curve Params ---------------------------------------------
 
 export const DECAY_PARAMS = {
-  under_5k: {
+  under_10k: {
     weekly:          { cliff: 8,   steepness: 0.45, markerWeek: 2 },
     every_2_3_weeks: { cliff: 6,   steepness: 0.50, markerWeek: 4 },
     monthly_or_less: { cliff: 5,   steepness: 0.55, markerWeek: 6 },
     only_when_drops: { cliff: 4,   steepness: 0.60, markerWeek: 9 },
   },
-  '5k_15k': {
+  '10k_30k': {
     weekly:          { cliff: 7,   steepness: 0.55, markerWeek: 2 },
-    every_2_3_weeks: { cliff: 5.5, steepness: 0.65, markerWeek: 4 },
-    monthly_or_less: { cliff: 4.5, steepness: 0.75, markerWeek: 6 },
-    only_when_drops: { cliff: 3.5, steepness: 0.85, markerWeek: 9 },
+    every_2_3_weeks: { cliff: 5.5, steepness: 0.60, markerWeek: 4 },
+    monthly_or_less: { cliff: 4.5, steepness: 0.70, markerWeek: 6 },
+    only_when_drops: { cliff: 3.5, steepness: 0.80, markerWeek: 9 },
   },
-  '15k_50k': {
+  '30k_50k': {
     weekly:          { cliff: 6,   steepness: 0.70, markerWeek: 2 },
     every_2_3_weeks: { cliff: 5,   steepness: 0.85, markerWeek: 4 },
     monthly_or_less: { cliff: 4,   steepness: 1.00, markerWeek: 6 },

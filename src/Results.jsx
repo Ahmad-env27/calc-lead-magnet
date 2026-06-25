@@ -21,9 +21,9 @@ const DIVERSITY_LABELS = {
 }
 
 const SPEND_LABELS = {
-  under_5k: 'under £5k',
-  '5k_15k': '£5k–£15k',
-  '15k_50k': '£15k–£50k',
+  under_10k: 'under £10k',
+  '10k_30k': '£10k–£30k',
+  '30k_50k': '£30k–£50k',
   '50k_100k': '£50k–£100k',
   '100k_plus': '£100k+',
 }

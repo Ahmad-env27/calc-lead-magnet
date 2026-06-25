@@ -8,7 +8,7 @@ export default defineConfig({
     port: parseInt(process.env.PORT || '5000'),
     allowedHosts: true,
     proxy: {
-      '/api': 'http://localhost:3001',
+      '/api': 'http://localhost:3002',
     },
   },
   preview: {

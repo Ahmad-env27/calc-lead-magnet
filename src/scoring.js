@@ -87,17 +87,29 @@ export function calculateScore(inputs) {
   const volumeMult = VOLUME_MULTIPLIERS[inputs.creativeVolume] || 1.0
   const fatigueTax = spend * fatigueCoeff * (1 - diversityScore) * volumeMult
 
-  // Component 2: Efficiency Gap vs the 3.2 benchmark for optimised brands
-  const efficiencyGap = Math.max(0, 3.2 - roasMid) * spend * 0.35
+  // Component 2: Efficiency gap — how far below top-quartile performance (5x)
+  // the brand sits; always positive so even benchmark performers show opportunity.
+  // Coefficient 0.20 is more conservative than the old 0.35 because the gap
+  // is now measured to the aspirational ceiling, not a median benchmark.
+  const efficiencyGap = Math.max(0, 5.0 - roasMid) * spend * 0.20
 
   // Component 3: Cost-creep tax
   const costTrendTax = spend * (COST_TREND_RATES[inputs.costTrend] || 0)
 
-  let recoverableMonthly = (fatigueTax + efficiencyGap + costTrendTax) * 0.55
+  // No global multiplier here — the revenue cap below is the meaningful guardrail.
+  let recoverableMonthly = fatigueTax + efficiencyGap + costTrendTax
 
-  // Guardrail 1: cap against revenue so implausible spend/revenue combos can
-  // never output a fantasy number (max ~15% of monthly revenue midpoint)
-  recoverableMonthly = Math.min(recoverableMonthly, revenueMid * 0.15)
+  // Guardrail: cap against revenue so implausible spend/revenue combos can
+  // never output a fantasy number. Tiered by revenue band — larger brands have
+  // more absolute headroom but the % ceiling is still conservative.
+  const REVENUE_CAP_RATES = {
+    under_30k: 0.15,
+    '30k_80k': 0.22,
+    '80k_120k': 0.22,
+    '120k_plus': 0.22,
+  }
+  const capRate = REVENUE_CAP_RATES[inputs.revenue] ?? 0.22
+  recoverableMonthly = Math.min(recoverableMonthly, revenueMid * capRate)
 
   // Guardrail 2: floor the midpoint so the displayed low never reads as noise
   recoverableMonthly = Math.max(recoverableMonthly, 1000)

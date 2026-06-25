@@ -150,7 +150,7 @@ function validateDiagnosis(obj) {
       console.warn(`[VALIDATE] Key "${key}" too short (${val.length} chars):`, val)
       return null
     }
-    if (val.length > 400) {
+    if (val.length > 600) {
       console.warn(`[VALIDATE] Key "${key}" too long (${val.length} chars)`)
       return null
     }
@@ -217,13 +217,14 @@ export async function generateInsights(answers) {
     clearTimeout(timeout)
 
     const text = response.content?.[0]?.text || ''
+    const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
     console.log('[INSIGHTS] Raw LLM response length:', text.length)
     console.log('[INSIGHTS] Raw LLM response preview:', text.substring(0, 200))
     try {
-      return validateDiagnosis(JSON.parse(text))
+      return validateDiagnosis(JSON.parse(cleaned))
     } catch (parseErr) {
       console.warn('[INSIGHTS] Direct JSON parse failed:', parseErr.message)
-      const match = text.match(/\{[\s\S]*\}/)
+      const match = cleaned.match(/\{[\s\S]*\}/)
       if (match) {
         try {
           return validateDiagnosis(JSON.parse(match[0]))

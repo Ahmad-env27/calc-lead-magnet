@@ -11,7 +11,8 @@
     "start": "node server/index.js",
     "test:scoring": "node tests/scoring-guardrails.mjs",
     "dev:full": "concurrently \"npm run dev\" \"node server/index.js\"",
-    "diagnose": "node server/diagnose.js"
+    "diagnose": "node server/diagnose.js",
+    "restart": "fuser -k 3001/tcp 2>/dev/null; npm run dev:full"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

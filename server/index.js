@@ -51,6 +51,15 @@ app.get('*', (_req, res) => {
   res.sendFile(join(distPath, 'index.html'))
 })
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`[SERVER] Listening on port ${PORT}`)
+})
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[SERVER] Port ${PORT} is already in use. Kill the old process: fuser -k ${PORT}/tcp`)
+    process.exit(1)
+  } else {
+    throw err
+  }
 })

@@ -1,6 +1,7 @@
 import Firecrawl from 'firecrawl'
 
-const SCRAPE_TIMEOUT_MS = 6000
+const MARKDOWN_TIMEOUT_MS = 10000
+const SCREENSHOT_TIMEOUT_MS = 20000
 
 export async function scrapeWebsite(url) {
   const apiKey = process.env.FIRECRAWL_API_KEY
@@ -19,45 +20,61 @@ export async function scrapeWebsite(url) {
     cleanUrl = 'https://' + cleanUrl
   }
 
+  const firecrawl = new Firecrawl({ apiKey })
+
+  // Stage 1 — markdown only (fast, always attempted)
+  let markdown = null
   try {
-    const firecrawl = new Firecrawl({ apiKey })
-
-    console.log(`[SCRAPE] Scraping ${cleanUrl} (markdown + screenshot)…`)
-
+    console.log(`[SCRAPE] Stage 1: scraping markdown from ${cleanUrl}…`)
     const result = await Promise.race([
       firecrawl.scrape(cleanUrl, {
-        formats: ['markdown', 'screenshot'],
+        formats: ['markdown'],
         onlyMainContent: true,
         location: { country: 'GB', languages: ['en'] },
       }),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Firecrawl timeout')), SCRAPE_TIMEOUT_MS)
+        setTimeout(() => reject(new Error('Firecrawl markdown timeout')), MARKDOWN_TIMEOUT_MS)
       ),
     ])
 
-    if (!result.success) {
-      console.warn('[SCRAPE] Firecrawl returned failure:', result.error || 'unknown')
-      return { markdown: null, screenshotUrl: null }
-    }
-
-    const markdown = result.markdown || ''
-    const screenshotUrl = result.screenshot || null
-
-    console.log(`[SCRAPE] Got ${markdown.length} chars markdown`)
-    if (screenshotUrl) {
-      console.log(`[SCRAPE] Got screenshot URL: ${screenshotUrl.substring(0, 80)}…`)
-    }
-
-    const truncatedMarkdown = markdown.length > 3000
-      ? markdown.substring(0, 3000) + '\n[… truncated]'
-      : markdown
-
-    return {
-      markdown: truncatedMarkdown || null,
-      screenshotUrl,
+    if (result.success && result.markdown) {
+      markdown = result.markdown.length > 3000
+        ? result.markdown.substring(0, 3000) + '\n[… truncated]'
+        : result.markdown
+      console.log(`[SCRAPE] Stage 1 OK — ${markdown.length} chars markdown`)
+    } else {
+      console.warn('[SCRAPE] Stage 1 returned no markdown:', result.error || 'unknown')
     }
   } catch (err) {
-    console.warn('[SCRAPE] Error:', err.message)
-    return { markdown: null, screenshotUrl: null }
+    console.warn('[SCRAPE] Stage 1 failed:', err.message)
   }
+
+  // Stage 2 — screenshot (only if markdown succeeded)
+  let screenshotUrl = null
+  if (markdown) {
+    try {
+      console.log(`[SCRAPE] Stage 2: scraping screenshot from ${cleanUrl}…`)
+      const result = await Promise.race([
+        firecrawl.scrape(cleanUrl, {
+          formats: ['screenshot'],
+          onlyMainContent: true,
+          location: { country: 'GB', languages: ['en'] },
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Firecrawl screenshot timeout')), SCREENSHOT_TIMEOUT_MS)
+        ),
+      ])
+
+      if (result.success && result.screenshot) {
+        screenshotUrl = result.screenshot
+        console.log(`[SCRAPE] Stage 2 OK — screenshot URL: ${screenshotUrl.substring(0, 80)}…`)
+      } else {
+        console.warn('[SCRAPE] Stage 2 returned no screenshot:', result.error || 'unknown')
+      }
+    } catch (err) {
+      console.warn('[SCRAPE] Stage 2 failed (non-fatal):', err.message)
+    }
+  }
+
+  return { markdown: markdown || null, screenshotUrl }
 }

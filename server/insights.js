@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { REFERENCE_DOC } from './reference-doc.js'
-import { scrapeWebsite } from './scrape.js'
 
 const LABEL_MAP = {
   revenue: { under_30k: 'Under £30k', '30k_80k': '£30k-£80k', '80k_120k': '£80k-£120k', '120k_plus': '£120k+' },
@@ -30,7 +29,7 @@ function label(field, value) {
   return LABEL_MAP[field]?.[value] || value
 }
 
-function buildUserPrompt(answers, websiteContent) {
+function buildUserPrompt(answers) {
   const frustrationLabels = (answers.frustrations || [])
     .filter((f) => f !== 'none')
     .map((f) => label('frustrations', f))
@@ -41,12 +40,8 @@ function buildUserPrompt(answers, websiteContent) {
     : label('aov', answers.aov)
 
   const websiteLine = answers.websiteUrl
-    ? `- Website: ${answers.websiteUrl}`
+    ? `- Website: ${answers.websiteUrl} — search this domain to understand their products, messaging, and brand positioning before writing your diagnosis.`
     : '- Website: not provided'
-
-  const websiteSection = websiteContent
-    ? `\nSCRAPED WEBSITE CONTENT (from ${answers.websiteUrl}):\n${websiteContent}\n\nIMPORTANT: Use this real website content to ground your diagnosis. Reference specific products, claims, messaging, and brand positioning you can see. Don't make generic statements — cite what's actually on their site.`
-    : ''
 
   const hookLine = answers.bestHook
     ? `- Best-performing hook/angle: ${answers.bestHook}`
@@ -111,7 +106,7 @@ ${respLabels ? `- Manages: ${respLabels}` : ''}
 ${hookLine}
 - Ads made by: ${label('adsMadeBy', answers.adsMadeBy)}
 - Frustrations: ${frustrationLabels || 'None selected'}
-${extraLine}${roleContext}${websiteSection}
+${extraLine}${roleContext}
 
 OUTPUT FORMAT — respond with a JSON object, no markdown, no preamble:
 {
@@ -172,51 +167,39 @@ export async function generateInsights(answers) {
     return null
   }
 
-  let websiteData = { markdown: null, screenshotUrl: null }
-  if (answers.websiteUrl) {
-    console.log('[INSIGHTS] Scraping website:', answers.websiteUrl)
-    websiteData = await scrapeWebsite(answers.websiteUrl)
-  }
-
   const client = new Anthropic({ apiKey })
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 10000)
+  const timeout = setTimeout(() => controller.abort(), 45000)
 
   try {
-    const promptText = buildUserPrompt(answers, websiteData.markdown)
-    let messageContent
+    const promptText = buildUserPrompt(answers)
 
-    if (websiteData.screenshotUrl) {
-      console.log('[INSIGHTS] Sending multimodal request (screenshot + text)')
-      messageContent = [
-        {
-          type: 'image',
-          source: {
-            type: 'url',
-            url: websiteData.screenshotUrl,
-          },
-        },
-        {
-          type: 'text',
-          text: promptText + '\n\nA screenshot of the brand\'s website is attached above. Use the visual design, product photography, layout, and creative style you can see to inform your diagnosis — especially the "missing_angle" and "test_brief" fields. Note their colour palette, imagery style, and how they present their products visually.',
-        },
-      ]
-    } else {
-      messageContent = promptText
+    const tools = answers.websiteUrl ? [
+      {
+        type: 'web_search_20250305',
+        name: 'web_search',
+        max_uses: 3,
+      },
+    ] : []
+
+    if (answers.websiteUrl) {
+      console.log('[INSIGHTS] Web search enabled for:', answers.websiteUrl)
     }
 
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: websiteData.markdown ? 800 : 600,
+      max_tokens: 1000,
       temperature: 0.7,
       system: REFERENCE_DOC,
-      messages: [{ role: 'user', content: messageContent }],
+      tools,
+      messages: [{ role: 'user', content: promptText }],
     }, { signal: controller.signal })
 
     clearTimeout(timeout)
 
-    const text = response.content?.[0]?.text || ''
+    const textBlock = [...(response.content || [])].reverse().find((b) => b.type === 'text')
+    const text = textBlock?.text || ''
     const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
     console.log('[INSIGHTS] Raw LLM response length:', text.length)
     console.log('[INSIGHTS] Raw LLM response preview:', text.substring(0, 200))
@@ -238,7 +221,7 @@ export async function generateInsights(answers) {
   } catch (err) {
     clearTimeout(timeout)
     if (err.name === 'AbortError') {
-      console.warn('[INSIGHTS] API call timed out (10s)')
+      console.warn('[INSIGHTS] API call timed out (45s)')
     } else {
       console.error('[INSIGHTS] API error:', err.message)
     }

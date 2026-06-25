@@ -31,11 +31,15 @@ setInterval(() => {
 }, 300_000)
 
 app.post('/api/insights', rateLimit, async (req, res) => {
+  console.log('[ROUTE] POST /api/insights received')
   const { answers } = req.body
   if (!answers || !answers.brandName) {
+    console.warn('[ROUTE] Missing answers or brandName in request body')
     return res.status(400).json({ error: 'Missing answers' })
   }
+  console.log('[ROUTE] Calling generateInsights for brand:', answers.brandName)
   const insights = await generateInsights(answers)
+  console.log('[ROUTE] generateInsights returned:', insights ? 'valid object' : 'null')
   res.json({ insights })
 })
 

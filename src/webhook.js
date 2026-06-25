@@ -26,9 +26,9 @@ const LABEL_MAP = {
   },
   revenue_tier: {
     under_30k: 'Under £30k',
-    '30k_60k': '£30k–£60k',
-    '60k_150k': '£60k–£150k',
-    '150k_plus': '£150k+',
+    '30k_80k': '£30k–£80k',
+    '80k_120k': '£80k–£120k',
+    '120k_plus': '£120k+',
   },
   spend_tier: {
     under_5k: 'Under £5k',

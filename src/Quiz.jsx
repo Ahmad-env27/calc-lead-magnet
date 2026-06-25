@@ -37,9 +37,9 @@ const BRAND_TYPES = [
 
 const REVENUE_TIERS = [
   { id: 'under_30k', title: 'Under £30k' },
-  { id: '30k_60k', title: '£30k–£60k' },
-  { id: '60k_150k', title: '£60k–£150k' },
-  { id: '150k_plus', title: '£150k+' },
+  { id: '30k_80k', title: '£30k–£80k' },
+  { id: '80k_120k', title: '£80k–£120k' },
+  { id: '120k_plus', title: '£120k+' },
 ]
 
 const SPEND_TIERS = [
@@ -144,7 +144,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
   const maybeFireQualificationPixel = (a) => {
     if (pixelFired.current) return
     const qualifiedBrand = ['skincare', 'beauty'].includes(a.brandType)
-    const qualifiedRevenue = ['60k_150k', '150k_plus'].includes(a.revenue)
+    const qualifiedRevenue = ['80k_120k', '120k_plus'].includes(a.revenue)
     const qualifiedSpend = a.spendTier && a.spendTier !== 'under_5k'
     if (qualifiedBrand && qualifiedRevenue && qualifiedSpend) {
       pixelFired.current = true

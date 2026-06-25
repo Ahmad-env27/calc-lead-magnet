@@ -44,8 +44,14 @@ export default function Scoring({ brandName, insightsPromise, onDone }) {
   useEffect(() => {
     if (insightsPromise) {
       insightsPromise
-        .then((insights) => { resolvedInsights.current = insights })
-        .catch(() => { resolvedInsights.current = null })
+        .then((insights) => {
+          console.log('[SCORING] Insights resolved:', insights ? 'received' : 'null')
+          resolvedInsights.current = insights
+        })
+        .catch((err) => {
+          console.error('[SCORING] Insights promise rejected:', err)
+          resolvedInsights.current = null
+        })
         .finally(() => {
           insightsReady.current = true
           tryAdvance()

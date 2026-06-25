@@ -38,7 +38,7 @@ const SAMPLE_ANSWERS = {
   jobTitle: 'role_founder',
   responsibilities: ['resp_paid', 'resp_creative'],
   brandType: 'skincare',
-  revenue: '60k_150k',
+  revenue: '80k_120k',
   spendTier: '15k_50k',
   aov: 'aov_25_40',
   aovCustom: '',

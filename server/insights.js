@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { REFERENCE_DOC } from './reference-doc.js'
 
 const LABEL_MAP = {
-  revenue: { under_30k: 'Under £30k', '30k_60k': '£30k-£60k', '60k_150k': '£60k-£150k', '150k_plus': '£150k+' },
+  revenue: { under_30k: 'Under £30k', '30k_80k': '£30k-£80k', '80k_120k': '£80k-£120k', '120k_plus': '£120k+' },
   spendTier: { under_5k: 'Under £5k', '5k_15k': '£5k-£15k', '15k_50k': '£15k-£50k', '50k_100k': '£50k-£100k', '100k_plus': '£100k+' },
   aov: { aov_25_40: '£25-£40', aov_40_60: '£40-£60', aov_60_100: '£60-£100', aov_100_plus: 'Over £100', aov_other: 'Custom' },
   refreshRate: { weekly: 'Every week', every_2_3_weeks: 'Every 2-3 weeks', monthly_or_less: 'Monthly or less', only_when_drops: 'Only when performance drops' },
@@ -129,15 +129,34 @@ Rules:
 const PROHIBITED_TERMS = ['price', 'pricing', 'fee', 'cost you', 'guarantee', 'discount', 'offer', 'package']
 
 function validateDiagnosis(obj) {
-  if (!obj || typeof obj !== 'object') return null
+  if (!obj || typeof obj !== 'object') {
+    console.warn('[VALIDATE] Input is not an object:', typeof obj)
+    return null
+  }
   const keys = ['whats_working', 'the_leak', 'missing_angle', 'test_brief']
   const result = {}
   for (const key of keys) {
     const val = obj[key]
-    if (typeof val !== 'string' || val.length < 10 || val.length > 400) return null
-    if (PROHIBITED_TERMS.some((t) => val.toLowerCase().includes(t))) return null
+    if (typeof val !== 'string') {
+      console.warn(`[VALIDATE] Key "${key}" is not a string:`, typeof val)
+      return null
+    }
+    if (val.length < 10) {
+      console.warn(`[VALIDATE] Key "${key}" too short (${val.length} chars):`, val)
+      return null
+    }
+    if (val.length > 400) {
+      console.warn(`[VALIDATE] Key "${key}" too long (${val.length} chars)`)
+      return null
+    }
+    const hit = PROHIBITED_TERMS.find((t) => val.toLowerCase().includes(t))
+    if (hit) {
+      console.warn(`[VALIDATE] Key "${key}" contains prohibited term "${hit}"`)
+      return null
+    }
     result[key] = val
   }
+  console.log('[VALIDATE] Diagnosis passed validation — all 4 keys OK')
   return result
 }
 
@@ -165,15 +184,21 @@ export async function generateInsights(answers) {
     clearTimeout(timeout)
 
     const text = response.content?.[0]?.text || ''
+    console.log('[INSIGHTS] Raw LLM response length:', text.length)
+    console.log('[INSIGHTS] Raw LLM response preview:', text.substring(0, 200))
     try {
       return validateDiagnosis(JSON.parse(text))
-    } catch {
+    } catch (parseErr) {
+      console.warn('[INSIGHTS] Direct JSON parse failed:', parseErr.message)
       const match = text.match(/\{[\s\S]*\}/)
       if (match) {
         try {
           return validateDiagnosis(JSON.parse(match[0]))
-        } catch { /* fall through */ }
+        } catch (regexErr) {
+          console.warn('[INSIGHTS] Regex JSON extraction also failed:', regexErr.message)
+        }
       }
+      console.warn('[INSIGHTS] All parsing attempts failed. Raw text:', text.substring(0, 300))
       return null
     }
   } catch (err) {

@@ -17,9 +17,9 @@ export const SPEND_MIDPOINTS = {
 
 export const REVENUE_MIDPOINTS = {
   under_30k: 20000,
-  '30k_60k': 45000,
-  '60k_150k': 100000,
-  '150k_plus': 200000,
+  '30k_80k': 55000,
+  '80k_120k': 100000,
+  '120k_plus': 180000,
 }
 
 export const AOV_MIDPOINTS = {
@@ -160,7 +160,7 @@ export function getRiskBand(score) {
 
 export function getLeadTemperature(inputs) {
   const isSkincareBrand = ['skincare', 'beauty'].includes(inputs.brandType)
-  const highRevenue = ['60k_150k', '150k_plus'].includes(inputs.revenue)
+  const highRevenue = ['80k_120k', '120k_plus'].includes(inputs.revenue)
   const qualifiedSpend = !['under_5k'].includes(inputs.spendTier)
   const highPain = inputs.frustrationCount >= 2
   const selectedDisqualifier = inputs.frustrations.includes('none')

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   getRiskBand, formatGBP, calculateSpendDecoder, AOV_MIDPOINTS,
-  getRadarScores, BENCHMARK_SCORES, DECAY_PARAMS, effectiveness,
+  getRadarScores, DECAY_PARAMS, effectiveness,
   getCPAEscalation, roundForDisplay, getScenarioMatch,
 } from './scoring.js'
 import { getAngles, getQuickWin } from './angles-data.js'
@@ -88,7 +88,7 @@ function interpretation(answers, results) {
 
 // --- Section A: animated semicircle gauge with benchmark ---------------------
 
-function Gauge({ score, spendTier }) {
+function Gauge({ score }) {
   const reduced =
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -119,12 +119,6 @@ function Gauge({ score, spendTier }) {
   const R = 90
   const LEN = Math.PI * R
   const band = getRiskBand(score)
-  const benchmark = BENCHMARK_SCORES[spendTier] || 35
-  const benchmarkFraction = benchmark / 100
-  const benchmarkAngle = Math.PI * benchmarkFraction
-  const bx = 110 - R * Math.cos(benchmarkAngle)
-  const by = 110 - R * Math.sin(benchmarkAngle)
-
   return (
     <div className="gauge">
       <svg viewBox="0 0 220 150" width="100%" aria-hidden="true">
@@ -145,16 +139,6 @@ function Gauge({ score, spendTier }) {
           strokeDashoffset={drawn ? LEN * (1 - score / 100) : LEN}
           style={{ transition: 'stroke-dashoffset 2s cubic-bezier(0.33, 1, 0.68, 1)' }}
         />
-        <line
-          x1={bx} y1={by} x2={bx + (bx < 110 ? -8 : 8)} y2={by - 8}
-          stroke="var(--risk-low)" strokeWidth="2" strokeLinecap="round"
-        />
-        <text
-          x={bx < 60 ? 10 : bx > 160 ? 210 : bx} y={20}
-          fill="var(--risk-low)" fontSize="8" textAnchor={bx < 60 ? 'start' : bx > 160 ? 'end' : 'middle'}
-        >
-          Top brands: {benchmark}
-        </text>
         <text x="110" y="100" textAnchor="middle" fill={`var(--risk-${band.key})`} fontFamily="var(--font-display)" fontSize="46" fontWeight="700">
           {display}
         </text>
@@ -165,11 +149,6 @@ function Gauge({ score, spendTier }) {
           {band.label}
         </text>
       </svg>
-      {score > benchmark && (
-        <p className="gauge-benchmark-gap">
-          Gap: {score - benchmark} points above top performers at your spend level
-        </p>
-      )}
     </div>
   )
 }
@@ -806,7 +785,7 @@ export default function Results({ answers, results, insights }) {
       {/* A — Score header & gauge with benchmark overlay */}
       <section className="rsection" style={stagger()}>
         <p className="eyebrow">YOUR AD FATIGUE RISK SCORE</p>
-        <Gauge score={results.score} spendTier={answers.spendTier} />
+        <Gauge score={results.score} />
         <p className="interp">{interpretation(answers, results)}</p>
       </section>
 
@@ -890,9 +869,15 @@ export default function Results({ answers, results, insights }) {
       )}
 
       {/* 4-part AI diagnosis */}
-      {insights && insights.whats_working && (
+      {insights && insights.whats_working ? (
         <section className="rsection" style={stagger()}>
           <DiagnosisSection insights={insights} brandName={answers.brandName} />
+        </section>
+      ) : (
+        <section className="rsection" style={stagger()}>
+          <p className="insight-fallback" style={{ color: 'var(--faint)', fontSize: '13px', fontStyle: 'italic', textAlign: 'center', padding: '24px 0' }}>
+            Personalised diagnosis unavailable — results based on quiz data only.
+          </p>
         </section>
       )}
 

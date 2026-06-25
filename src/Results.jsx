@@ -127,7 +127,7 @@ function Gauge({ score, spendTier }) {
 
   return (
     <div className="gauge">
-      <svg viewBox="0 0 220 130" width="100%" aria-hidden="true">
+      <svg viewBox="0 0 220 150" width="100%" aria-hidden="true">
         <path
           d="M 20 110 A 90 90 0 0 1 200 110"
           fill="none"
@@ -146,25 +146,25 @@ function Gauge({ score, spendTier }) {
           style={{ transition: 'stroke-dashoffset 2s cubic-bezier(0.33, 1, 0.68, 1)' }}
         />
         <line
-          x1={bx} y1={by} x2={bx + (bx < 110 ? -6 : 6)} y2={by - 6}
+          x1={bx} y1={by} x2={bx + (bx < 110 ? -8 : 8)} y2={by - 8}
           stroke="var(--risk-low)" strokeWidth="2" strokeLinecap="round"
         />
         <text
-          x={bx + (bx < 110 ? -10 : 10)} y={by - 10}
-          fill="var(--risk-low)" fontSize="7" textAnchor={bx < 110 ? 'end' : 'start'}
+          x={bx < 60 ? 10 : bx > 160 ? 210 : bx} y={20}
+          fill="var(--risk-low)" fontSize="8" textAnchor={bx < 60 ? 'start' : bx > 160 ? 'end' : 'middle'}
         >
           Top brands: {benchmark}
         </text>
-      </svg>
-      <div className="gauge-readout">
-        <span className="gauge-score" style={{ color: `var(--risk-${band.key})` }}>
+        <text x="110" y="100" textAnchor="middle" fill={`var(--risk-${band.key})`} fontFamily="var(--font-display)" fontSize="46" fontWeight="700">
           {display}
-        </span>
-        <span className="gauge-max">/100</span>
-      </div>
-      <p className="gauge-label" style={{ color: `var(--risk-${band.key})` }}>
-        {band.label}
-      </p>
+        </text>
+        <text x="110" y="118" textAnchor="middle" fill="var(--faint)" fontFamily="var(--font-display)" fontSize="14">
+          /100
+        </text>
+        <text x="110" y="142" textAnchor="middle" fill={`var(--risk-${band.key})`} fontFamily="var(--font-mono)" fontSize="10" letterSpacing="0.2em" style={{ textTransform: 'uppercase' }}>
+          {band.label}
+        </text>
+      </svg>
       {score > benchmark && (
         <p className="gauge-benchmark-gap">
           Gap: {score - benchmark} points above top performers at your spend level
@@ -541,18 +541,18 @@ function DiagnosisSection({ insights, brandName }) {
 
 // --- Section: Sigmoid Decay Curve -------------------------------------------
 
-function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore }) {
+function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore, leakLow, leakHigh }) {
   const params = DECAY_PARAMS[spendTier]?.[refreshRate]
   if (!params) return null
 
   const { cliff, steepness, markerWeek } = params
-  const W = 440, H = 220
-  const PAD_L = 44, PAD_R = 10, PAD_T = 10, PAD_B = 30
+  const W = 480, H = 250
+  const PAD_L = 44, PAD_R = 16, PAD_T = 16, PAD_B = 34
   const plotW = W - PAD_L - PAD_R
   const plotH = H - PAD_T - PAD_B
 
   const points = []
-  for (let w = 0; w <= 12; w += 0.5) {
+  for (let w = 0; w <= 12; w += 0.1) {
     points.push({ week: w, eff: effectiveness(w, cliff, steepness) })
   }
 
@@ -569,6 +569,8 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore }) {
   const escalation = getCPAEscalation(weeksPastCliff)
 
   const cliffX = x(cliff)
+  const safeEnd = Math.max(0, cliff - 2)
+  const warnEnd = cliff + 1
 
   let statusClass = 'decay-status-green'
   let statusText = ''
@@ -582,20 +584,29 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore }) {
     statusText = `You passed your cliff ~${Math.round(weeksPastCliff)} weeks ago. Roughly ${100 - markerEff}% of your ad budget is underperforming. Every week of inaction deepens the bleed.`
   }
 
+  const FREQ_LABELS = {
+    weekly: 'weekly', every_2_3_weeks: 'bi-weekly',
+    monthly_or_less: 'monthly', only_when_drops: 'reactive',
+  }
+
+  const markerAnchor = x(markerWeek) > W * 0.65 ? 'end' : x(markerWeek) < W * 0.35 ? 'start' : 'middle'
+  const markerTextX = markerAnchor === 'end' ? x(markerWeek) - 10 : markerAnchor === 'start' ? x(markerWeek) + 10 : x(markerWeek)
+
   return (
     <div className="decay-curve">
       <p className="card-kicker">YOUR BUDGET EFFECTIVENESS CURVE</p>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" aria-label="Budget effectiveness curve showing how your ad spend declines over weeks without a creative refresh">
         <defs>
-          <linearGradient id="decayFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--risk-low)" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="var(--risk-critical)" stopOpacity="0.05" />
-          </linearGradient>
+          <clipPath id="curveClip">
+            <path d={`${pathD} L ${x(12).toFixed(1)} ${y(0).toFixed(1)} L ${x(0).toFixed(1)} ${y(0).toFixed(1)} Z`} />
+          </clipPath>
         </defs>
 
-        {cliff <= 12 && (
-          <rect x={cliffX} y={PAD_T} width={x(12) - cliffX} height={plotH} fill="rgba(226, 92, 80, 0.06)" />
-        )}
+        <g clipPath="url(#curveClip)">
+          <rect x={x(0)} y={PAD_T} width={x(safeEnd) - x(0)} height={plotH} fill="rgba(84, 201, 127, 0.08)" />
+          <rect x={x(safeEnd)} y={PAD_T} width={x(Math.min(warnEnd, 12)) - x(safeEnd)} height={plotH} fill="rgba(240, 166, 60, 0.08)" />
+          <rect x={x(Math.min(warnEnd, 12))} y={PAD_T} width={x(12) - x(Math.min(warnEnd, 12))} height={plotH} fill="rgba(226, 92, 80, 0.08)" />
+        </g>
 
         {[0, 25, 50, 75, 100].map((v) => (
           <g key={v}>
@@ -608,8 +619,7 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore }) {
           <text key={w} x={x(w)} y={H - 6} fill="var(--faint)" fontSize="8" textAnchor="middle">W{w}</text>
         ))}
 
-        <path d={`${pathD} L ${x(12).toFixed(1)} ${y(0).toFixed(1)} L ${x(0).toFixed(1)} ${y(0).toFixed(1)} Z`} fill="url(#decayFill)" />
-        <path d={pathD} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={pathD} fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
 
         {cliff <= 12 && (
           <>
@@ -618,17 +628,50 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore }) {
           </>
         )}
 
-        <line x1={x(markerWeek)} y1={PAD_T} x2={x(markerWeek)} y2={y(markerEff)} stroke="var(--accent)" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
+        <line x1={x(markerWeek)} y1={PAD_T + plotH} x2={x(markerWeek)} y2={y(markerEff)} stroke="var(--accent)" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
         <circle cx={x(markerWeek)} cy={y(markerEff)} r="6" fill="var(--accent)" stroke="var(--bg)" strokeWidth="2" />
-        <text x={x(markerWeek)} y={y(markerEff) - 12} fill="var(--accent)" fontSize="9" fontWeight="600" textAnchor="middle">you are here</text>
-        <text x={x(markerWeek)} y={y(markerEff) - 3} fill="var(--accent)" fontSize="7" textAnchor="middle">{markerEff}%</text>
+
+        <rect
+          x={markerTextX - (markerAnchor === 'end' ? 72 : markerAnchor === 'start' ? 0 : 36)}
+          y={y(markerEff) - 32} width="72" height="20" rx="4"
+          fill="var(--surface)" stroke="var(--accent)" strokeWidth="0.5" opacity="0.9"
+        />
+        <text x={markerTextX} y={y(markerEff) - 18} fill="var(--accent)" fontSize="9" fontWeight="600" textAnchor={markerAnchor}>
+          {markerEff}% effective
+        </text>
       </svg>
+
+      <p className="decay-marker-note">Your {FREQ_LABELS[refreshRate] || ''} refresh cadence places you here on the curve</p>
+
+      <div className="decay-zones">
+        <div className="decay-zone decay-zone-safe">
+          <span className="decay-zone-title">Safe zone</span>
+          <span className="decay-zone-weeks">Weeks 1–{Math.max(1, Math.round(safeEnd))}</span>
+          <span className="decay-zone-detail">CPA within 10–15%</span>
+        </div>
+        <div className="decay-zone decay-zone-warn">
+          <span className="decay-zone-title">Warning zone</span>
+          <span className="decay-zone-weeks">Weeks {Math.max(1, Math.round(safeEnd))}–{Math.round(warnEnd)}</span>
+          <span className="decay-zone-detail">CPA up 20–50% — refresh window closing</span>
+        </div>
+        <div className="decay-zone decay-zone-cliff">
+          <span className="decay-zone-title">Fatigue cliff</span>
+          <span className="decay-zone-weeks">Weeks {Math.round(warnEnd)}+</span>
+          <span className="decay-zone-detail">CPA doubles or worse — burning budget</span>
+        </div>
+      </div>
 
       <p className={`decay-status ${statusClass}`}>{statusText}</p>
 
       {escalation && weeksPastCliff > 0.5 && (
         <p className="decay-escalation">
           Based on your refresh cadence, your cost per acquisition has likely increased {escalation.low}–{escalation.high}% since your cliff.
+        </p>
+      )}
+
+      {leakLow && leakHigh && weeksPastCliff > 0.5 && (
+        <p className="decay-revenue-context">
+          At your revenue level, this effectiveness drop represents approximately {formatGBP(Math.round(leakLow * (1 - markerEff / 100)))}–{formatGBP(Math.round(leakHigh * (1 - markerEff / 100)))} in monthly revenue left on the table.
         </p>
       )}
 
@@ -642,15 +685,13 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore }) {
 // --- Section: Expanded Radar Chart (8 axes) ---------------------------------
 
 const RADAR_LABELS_5 = ['Pain / Problem', 'Transformation', 'Social Proof', 'Science / Ingredient', 'Founder Story']
-const RADAR_LABELS_LOCKED = ['Audience Precision', 'Signal Quality', 'Competitive Position']
 
 function RadarChart({ answers }) {
   const { scores, benchmark } = getRadarScores(answers.brandType, answers.angleDiversity)
-  const N_SCORED = 5
-  const N_TOTAL = 8
+  const N = 5
   const CX = 150, CY = 150, R = 100
 
-  const angle = (i) => (Math.PI * 2 * i) / N_TOTAL - Math.PI / 2
+  const angle = (i) => (Math.PI * 2 * i) / N - Math.PI / 2
   const px = (i, pct) => CX + R * (pct / 100) * Math.cos(angle(i))
   const py = (i, pct) => CY + R * (pct / 100) * Math.sin(angle(i))
 
@@ -667,62 +708,48 @@ function RadarChart({ answers }) {
       <div className="radar-legend">
         <span className="radar-legend-item"><span className="radar-dot radar-dot-user" /> Your estimated coverage</span>
         <span className="radar-legend-item"><span className="radar-dot radar-dot-ideal" /> Top-performing benchmark</span>
-        <span className="radar-legend-item"><span className="radar-dot radar-dot-locked" /> Requires audit</span>
       </div>
-      <svg viewBox="0 0 300 310" width="100%" aria-label="Radar chart showing creative angle coverage across 8 dimensions">
+      <svg viewBox="0 0 300 310" width="100%" aria-label="Radar chart showing creative angle coverage across 5 dimensions">
         {[25, 50, 75, 100].map((ring) => (
           <polygon
             key={ring}
-            points={Array.from({ length: N_TOTAL }, (_, i) => `${px(i, ring).toFixed(1)},${py(i, ring).toFixed(1)}`).join(' ')}
-            fill="none" stroke="var(--border)" strokeWidth="0.5"
+            points={Array.from({ length: N }, (_, i) => `${px(i, ring).toFixed(1)},${py(i, ring).toFixed(1)}`).join(' ')}
+            fill="none" stroke="var(--border)" strokeWidth={ring === 50 ? '0.8' : '0.5'}
           />
         ))}
 
-        {Array.from({ length: N_TOTAL }, (_, i) => {
-          const isLocked = i >= N_SCORED
-          return (
-            <line
-              key={i} x1={CX} y1={CY} x2={px(i, 100)} y2={py(i, 100)}
-              stroke={isLocked ? 'var(--border)' : 'var(--border)'}
-              strokeWidth="0.5"
-              strokeDasharray={isLocked ? '3 3' : 'none'}
-              opacity={isLocked ? 0.4 : 1}
-            />
-          )
-        })}
+        {Array.from({ length: N }, (_, i) => (
+          <line
+            key={i} x1={CX} y1={CY} x2={px(i, 100)} y2={py(i, 100)}
+            stroke="var(--border)" strokeWidth="0.5"
+          />
+        ))}
 
-        <path d={benchmarkPath} fill="rgba(84, 201, 127, 0.08)" stroke="var(--risk-low)" strokeWidth="1" strokeDasharray="4 3" />
+        <path d={benchmarkPath} fill="rgba(84, 201, 127, 0.12)" stroke="var(--risk-low)" strokeWidth="1" strokeDasharray="4 3" />
         <path d={userPath} fill="rgba(240, 166, 60, 0.15)" stroke="var(--accent)" strokeWidth="2" />
 
         {scores.map((s, i) => (
-          <circle key={i} cx={px(i, s)} cy={py(i, s)} r="4" fill="var(--accent)" stroke="var(--bg)" strokeWidth="1.5" />
+          <g key={i}>
+            <circle cx={px(i, s)} cy={py(i, s)} r="4" fill="var(--accent)" stroke="var(--bg)" strokeWidth="1.5" />
+            <text
+              x={px(i, s) + (px(i, s) > CX ? 8 : px(i, s) < CX ? -8 : 0)}
+              y={py(i, s) + (py(i, s) > CY ? 12 : -8)}
+              fill="var(--accent)" fontSize="8" fontWeight="600"
+              textAnchor={px(i, s) > CX ? 'start' : px(i, s) < CX ? 'end' : 'middle'}
+            >
+              {s}%
+            </text>
+          </g>
         ))}
 
         {RADAR_LABELS_5.map((label, i) => {
-          const labelR = R + 22
+          const labelR = R + 24
           const lx = CX + labelR * Math.cos(angle(i))
           const ly = CY + labelR * Math.sin(angle(i))
           return (
             <text key={i} x={lx} y={ly} fill="var(--muted)" fontSize="9" textAnchor="middle" dominantBaseline="middle">
               {label}
             </text>
-          )
-        })}
-
-        {RADAR_LABELS_LOCKED.map((label, idx) => {
-          const i = N_SCORED + idx
-          const labelR = R + 22
-          const lx = CX + labelR * Math.cos(angle(i))
-          const ly = CY + labelR * Math.sin(angle(i))
-          return (
-            <g key={i}>
-              <text x={lx} y={ly - 6} fill="var(--faint)" fontSize="8" textAnchor="middle" dominantBaseline="middle" opacity="0.4">
-                {label}
-              </text>
-              <text x={lx} y={ly + 6} fill="var(--faint)" fontSize="7" textAnchor="middle" dominantBaseline="middle" opacity="0.3">
-                ?
-              </text>
-            </g>
           )
         })}
       </svg>
@@ -849,6 +876,8 @@ export default function Results({ answers, results, insights }) {
             spendTier={answers.spendTier}
             refreshRate={answers.refreshRate}
             fatigueScore={results.score}
+            leakLow={results.leakLow}
+            leakHigh={results.leakHigh}
           />
         </section>
       )}

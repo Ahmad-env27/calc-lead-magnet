@@ -698,38 +698,9 @@ h2 {
 
 /* Section A — gauge */
 .gauge {
-  position: relative;
   max-width: 280px;
   margin: 18px auto 0;
   text-align: center;
-}
-
-.gauge-readout {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 34px;
-  font-family: var(--font-display);
-}
-
-.gauge-score {
-  font-size: 52px;
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.gauge-max {
-  color: var(--faint);
-  font-size: 16px;
-}
-
-.gauge-label {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-top: 4px;
 }
 
 .interp {
@@ -1527,6 +1498,9 @@ h2 {
   .lane-cards-row {
     grid-template-columns: 1fr;
   }
+  .decay-zones {
+    grid-template-columns: 1fr;
+  }
 }
 
 .lane-divider {
@@ -1721,10 +1695,72 @@ h2 {
   background: rgba(226, 92, 80, 0.06);
 }
 
+.decay-marker-note {
+  font-size: 11px;
+  color: var(--faint);
+  text-align: center;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.decay-zones {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.decay-zone {
+  border-radius: 6px;
+  padding: 10px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.decay-zone-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.decay-zone-weeks {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.decay-zone-detail {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+
+.decay-zone-safe {
+  background: rgba(84, 201, 127, 0.08);
+  color: var(--risk-low);
+}
+
+.decay-zone-warn {
+  background: rgba(240, 166, 60, 0.08);
+  color: var(--risk-high);
+}
+
+.decay-zone-cliff {
+  background: rgba(226, 92, 80, 0.08);
+  color: var(--risk-critical);
+}
+
 .decay-escalation {
   font-size: 12px;
   color: var(--muted);
   margin-top: 8px;
+}
+
+.decay-revenue-context {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
 }
 
 /* --------------------------------------------------------------------------

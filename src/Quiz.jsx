@@ -176,7 +176,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
       } else {
         f = f.filter((x) => x !== 'none')
         if (f.includes(id)) f = f.filter((x) => x !== id)
-        else if (f.length < 3) f = [...f, id]
+        else if (f.length < 4) f = [...f, id]
       }
       return { ...a, frustrations: f }
     })
@@ -438,12 +438,12 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
         {step === 15 && (
           <>
             <h2 className="step-header">What's your biggest frustration with your ads right now?</h2>
-            <p className="step-subtext">Pick up to 3</p>
+            <p className="step-subtext">Pick up to 4</p>
             <div className="chip-list">
               {FRUSTRATIONS.map((f) => {
                 const selected = answers.frustrations.includes(f.id)
                 const maxed =
-                  !selected && f.id !== 'none' && answers.frustrations.filter((x) => x !== 'none').length >= 3
+                  !selected && f.id !== 'none' && answers.frustrations.filter((x) => x !== 'none').length >= 4
                 return (
                   <button
                     key={f.id}
@@ -463,7 +463,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
             )}
             <button
               className="btn-primary"
-              disabled={frustrationCount < 1 || frustrationCount > 3}
+              disabled={frustrationCount < 1 || frustrationCount > 4}
               onClick={() => goTo(16)}
             >
               Continue →

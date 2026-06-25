@@ -108,7 +108,7 @@ export function calculateScore(inputs) {
 
   // Ad Fatigue Risk Score (12–97)
   let score = 30
-  score += inputs.frustrationCount * 4 // max +12 from 3 selections
+  score += inputs.frustrationCount * 3 // max +12 from 4 selections
   score += {
     weekly: -5,
     every_2_3_weeks: 3,

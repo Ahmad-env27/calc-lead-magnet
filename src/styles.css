@@ -217,6 +217,7 @@ h2 {
   min-height: 100dvh;
   padding: 16px 0 24px;
   gap: 14px;
+  position: relative;
 }
 
 .landing-logo {

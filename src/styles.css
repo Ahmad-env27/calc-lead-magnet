@@ -215,8 +215,18 @@ h2 {
   text-align: center;
   justify-content: center;
   min-height: 100dvh;
-  padding: 28px 0 24px;
+  padding: 16px 0 24px;
   gap: 14px;
+}
+
+.landing-logo {
+  width: 100px;
+  height: auto;
+  opacity: 0.9;
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .ghost-gauge {
@@ -290,6 +300,7 @@ h2 {
   align-items: center;
   gap: 5px;
   color: var(--faint);
+  margin-top: 18px;
   animation: scroll-bob 2.2s ease-in-out infinite;
 }
 

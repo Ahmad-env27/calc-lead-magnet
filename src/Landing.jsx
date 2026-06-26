@@ -2,7 +2,9 @@ export default function Landing({ onStart }) {
   return (
     <>
       <main className="landing">
-        <div className="ghost-gauge reveal" style={{ '--i': 0 }} aria-hidden="true">
+        <img src="/audr-logo.svg" alt="Audr" className="landing-logo reveal" style={{ '--i': 0 }} />
+
+        <div className="ghost-gauge reveal" style={{ '--i': 1 }} aria-hidden="true">
           <svg viewBox="0 0 120 68" width="110" height="62">
             <path
               d="M 12 60 A 48 48 0 0 1 108 60"
@@ -25,28 +27,28 @@ export default function Landing({ onStart }) {
           </svg>
         </div>
 
-        <p className="eyebrow reveal" style={{ '--i': 1 }}>
+        <p className="eyebrow reveal" style={{ '--i': 2 }}>
           AUDR · AD INTEL
         </p>
 
-        <h1 className="headline reveal" style={{ '--i': 2 }}>
+        <h1 className="headline reveal" style={{ '--i': 3 }}>
           How much revenue is <span className="grad">silently draining</span> from
           your skincare brand?
         </h1>
 
-        <p className="subhead reveal" style={{ '--i': 3 }}>
+        <p className="subhead reveal" style={{ '--i': 4 }}>
           Answer 16 quick questions and get your Revenue Leak Report — your
           creative fatigue risk score and how much monthly revenue your skincare
           brand is leaving behind.
         </p>
 
-        <div className="cta-zone reveal" style={{ '--i': 4 }}>
+        <div className="cta-zone reveal" style={{ '--i': 5 }}>
           <button className="cta-btn" onClick={onStart}>
             Get my free report →
           </button>
         </div>
 
-        <div className="trust-zone reveal" style={{ '--i': 5 }}>
+        <div className="trust-zone reveal" style={{ '--i': 6 }}>
           <p className="trust-line">
             Built for skincare brands doing{' '}
             <span className="pill">£100k+/month</span> in revenue
@@ -56,7 +58,7 @@ export default function Landing({ onStart }) {
           </p>
         </div>
 
-        <div className="scroll-hint reveal" style={{ '--i': 6 }} aria-hidden="true">
+        <div className="scroll-hint reveal" style={{ '--i': 7 }} aria-hidden="true">
           <svg className="scroll-hint__arrow" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 3v11M4 9l6 6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>

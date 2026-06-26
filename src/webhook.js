@@ -120,6 +120,7 @@ export async function fireWebhook(data) {
   const tl = data.threeLane
   const coi = data.costOfInaction
   const raw = {
+    first_name: data.name || null,
     email: data.email,
     brand_name: data.brandName,
     website_url: data.websiteUrl || null,
@@ -185,6 +186,7 @@ export async function fireWebhook(data) {
 export async function fireFollowupEvent(eventType, data) {
   const raw = {
     event: eventType,
+    name: data.name || null,
     email: data.email,
     brand_name: data.brandName,
     lead_temperature: data.temperature,

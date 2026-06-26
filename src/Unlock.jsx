@@ -6,18 +6,20 @@ import { useState } from 'react'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export default function Unlock({ brandName, email, onSubmit, onBack }) {
-  const [value, setValue] = useState(email || '')
-  const [error, setError] = useState(false)
+export default function Unlock({ brandName, name, email, onSubmit, onBack }) {
+  const [nameValue, setNameValue] = useState(name || '')
+  const [emailValue, setEmailValue] = useState(email || '')
+  const [emailError, setEmailError] = useState(false)
+  const [nameError, setNameError] = useState(false)
 
-  const valid = EMAIL_RE.test(value)
+  const emailValid = EMAIL_RE.test(emailValue)
+  const nameValid = nameValue.trim().length >= 2
 
   const submit = () => {
-    if (!valid) {
-      setError(true)
-      return
-    }
-    onSubmit(value)
+    if (!nameValid) setNameError(true)
+    if (!emailValid) setEmailError(true)
+    if (!nameValid || !emailValid) return
+    onSubmit(emailValue, nameValue.trim())
   }
 
   return (
@@ -37,6 +39,25 @@ export default function Unlock({ brandName, email, onSubmit, onBack }) {
         </p>
 
         <div className="field">
+          <label htmlFor="unlock-name">Name</label>
+          <input
+            id="unlock-name"
+            type="text"
+            autoComplete="name"
+            placeholder="Your first name"
+            value={nameValue}
+            className={nameError ? 'invalid' : ''}
+            onChange={(e) => {
+              setNameValue(e.target.value)
+              if (nameError) setNameError(false)
+            }}
+            onBlur={() => setNameError(nameValue.length > 0 && !nameValid)}
+            onKeyDown={(e) => e.key === 'Enter' && document.getElementById('unlock-email').focus()}
+          />
+          {nameError && <span className="field-error">Please enter your name</span>}
+        </div>
+
+        <div className="field">
           <label htmlFor="unlock-email">Email</label>
           <input
             id="unlock-email"
@@ -44,19 +65,19 @@ export default function Unlock({ brandName, email, onSubmit, onBack }) {
             inputMode="email"
             autoComplete="email"
             placeholder="you@yourbrand.co.uk"
-            value={value}
-            className={error ? 'invalid' : ''}
+            value={emailValue}
+            className={emailError ? 'invalid' : ''}
             onChange={(e) => {
-              setValue(e.target.value)
-              if (error) setError(false)
+              setEmailValue(e.target.value)
+              if (emailError) setEmailError(false)
             }}
-            onBlur={() => setError(value.length > 0 && !valid)}
+            onBlur={() => setEmailError(emailValue.length > 0 && !emailValid)}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
           />
-          {error && <span className="field-error">That email doesn’t look right</span>}
+          {emailError && <span className="field-error">That email doesn’t look right</span>}
         </div>
 
-        <button className="btn-primary" disabled={!valid} onClick={submit}>
+        <button className="btn-primary" disabled={!nameValid || !emailValid} onClick={submit}>
           Unlock my report →
         </button>
 

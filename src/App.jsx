@@ -28,6 +28,7 @@ const INITIAL_ANSWERS = {
   adsMadeBy: null,
   frustrations: [],
   extraContext: '',
+  name: '',
   email: '',
 }
 
@@ -51,6 +52,7 @@ const SAMPLE_ANSWERS = {
   adsMadeBy: 'agency',
   frustrations: ['stop_performing', 'same_message', 'customer_language'],
   extraContext: '',
+  name: 'Sarah Chen',
   email: 'founder@glowtheory.co.uk',
 }
 
@@ -88,11 +90,11 @@ export default function App() {
     setPhase('scoring')
   }
 
-  const unlockReport = (email) => {
+  const unlockReport = (email, name) => {
     if (webhookFired.current) return
     webhookFired.current = true
 
-    const finalAnswers = { ...answers, email }
+    const finalAnswers = { ...answers, email, name }
     setAnswers(finalAnswers)
 
     const inputs = toScoringInputs(finalAnswers)
@@ -156,6 +158,7 @@ export default function App() {
       {phase === 'unlock' && (
         <Unlock
           brandName={answers.brandName}
+          name={answers.name}
           email={answers.email}
           onSubmit={unlockReport}
           onBack={() => setPhase('quiz')}

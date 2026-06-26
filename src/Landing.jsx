@@ -2,7 +2,7 @@ export default function Landing({ onStart }) {
   return (
     <>
       <main className="landing">
-        <img src="/audr-logo.svg" alt="Audr" className="landing-logo reveal" style={{ '--i': 0 }} />
+        <img src="/audr-logo.png" alt="Audr" className="landing-logo reveal" style={{ '--i': 0 }} />
 
         <div className="ghost-gauge reveal" style={{ '--i': 1 }} aria-hidden="true">
           <svg viewBox="0 0 120 68" width="110" height="62">

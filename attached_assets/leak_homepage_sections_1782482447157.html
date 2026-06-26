@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0b0e">
+    <title>How much revenue is ad fatigue draining from your skincare brand? | Audr</title>
+
+    <style>html { background: #0b0b0e; }</style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+
+    <style>
+      /* ── Tokens ── */
+      :root {
+        --bg: #0b0b0e;
+        --surface: #131318;
+        --surface-2: #1c1c23;
+        --border: #232329;
+        --border-strong: #34343d;
+        --text: #f4f2ec;
+        --muted: #a3a0a9;
+        --faint: #84818e;
+        --font-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+        --accent: #f0a63c;
+        --accent-2: #ffd78f;
+        --on-accent: #1a1206;
+        --accent-glow: rgba(240, 166, 60, .28);
+        --risk-low: #54c97f;
+        --risk-moderate: #e3c14b;
+        --risk-high: #f0a63c;
+        --risk-critical: #e25c50;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Shell (matches existing 520px max) ── */
+      .shell {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* ── HERO (existing, recreated for context) ── */
+      .landing {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 80px 0 60px;
+      }
+
+      .ghost-gauge svg { width: 110px; height: 62px; }
+      .ghost-gauge path { stroke: var(--border-strong); }
+      .ghost-gauge text { fill: var(--muted); }
+
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 2.5px;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-top: 12px;
+      }
+
+      .headline {
+        font-family: var(--font-display);
+        font-size: clamp(26px, 5.5vw, 34px);
+        font-weight: 700;
+        line-height: 1.2;
+        margin-top: 16px;
+        max-width: 480px;
+      }
+
+      .grad {
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .subhead {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.55;
+        margin-top: 14px;
+        max-width: 380px;
+      }
+
+      .cta-zone { margin-top: 28px; width: 100%; }
+
+      .cta-btn {
+        display: block;
+        width: 100%;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-family: var(--font-display);
+        font-size: 17px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform .15s, box-shadow .15s;
+      }
+      .cta-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 24px var(--accent-glow);
+      }
+
+      .trust-zone { margin-top: 18px; text-align: center; }
+      .trust-line { color: var(--muted); font-size: 13px; margin-top: 6px; }
+      .pill {
+        display: inline-block;
+        background: var(--surface-2);
+        border: 1px solid var(--border-strong);
+        border-radius: 100px;
+        padding: 2px 10px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--accent);
+      }
+      .guarantee-line { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+
+      /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         NEW SECTIONS BELOW THE HERO
+         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+      /* ── Section base ── */
+      .section {
+        padding: 64px 0;
+        border-top: 1px solid var(--border);
+      }
+      .section--no-border { border-top: none; }
+
+      .section__eyebrow {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 14px;
+      }
+
+      .section__title {
+        font-family: var(--font-display);
+        font-size: clamp(22px, 4.5vw, 28px);
+        font-weight: 700;
+        line-height: 1.25;
+        margin-bottom: 16px;
+      }
+
+      .section__body {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .section__body p + p { margin-top: 14px; }
+
+      /* ── Problem / Pain cards ── */
+      .pain-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .pain-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+
+      .pain-card__icon {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+      }
+
+      .pain-card__text h3 {
+        font-family: var(--font-display);
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--text);
+      }
+
+      .pain-card__text p {
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      /* ── Leak math section ── */
+      .leak-math {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px 24px;
+        margin-top: 24px;
+        text-align: center;
+      }
+
+      .leak-math__formula {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .leak-math__chip {
+        background: var(--surface-2);
+        border: 1px solid var(--border-strong);
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--text);
+      }
+
+      .leak-math__op {
+        font-family: var(--font-mono);
+        font-size: 18px;
+        color: var(--faint);
+      }
+
+      .leak-math__result {
+        background: linear-gradient(165deg, rgba(226, 92, 80, .12), rgba(226, 92, 80, .04));
+        border: 1px solid rgba(226, 92, 80, .3);
+        border-radius: 10px;
+        padding: 16px;
+        margin-top: 6px;
+      }
+
+      .leak-math__result-number {
+        font-family: var(--font-display);
+        font-size: clamp(28px, 6vw, 36px);
+        font-weight: 700;
+        color: var(--risk-critical);
+      }
+
+      .leak-math__result-label {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      .leak-math__note {
+        font-size: 13px;
+        color: var(--faint);
+        margin-top: 14px;
+        font-style: italic;
+      }
+
+      /* ── Steps / How it works ── */
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin-top: 24px;
+        position: relative;
+      }
+
+      .step {
+        display: flex;
+        gap: 16px;
+        position: relative;
+        padding-bottom: 28px;
+      }
+
+      .step:last-child { padding-bottom: 0; }
+
+      .step__marker {
+        flex-shrink: 0;
+        width: 36px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .step__number {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--surface-2);
+        border: 1px solid var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-display);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--accent);
+        flex-shrink: 0;
+      }
+
+      .step__line {
+        width: 1px;
+        flex: 1;
+        background: var(--border-strong);
+        margin-top: 8px;
+      }
+
+      .step:last-child .step__line { display: none; }
+
+      .step__content { padding-top: 6px; }
+
+      .step__content h3 {
+        font-family: var(--font-display);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+
+      .step__content p {
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .step__time {
+        display: inline-block;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 2px 10px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--faint);
+        margin-top: 6px;
+      }
+
+      /* ── Report preview cards ── */
+      .report-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      .report-item {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px 18px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .report-item__check {
+        flex-shrink: 0;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: linear-gradient(165deg, rgba(84, 201, 127, .18), rgba(84, 201, 127, .06));
+        border: 1px solid rgba(84, 201, 127, .3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--risk-low);
+      }
+
+      .report-item__text {
+        font-size: 14px;
+        color: var(--text);
+        line-height: 1.45;
+      }
+
+      .report-item__text strong {
+        font-weight: 600;
+      }
+
+      /* ── ICP qualifier ── */
+      .icp-list {
+        list-style: none;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .icp-list li {
+        font-size: 15px;
+        color: var(--text);
+        padding-left: 24px;
+        position: relative;
+        line-height: 1.5;
+      }
+
+      .icp-list li::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* ── Built by / credibility ── */
+      .cred-block {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 24px;
+        margin-top: 24px;
+      }
+
+      .cred-block__quote {
+        font-size: 15px;
+        color: var(--text);
+        line-height: 1.55;
+        font-style: italic;
+        position: relative;
+        padding-left: 16px;
+        border-left: 2px solid var(--accent);
+      }
+
+      .cred-block__attr {
+        margin-top: 14px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .cred-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .cred-stat {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+      }
+
+      .cred-stat__number {
+        font-family: var(--font-display);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      .cred-stat__label {
+        font-size: 12px;
+        color: var(--faint);
+        margin-top: 2px;
+      }
+
+      /* ── FAQ ── */
+      .faq-list {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .faq-item {
+        border-bottom: 1px solid var(--border);
+        padding: 18px 0;
+      }
+
+      .faq-item:first-child { padding-top: 0; }
+
+      .faq-item__q {
+        font-family: var(--font-display);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+
+      .faq-item__a {
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      /* ── Final CTA ── */
+      .final-cta {
+        text-align: center;
+        padding: 48px 0 80px;
+        border-top: 1px solid var(--border);
+      }
+
+      .final-cta__title {
+        font-family: var(--font-display);
+        font-size: clamp(22px, 4.5vw, 28px);
+        font-weight: 700;
+        line-height: 1.25;
+        margin-bottom: 10px;
+      }
+
+      .final-cta__sub {
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 24px;
+      }
+
+      /* ── Highlight text ── */
+      .highlight { color: var(--accent); font-weight: 600; }
+      .highlight-red { color: var(--risk-critical); font-weight: 600; }
+
+      /* ── Divider with label ── */
+      .label-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 48px 0 0;
+      }
+      .label-divider::before,
+      .label-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+      .label-divider span {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--faint);
+        white-space: nowrap;
+      }
+
+      /* ── Risk bar visualization ── */
+      .risk-bar-wrap {
+        margin-top: 24px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .risk-bar {
+        height: 8px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--risk-low) 0%, var(--risk-moderate) 33%, var(--risk-high) 66%, var(--risk-critical) 100%);
+        position: relative;
+        margin-bottom: 8px;
+      }
+      .risk-bar__labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        font-family: var(--font-mono);
+        color: var(--faint);
+      }
+
+      /* ── Cost-of-inaction ticker ── */
+      .ticker-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .ticker-row:last-child { border-bottom: none; }
+      .ticker-row__label {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .ticker-row__value {
+        font-family: var(--font-display);
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .ticker-row__value--red { color: var(--risk-critical); }
+      .ticker-row__value--amber { color: var(--risk-high); }
+    </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       HERO (existing, preserved for context)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <main class="landing">
+    <div class="ghost-gauge" aria-hidden="true">
+      <svg viewBox="0 0 120 68" width="110" height="62">
+        <path d="M 12 60 A 48 48 0 0 1 108 60" fill="none" stroke="var(--border-strong)" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 9"></path>
+        <text x="60" y="58" text-anchor="middle" fill="var(--muted)" font-size="26" font-family="var(--font-display)">?</text>
+      </svg>
+    </div>
+    <p class="eyebrow">AUDR · AD INTEL</p>
+    <h1 class="headline">How much revenue is <span class="grad">silently draining</span> from your skincare brand?</h1>
+    <p class="subhead">Answer 16 quick questions and get your Revenue Leak Report. Your creative fatigue risk score and how much monthly revenue your skincare brand is leaving behind.</p>
+    <div class="cta-zone"><button class="cta-btn">Get my free report →</button></div>
+    <div class="trust-zone">
+      <p class="trust-line">Built for skincare brands doing <span class="pill">£100k+/month</span> in revenue</p>
+      <p class="guarantee-line">✓ Free Loom teardown included. Yours to keep, no strings</p>
+    </div>
+  </main>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 1: THE PROBLEM (Pain agitation)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section">
+    <p class="section__eyebrow">The problem</p>
+    <h2 class="section__title">Your ads aren't fatiguing because of Meta. They're fatiguing because <span class="highlight">every brief starts from the same guesses.</span></h2>
+    <div class="section__body">
+      <p>Most skincare brands spending £20k+ a month on Meta hit the same wall. Performance was great for a while. Then CPAs crept up, ROAS started sliding, and no amount of "new creative" seems to fix it.</p>
+      <p>The problem isn't Meta. It's not even your creative team. It's the gap between what your customers actually feel and what your ads are saying.</p>
+    </div>
+
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-card__icon">🔁</div>
+        <div class="pain-card__text">
+          <h3>Same angles, recycled</h3>
+          <p>Your last 10 ads probably used the same 2-3 hooks. Your audience has seen them. So has Meta's algorithm.</p>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-card__icon">🎯</div>
+        <div class="pain-card__text">
+          <h3>Briefs built on assumptions</h3>
+          <p>Most creative briefs are based on what the team thinks customers care about. Not what customers actually say about their skin.</p>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-card__icon">📈</div>
+        <div class="pain-card__text">
+          <h3>Rising costs, shrinking returns</h3>
+          <p>Your CPA went from £28 to £41 since January. On £30k/month, that's roughly £9k of orders you used to get. Gone.</p>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-card__icon">👻</div>
+        <div class="pain-card__text">
+          <h3>Competitor blindspot</h3>
+          <p>The skincare brand outperforming you isn't smarter. Their ads speak the language your customers already use. You just can't see it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 2: THE COST (Loss aversion math)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section">
+    <p class="section__eyebrow">The cost of waiting</p>
+    <h2 class="section__title">A leaking ad account doesn't cost you once. It <span class="highlight-red">compounds every month</span> you leave it.</h2>
+
+    <div class="leak-math">
+      <div class="leak-math__formula">
+        <span class="leak-math__chip">£20k spend</span>
+        <span class="leak-math__op">×</span>
+        <span class="leak-math__chip">20% leak</span>
+        <span class="leak-math__op">÷</span>
+        <span class="leak-math__chip">£35 AOV</span>
+      </div>
+      <div class="leak-math__result">
+        <div class="leak-math__result-number">~700 orders lost</div>
+        <div class="leak-math__result-label">over 6 months of undetected creative fatigue</div>
+      </div>
+      <p class="leak-math__note">That's £24,000 in revenue. From one problem nobody flagged.</p>
+    </div>
+
+    <div class="risk-bar-wrap" style="margin-top: 16px;">
+      <div class="ticker-row">
+        <span class="ticker-row__label">Month 1</span>
+        <span class="ticker-row__value ticker-row__value--amber">-£4,000</span>
+      </div>
+      <div class="ticker-row">
+        <span class="ticker-row__label">Month 3</span>
+        <span class="ticker-row__value ticker-row__value--red">-£12,000</span>
+      </div>
+      <div class="ticker-row">
+        <span class="ticker-row__label">Month 6</span>
+        <span class="ticker-row__value ticker-row__value--red">-£24,000</span>
+      </div>
+      <div class="ticker-row" style="border-bottom: none;">
+        <span class="ticker-row__label">Orders that went to competitors</span>
+        <span class="ticker-row__value ticker-row__value--red">~700</span>
+      </div>
+    </div>
+
+    <div class="section__body" style="margin-top: 20px;">
+      <p>Every month you spend "thinking about it" is another month of leaked revenue you don't get back. The calculator takes 3 minutes. The Loom teardown takes a week. The cost of doing nothing? That keeps growing.</p>
+    </div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 3: HOW IT WORKS (3 steps)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section">
+    <p class="section__eyebrow">How it works</p>
+    <h2 class="section__title">3 minutes to find what your dashboards won't show you</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step__marker">
+          <div class="step__number">1</div>
+          <div class="step__line"></div>
+        </div>
+        <div class="step__content">
+          <h3>Answer 16 quick questions</h3>
+          <p>About your ad spend, creative process, and what's been frustrating you. No fluff, just the signals that matter.</p>
+          <span class="step__time">~3 min</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step__marker">
+          <div class="step__number">2</div>
+          <div class="step__line"></div>
+        </div>
+        <div class="step__content">
+          <h3>Get your Revenue Leak Report</h3>
+          <p>Instantly see your creative fatigue risk score, estimated monthly revenue leak, and the specific gaps creating it.</p>
+          <span class="step__time">Instant</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step__marker">
+          <div class="step__number">3</div>
+          <div class="step__line"></div>
+        </div>
+        <div class="step__content">
+          <h3>Receive a free Loom teardown</h3>
+          <p>A personalised video walkthrough of your brand's ad strategy, creative angles, and what your competitors' ads are saying that yours aren't. Delivered to your inbox.</p>
+          <span class="step__time">Within 5 days</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 4: WHAT YOU GET (Report contents)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section">
+    <p class="section__eyebrow">What you'll get</p>
+    <h2 class="section__title">Not a generic PDF. A personalised diagnostic built from <span class="highlight">your numbers.</span></h2>
+
+    <div class="report-grid">
+      <div class="report-item">
+        <div class="report-item__check">✓</div>
+        <div class="report-item__text"><strong>Creative fatigue risk score</strong> based on your refresh rate, angle diversity, and volume</div>
+      </div>
+      <div class="report-item">
+        <div class="report-item__check">✓</div>
+        <div class="report-item__text"><strong>Monthly revenue leak estimate</strong> in pounds and lost orders, not vague percentages</div>
+      </div>
+      <div class="report-item">
+        <div class="report-item__check">✓</div>
+        <div class="report-item__text"><strong>6-month cost of inaction</strong> so you can see what doing nothing actually costs</div>
+      </div>
+      <div class="report-item">
+        <div class="report-item__check">✓</div>
+        <div class="report-item__text"><strong>Personalised Loom teardown</strong> with competitor ad analysis and blind spots in your current strategy</div>
+      </div>
+      <div class="report-item">
+        <div class="report-item__check">✓</div>
+        <div class="report-item__text"><strong>AI-generated insight snapshot</strong> highlighting your biggest risk factor and what to prioritise first</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <button class="cta-btn">Get my free report →</button>
+    </div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 5: WHO THIS IS FOR (ICP qualifier)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section">
+    <p class="section__eyebrow">Is this for you?</p>
+    <h2 class="section__title">Built for skincare brands that know their ads should be doing more</h2>
+
+    <div class="section__body">
+      <p>This calculator was designed for a specific type of brand. If the following sounds familiar, your report will be uncomfortably accurate.</p>
+    </div>
+
+    <ul class="icp-list">
+      <li>You spend £10k+ per month on Meta and the results have plateaued or declined</li>
+      <li>Your CPA has crept up and you're not sure why</li>
+      <li>Creative gets produced regularly but nothing feels strategically different</li>
+      <li>You don't really know how your customers talk about their skin concerns</li>
+      <li>You've hit a wall and can't figure out what competitors do differently</li>
+      <li>Your agency reports look fine but the bank account tells a different story</li>
+    </ul>
+
+    <div class="section__body" style="margin-top: 20px;">
+      <p>If even two of those hit home, the calculator will show you exactly where the leak is. And the Loom teardown will show you what to do about it.</p>
+    </div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 6: WHY TRUST US (Credibility)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section">
+    <p class="section__eyebrow">Built by</p>
+    <h2 class="section__title">We don't do discovery calls. We do audits.</h2>
+
+    <div class="section__body">
+      <p>Audr is an audience intelligence platform built by a performance marketing agency that's spent 7+ years managing Meta ads for skincare and beauty DTC brands.</p>
+      <p>We built this calculator because we kept finding the same problem: brands spending serious money on ads that say what the team thinks customers want to hear, not what customers actually say.</p>
+    </div>
+
+    <div class="cred-block">
+      <div class="cred-block__quote">
+        "Most agencies brief creative from assumptions because they've never had access to actual audience language. It's not malice. It's a missing layer."
+      </div>
+      <div class="cred-block__attr">Josh Lloyd, Founder</div>
+    </div>
+
+    <div class="cred-stats">
+      <div class="cred-stat">
+        <div class="cred-stat__number">7+</div>
+        <div class="cred-stat__label">Years in Meta ads</div>
+      </div>
+      <div class="cred-stat">
+        <div class="cred-stat__number">DTC</div>
+        <div class="cred-stat__label">Skincare focus</div>
+      </div>
+      <div class="cred-stat">
+        <div class="cred-stat__number">100%</div>
+        <div class="cred-stat__label">Proof before payment</div>
+      </div>
+      <div class="cred-stat">
+        <div class="cred-stat__number">Free</div>
+        <div class="cred-stat__label">Loom included</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 7: THE MISSING LAYER (Differentiation)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section">
+    <p class="section__eyebrow">The missing layer</p>
+    <h2 class="section__title">Meta didn't stop sending you customers. It started sending them to the brand whose ads <span class="highlight">speak their language.</span></h2>
+
+    <div class="section__body">
+      <p>The brands winning on Meta right now aren't running more ads. They're running ads built on what their customers actually say about their skin, their frustrations, their routines, their language.</p>
+      <p>When your ad says "clinically proven hydration" but your customer says "I just want something that doesn't make my face sting after the gym," you've lost the click before it ever happened.</p>
+      <p>That gap between brand language and customer language is the leak. And until you close it, every pound you spend on ads is working harder than it needs to.</p>
+    </div>
+
+    <div class="risk-bar-wrap">
+      <p style="font-size: 14px; color: var(--muted); margin-bottom: 14px; text-align: center;">Where most skincare brands sit on the fatigue scale:</p>
+      <div class="risk-bar"></div>
+      <div class="risk-bar__labels">
+        <span>Low risk</span>
+        <span>Moderate</span>
+        <span>High</span>
+        <span>Critical</span>
+      </div>
+      <p style="font-size: 12px; color: var(--faint); margin-top: 12px; text-align: center;">Most brands that take this calculator score 55-75. Where do you sit?</p>
+    </div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 8: FAQ
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section">
+    <p class="section__eyebrow">Questions</p>
+    <h2 class="section__title">Before you ask</h2>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-item__q">Is this actually free?</div>
+        <div class="faq-item__a">Yes. The calculator and your Revenue Leak Report are instant and free. The Loom teardown is also free. There's no hidden paywall, no bait-and-switch. If the report is useful, great. If you want to talk after, we're here.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-item__q">How accurate is the revenue leak estimate?</div>
+        <div class="faq-item__a">It's based on the data you provide: your actual spend, AOV, ROAS, and creative patterns. It uses the same logic we apply to client accounts. It won't be perfect (that requires an actual audit), but it will be directionally honest and probably uncomfortable.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-item__q">What's in the Loom teardown?</div>
+        <div class="faq-item__a">A personalised video walkthrough of your brand's Meta ad strategy. We look at your live ads, your competitors' ads, your creative angles, and the gaps between what your ads say and what your customers actually care about. It's the kind of analysis most agencies charge for.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-item__q">Do I need to give you access to my ad account?</div>
+        <div class="faq-item__a">No. The calculator works entirely from your answers. The Loom teardown uses publicly available ad library data and our audience intelligence tools. No logins, no access requests.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-item__q">I'm not a skincare brand. Can I still use it?</div>
+        <div class="faq-item__a">The calculator is calibrated specifically for skincare and beauty DTC brands. If that's not you, the numbers won't be as relevant. We're building versions for other verticals, so check back.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-item__q">Is this a pitch for your agency?</div>
+        <div class="faq-item__a">No. This is a diagnostic tool. If the report shows a problem and you want help fixing it, we can talk about that. But the report stands on its own. Most brands find it useful whether they work with us or not.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       FINAL CTA
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="final-cta">
+    <p class="section__eyebrow">Ready?</p>
+    <h2 class="final-cta__title">Find out what your ads are costing you. <span class="highlight">In 3 minutes.</span></h2>
+    <p class="final-cta__sub">16 questions. Instant results. Free Loom teardown. No strings.</p>
+    <button class="cta-btn">Get my free report →</button>
+    <div class="trust-zone" style="margin-top: 14px;">
+      <p class="trust-line">Built for skincare brands doing <span class="pill">£100k+/month</span> in revenue</p>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

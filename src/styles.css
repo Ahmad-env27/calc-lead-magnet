@@ -224,10 +224,6 @@ h2 {
   width: 100px;
   height: auto;
   opacity: 0.9;
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
 .ghost-gauge {

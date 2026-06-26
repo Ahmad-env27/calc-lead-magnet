@@ -284,6 +284,31 @@ h2 {
   font-size: 12.5px;
 }
 
+.scroll-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: var(--faint);
+  animation: scroll-bob 2.2s ease-in-out infinite;
+}
+
+.scroll-hint__arrow {
+  color: var(--faint);
+}
+
+.scroll-hint__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+@keyframes scroll-bob {
+  0%, 100% { opacity: 0.45; transform: translateY(0); }
+  50%       { opacity: 0.85; transform: translateY(5px); }
+}
+
 
 /* --------------------------------------------------------------------------
    Phase 2 — Quiz

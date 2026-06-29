@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import Landing from './Landing.jsx'
+import LandingA from './LandingA.jsx'
+import LandingB from './LandingB.jsx'
+import { getVariant, trackVariantView, trackVariantCTA } from './utils/abTest.js'
 import Quiz from './Quiz.jsx'
 import Scoring from './Scoring.jsx'
 import Unlock from './Unlock.jsx'
@@ -81,9 +83,11 @@ export default function App() {
   const [insights, setInsights] = useState(null)
   const [insightsPromise, setInsightsPromise] = useState(null)
   const webhookFired = useRef(false)
+  const variant = useRef(getVariant()).current
 
   useEffect(() => {
     trackEvent('PageView')
+    trackVariantView(variant)
   }, [])
 
   const completeQuiz = () => {
@@ -162,7 +166,11 @@ export default function App() {
 
   return (
     <div className="shell">
-      {phase === 'landing' && <Landing onStart={() => setPhase('quiz')} />}
+      {phase === 'landing' && (
+        variant === 'B'
+          ? <LandingB onStart={() => { trackVariantCTA('B'); setPhase('quiz') }} />
+          : <LandingA onStart={() => { trackVariantCTA('A'); setPhase('quiz') }} />
+      )}
       {phase === 'quiz' && (
         <Quiz answers={answers} setAnswers={setAnswers} onComplete={completeQuiz} />
       )}

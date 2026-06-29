@@ -6,7 +6,9 @@ import Unlock from './Unlock.jsx'
 import Loading from './Loading.jsx'
 import Results from './Results.jsx'
 import { calculateScore, getLeadTemperature, calculateThreeLaneImpact, calculateCostOfInaction, getScenarioMatch, AOV_MIDPOINTS } from './scoring.js'
-import { fireWebhook, fireLeadPixel, firePageView } from './webhook.js'
+import { fireWebhook } from './webhook.js'
+import { trackEvent } from './utils/tracking.js'
+import { getStoredUTMs } from './utils/utm.js'
 import { fetchInsights } from './api.js'
 
 const INITIAL_ANSWERS = {
@@ -81,7 +83,7 @@ export default function App() {
   const webhookFired = useRef(false)
 
   useEffect(() => {
-    firePageView()
+    trackEvent('PageView')
   }, [])
 
   const completeQuiz = () => {
@@ -111,8 +113,27 @@ export default function App() {
     const fullResults = { ...computed, temperature, threeLane, costOfInaction, scenarioMatch }
     setResults(fullResults)
 
-    fireWebhook({ ...finalAnswers, ...fullResults })
-    fireLeadPixel(fullResults)
+    const utms = getStoredUTMs()
+    fireWebhook({ ...finalAnswers, ...fullResults }, utms)
+
+    trackEvent('CalculatorCompleted', {
+      score: computed.score,
+      risk_level: temperature,
+      revenue_tier: finalAnswers.revenue,
+      brand_type: finalAnswers.brandType,
+    })
+    trackEvent('calculator_scored', {
+      content_name: 'calculator_scored',
+      value: computed.leakHigh,
+      currency: 'GBP',
+      status: temperature,
+    })
+    trackEvent('calculator_lead', {
+      content_name: 'calculator_lead',
+      content_category: 'creative_fatigue',
+      value: computed.leakHigh,
+      currency: 'GBP',
+    })
 
     setPhase('loading')
   }

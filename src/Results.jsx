@@ -768,11 +768,15 @@ export default function Results({ answers, results, insights }) {
     : (AOV_MIDPOINTS[answers.aov] || null)
 
   const claimLoom = () => {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'lead_magnet_CTA_clicked', type: 'loom_teardown' })
     setLoomClaimed(true)
     fireFollowupEvent('loom_claimed', { ...answers, temperature: temp })
   }
 
   const claimCourse = () => {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'lead_magnet_CTA_clicked', type: 'email_course' })
     setCourseClaimed(true)
     fireFollowupEvent('course_signup', { ...answers, temperature: temp })
   }

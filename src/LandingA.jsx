@@ -1,3 +1,8 @@
+function pushStart(location) {
+  window.dataLayer = window.dataLayer || []
+  window.dataLayer.push({ event: 'start_calculator', location })
+}
+
 export default function Landing({ onStart }) {
   return (
     <>
@@ -43,7 +48,7 @@ export default function Landing({ onStart }) {
         </p>
 
         <div className="cta-zone reveal" style={{ '--i': 5 }}>
-          <button className="cta-btn" onClick={onStart}>
+          <button className="cta-btn" onClick={() => { pushStart('hero'); onStart() }}>
             Get my free report →
           </button>
         </div>
@@ -222,7 +227,7 @@ export default function Landing({ onStart }) {
         </div>
 
         <div style={{ marginTop: '20px' }}>
-          <button className="cta-btn cta-full" onClick={onStart}>Get my free report →</button>
+          <button className="cta-btn cta-full" onClick={() => { pushStart('what_youll_get'); onStart() }}>Get my free report →</button>
         </div>
       </section>
 
@@ -348,7 +353,7 @@ export default function Landing({ onStart }) {
         <p className="section__eyebrow">Ready?</p>
         <h2 className="final-cta__title">Find out what your ads are costing you. <span className="highlight">In 3 minutes.</span></h2>
         <p className="final-cta__sub">16 questions. Instant results. Free Loom teardown. No strings.</p>
-        <button className="cta-btn cta-full" onClick={onStart}>Get my free report →</button>
+        <button className="cta-btn cta-full" onClick={() => { pushStart('final_cta'); onStart() }}>Get my free report →</button>
         <div className="trust-zone" style={{ marginTop: '14px' }}>
           <p className="trust-line">Built for skincare brands doing <span className="pill">£100k+/month</span> in revenue</p>
         </div>

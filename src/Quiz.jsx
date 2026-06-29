@@ -4,7 +4,8 @@
 // The qualification pixel check runs once brand type + revenue + spend are known.
 
 import { useRef, useState } from 'react'
-import { fireQualificationPixel } from './webhook.js'
+import { trackEvent } from './utils/tracking.js'
+import { getStoredUTMs } from './utils/utm.js'
 
 const TOTAL_STEPS = 16
 
@@ -114,11 +115,12 @@ const FRUSTRATIONS = [
 ]
 
 function trackStepProgress(stepNumber, stepName) {
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('trackCustom', 'QuizStep', { step: stepNumber, name: stepName })
-  }
-  window.dataLayer = window.dataLayer || []
-  window.dataLayer.push({ event: 'quiz_step', step: stepNumber, name: stepName })
+  trackEvent('QuizStepCompleted', {
+    step: stepNumber,
+    step_name: stepName,
+    total_steps: TOTAL_STEPS,
+  })
+  trackEvent('quiz_step', { step: stepNumber, name: stepName })
 }
 
 const STEP_NAMES = [
@@ -132,10 +134,20 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
   const [dir, setDir] = useState('fwd')
   const advancing = useRef(false)
   const pixelFired = useRef(false)
+  const startedFired = useRef(false)
 
   const set = (key, value) => setAnswers((a) => ({ ...a, [key]: value }))
 
   const goTo = (n, d = 'fwd') => {
+    if (!startedFired.current) {
+      startedFired.current = true
+      const utms = getStoredUTMs()
+      trackEvent('CalculatorStarted', {
+        source: utms.utm_source || 'direct',
+        medium: utms.utm_medium || 'none',
+        campaign: utms.utm_campaign || 'none',
+      })
+    }
     setDir(d)
     setStep(n)
     if (d === 'fwd' && STEP_NAMES[n]) trackStepProgress(n, STEP_NAMES[n])
@@ -148,10 +160,10 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
     const qualifiedSpend = a.spendTier && a.spendTier !== 'under_10k'
     if (qualifiedBrand && qualifiedRevenue && qualifiedSpend) {
       pixelFired.current = true
-      fireQualificationPixel({
-        brandType: a.brandType,
-        revenue: a.revenue,
-        spendTier: a.spendTier,
+      trackEvent('QualifiedLead', {
+        brand_type: a.brandType,
+        revenue_tier: a.revenue,
+        spend_tier: a.spendTier,
       })
     }
   }

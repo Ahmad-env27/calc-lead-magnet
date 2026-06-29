@@ -116,7 +116,7 @@ function mapPayload(raw) {
   return mapped
 }
 
-export async function fireWebhook(data) {
+export async function fireWebhook(data, utms = {}) {
   const tl = data.threeLane
   const coi = data.costOfInaction
   const raw = {
@@ -154,6 +154,11 @@ export async function fireWebhook(data) {
     costOfInaction_90day: coi?.revenue?.high || null,
     costOfInaction_orders: coi?.orders?.high || null,
     scenarioMatch: data.scenarioMatch || null,
+    utm_source: utms.utm_source || null,
+    utm_medium: utms.utm_medium || null,
+    utm_campaign: utms.utm_campaign || null,
+    utm_content: utms.utm_content || null,
+    utm_term: utms.utm_term || null,
     source: 'calculator_v2',
     timestamp: new Date().toISOString(),
   }
@@ -208,46 +213,3 @@ export async function fireFollowupEvent(eventType, data) {
   console.log('[DEV] Followup event:', JSON.stringify(payload, null, 2))
 }
 
-// ============================================
-// META PIXEL — COMMENTED OUT FOR LOCAL DEV
-// ACTIVATE:
-//   1. Uncomment the Meta Pixel base code in index.html <head>
-//   2. Replace YOUR_PIXEL_ID with your actual pixel ID
-//   3. Uncomment the fbq() calls below
-// ============================================
-
-// Standard PageView — fires on landing page load
-export function firePageView() {
-  // ACTIVATE: uncomment when pixel is installed
-  // if (typeof fbq !== 'undefined') {
-  //   fbq('track', 'PageView');
-  // }
-  console.log('[DEV] Pixel: PageView fired')
-}
-
-// Qualification event — fires ONLY after qualified combo
-// Condition: Brand type is Skincare or Beauty AND Revenue is £60k+ AND Spend is £5k+
-// Called after Step 4 (spend) once all three are known.
-export function fireQualificationPixel(inputs) {
-  // ACTIVATE: uncomment when pixel is installed
-  // if (typeof fbq !== 'undefined') {
-  //   fbq('trackCustom', 'QualifiedLead', {
-  //     brand_type: inputs.brandType,
-  //     revenue_tier: inputs.revenue,
-  //     spend_tier: inputs.spendTier
-  //   });
-  // }
-  console.log('[DEV] Pixel: QualifiedLead fired', inputs)
-}
-
-// Lead event — fires on form completion
-export function fireLeadPixel(data) {
-  // ACTIVATE: uncomment when pixel is installed
-  // if (typeof fbq !== 'undefined') {
-  //   fbq('track', 'Lead', {
-  //     content_name: 'calculator_completion',
-  //     lead_temperature: data.temperature
-  //   });
-  // }
-  console.log('[DEV] Pixel: Lead fired', data.temperature)
-}

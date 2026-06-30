@@ -7,6 +7,18 @@ import {
 import { getAngles, getQuickWin } from './angles-data.js'
 import { fireFollowupEvent } from './webhook.js'
 
+// Qualified (isHot) → bonus A; everyone else → bonus B. Button copy is placeholder
+// pending a copy pass. Light UTMs so growth.audr.app can attribute by tier.
+const BONUS_LINK_QUALIFIED = 'https://www.growth.audr.app/a-dtc-audience-precision-system'
+const BONUS_LINK_UNQUALIFIED = 'https://www.growth.audr.app/b-dtc-audience-precision-system'
+
+function bonusUrl(base, tier) {
+  const url = new URL(base)
+  url.searchParams.set('utm_source', 'calc')
+  url.searchParams.set('utm_content', tier)
+  return url.toString()
+}
+
 const FREQUENCY_LABELS = {
   weekly: 'every week',
   every_2_3_weeks: 'every 2–3 weeks',
@@ -53,13 +65,6 @@ function getHeadlineCopy(brand, jobTitle) {
   if (jobTitle === 'role_marketing' || jobTitle === 'role_growth' || jobTitle === 'role_ecom')
     return "Here's where your paid performance is leaking"
   return `Here's what ${brand} is leaving on the table`
-}
-
-function getCtaText(jobTitle) {
-  if (jobTitle === 'role_agency') return 'Book a partner call'
-  if (jobTitle === 'role_marketing' || jobTitle === 'role_growth' || jobTitle === 'role_ecom')
-    return 'Book a performance review'
-  return 'Book a strategy call'
 }
 
 function getLaneIntro(jobTitle) {
@@ -196,7 +201,7 @@ function AngleCards({ brandType, showCreativeHeader }) {
 
 // --- Loom teardown card (the conversion point) ------------------------------
 
-function LoomCard({ answers, claimed, onClaim, ctaText }) {
+function LoomCard({ answers, claimed, onClaim }) {
   const brand = answers.brandName || 'your brand'
 
   return (
@@ -235,7 +240,7 @@ function LoomCard({ answers, claimed, onClaim, ctaText }) {
           </div>
           <p className="derisk">The insights are yours whether we work together or not.</p>
           <button className="cta-btn cta-full" onClick={onClaim}>
-            {ctaText || 'Get your free Loom teardown'} →
+            Get your exclusive bonus A →
           </button>
           <p className="delivery-note">
             Prepared within 48 hours of booking. We review every teardown with a human
@@ -264,7 +269,7 @@ function CourseCard({ answers, claimed, onClaim }) {
             audience-first ad messaging for your skincare brand.
           </p>
           <button className="cta-btn cta-full" onClick={onClaim}>
-            Start the free course →
+            Get your exclusive bonus B →
           </button>
         </>
       )}
@@ -760,7 +765,6 @@ export default function Results({ answers, results, insights }) {
   const disqualified = answers.frustrations.includes('none')
   const brand = answers.brandName || 'your brand'
   const jobTitle = answers.jobTitle
-  const ctaText = getCtaText(jobTitle)
   const hasCreativeResp = (answers.responsibilities || []).includes('resp_creative')
 
   const aovMid = answers.aov === 'aov_other'
@@ -770,6 +774,7 @@ export default function Results({ answers, results, insights }) {
   const claimLoom = () => {
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'lead_magnet_CTA_clicked', type: 'loom_teardown' })
+    window.open(bonusUrl(BONUS_LINK_QUALIFIED, 'qualified'), '_blank', 'noopener,noreferrer')
     setLoomClaimed(true)
     fireFollowupEvent('loom_claimed', { ...answers, temperature: temp })
   }
@@ -777,6 +782,7 @@ export default function Results({ answers, results, insights }) {
   const claimCourse = () => {
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'lead_magnet_CTA_clicked', type: 'email_course' })
+    window.open(bonusUrl(BONUS_LINK_UNQUALIFIED, 'unqualified'), '_blank', 'noopener,noreferrer')
     setCourseClaimed(true)
     fireFollowupEvent('course_signup', { ...answers, temperature: temp })
   }
@@ -895,7 +901,7 @@ export default function Results({ answers, results, insights }) {
       {/* The conversion point */}
       <div className="rsection" style={stagger()}>
         {isHot ? (
-          <LoomCard answers={answers} claimed={loomClaimed} onClaim={claimLoom} ctaText={ctaText} />
+          <LoomCard answers={answers} claimed={loomClaimed} onClaim={claimLoom} />
         ) : (
           <CourseCard answers={answers} claimed={courseClaimed} onClaim={claimCourse} />
         )}
@@ -957,7 +963,7 @@ export default function Results({ answers, results, insights }) {
             </p>
             {!loomClaimed && (
               <button className="cta-btn cta-full" onClick={claimLoom}>
-                {ctaText} →
+                Get your exclusive bonus A →
               </button>
             )}
             <p className="powered-by">

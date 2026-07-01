@@ -69,10 +69,10 @@ function getHeadlineCopy(brand, jobTitle) {
 
 function getLaneIntro(jobTitle) {
   if (isAgencyOrFreelance(jobTitle))
-    return "This calculator measures one of three levers for your client's account."
+    return "This calculator measures one of three levers for your client's account: meta optimisation. The other two, audience intelligence and the meta-signal stack, require a full audit to unlock."
   if (jobTitle === 'role_marketing' || jobTitle === 'role_growth' || jobTitle === 'role_ecom')
-    return 'This calculator measures one of three performance levers.'
-  return 'This calculator measures one of three revenue levers.'
+    return 'This calculator measures one of three performance levers: meta optimisation. The other two, audience intelligence and the meta-signal stack, require a full audit to unlock.'
+  return 'This calculator measures one of three revenue levers: meta optimisation. The other two, audience intelligence and the meta-signal stack, require a full audit to unlock.'
 }
 
 function interpretation(answers, results) {
@@ -83,12 +83,12 @@ function interpretation(answers, results) {
   const band = getRiskBand(results.score).key
 
   if (band === 'low')
-    return `Based on your answers, ${brand} is in relatively good shape. You're refreshing creatives ${freq} and running ${div} messaging diversity. But even well-optimised brands have blind spots — and your competitors may be closer than you think.`
+    return `Based on your answers, ${brand} is in relatively good shape. You're refreshing creatives ${freq} and running ${div} messaging diversity. But even well-optimised brands have blind spots, and your competitors may be closer than you think.`
   if (band === 'moderate')
-    return `Your brand shows moderate signs of creative fatigue. Refreshing ${freq} with ${div} diversity means some of your spend is going toward messaging that's lost its edge. The opportunity below isn't a problem — it's upside you're not capturing yet.`
+    return `Your brand shows moderate signs of creative fatigue. Refreshing ${freq} with ${div} diversity means some of your spend is going toward messaging that's lost its edge. The opportunity below isn't a problem. It's upside you're not capturing yet.`
   if (band === 'high')
-    return `${brand} is showing strong signs of ad fatigue. At ${spend} per month with ${freq} refresh cycles, a meaningful portion of your budget is working harder than it needs to. The opportunity below is likely conservative.`
-  return `Your answers suggest significant creative fatigue across your account. At ${spend} per month, the same messaging patterns are leaving the most on the table — the range below is the floor of what's recoverable, not the ceiling.`
+    return `${brand} is showing strong signs of ad fatigue. At ${spend} per month with ${freq} refresh cycles, a meaningful portion of your budget isn't working optimally. The opportunity below is likely conservative.`
+  return `Your answers suggest significant creative fatigue across your account. At ${spend} per month, the same messaging patterns are leaving the most on the table. The range below is the floor of what's recoverable, not the ceiling.`
 }
 
 // --- Section A: animated semicircle gauge with benchmark ---------------------
@@ -209,19 +209,19 @@ function LoomCard({ answers, claimed, onClaim }) {
       <h2 className="loom-title">Want the full picture?</h2>
       {claimed ? (
         <p className="claim-confirm">
-          Done — your teardown is queued. We'll email {answers.email} within 48 hours with your
+          Done. Your teardown is queued. We'll email {answers.email} within 48 hours with your
           Loom link and a booking link for your free consultation. Nothing else to do for now.
         </p>
       ) : (
         <>
           <p className="loom-body">
-            We'll prepare a personalised Loom teardown for {brand} — a 5-minute video plus a
+            We'll prepare a personalised Loom teardown for {brand}: a 5-minute video plus a
             30-minute free consultation. It includes:
           </p>
           <ul className="deliv-list">
-            <li>Your competitor messaging analysis — what brands in your lane are saying that you're not</li>
+            <li>Your competitor messaging analysis: what brands in your lane are saying that you're not</li>
             <li>
-              Your top 3 competitors run through our Spend Decoder — what they're spending and
+              Your top 3 competitors run through our Spend Decoder: what they're spending and
               how hard they're testing
             </li>
             <li>A concrete plan for your next creative batch</li>
@@ -240,11 +240,11 @@ function LoomCard({ answers, claimed, onClaim }) {
           </div>
           <p className="derisk">The insights are yours whether we work together or not.</p>
           <button className="cta-btn cta-full" onClick={onClaim}>
-            Get your exclusive bonus A →
+            Get my exclusive bonus package →
           </button>
           <p className="delivery-note">
             Prepared within 48 hours of booking. We review every teardown with a human
-            strategist — not just AI.
+            strategist, not just AI.
           </p>
         </>
       )}
@@ -260,16 +260,16 @@ function CourseCard({ answers, claimed, onClaim }) {
       <h2 className="loom-title">Learn to fix this yourself</h2>
       {claimed ? (
         <p className="claim-confirm">
-          You're in — lesson one lands at {answers.email} tomorrow morning.
+          You're in. Lesson one lands at {answers.email} tomorrow morning.
         </p>
       ) : (
         <>
           <p className="loom-body">
-            Your 5-day email course is on its way — one short lesson a day on building
+            Your 5-day email course is on its way: one short lesson a day on building
             audience-first ad messaging for your skincare brand.
           </p>
           <button className="cta-btn cta-full" onClick={onClaim}>
-            Get your exclusive bonus B →
+            Get my exclusive bonus package →
           </button>
         </>
       )}
@@ -301,7 +301,7 @@ function SpendDecoder({ answers, results }) {
       <div className="decoder-stat decoder-stat-annual">
         <span className="decoder-number">~{ordersPerYear.toLocaleString('en-GB')}</span>
         <span className="decoder-label">
-          orders a year — worth approximately{' '}
+          orders a year, worth approximately{' '}
           <strong>{formatGBP(revenuePerYear)}</strong> in revenue your ads could
           be recovering
         </span>
@@ -315,7 +315,7 @@ function SpendDecoder({ answers, results }) {
 
 // --- Section: Three-Lane Impact Stack ---------------------------------------
 
-function ThreeLaneStack({ results, answers }) {
+function ThreeLaneStack({ results, answers, showSpendDecoder }) {
   const tl = results.threeLane
   if (!tl) return null
 
@@ -345,9 +345,11 @@ function ThreeLaneStack({ results, answers }) {
         <span className="lane-card-badge">Calculated from your answers</span>
       </div>
 
+      {showSpendDecoder && <SpendDecoder answers={answers} results={results} />}
+
       <div className="lane-divider" />
 
-      <p className="lane-section-label">THE FULL PICTURE — ALL THREE LEVERS</p>
+      <p className="lane-section-label">THE FULL PICTURE: ALL THREE LEVERS</p>
       <div className="lane-cards-row">
         <div className="lane-card lane-card-teal">
           <span className="lane-card-title">Audience intelligence</span>
@@ -366,14 +368,14 @@ function ThreeLaneStack({ results, answers }) {
           <span className="lane-card-badge">Calculated</span>
         </div>
         <div className="lane-card lane-card-purple">
-          <span className="lane-card-title">Signal stack</span>
-          <span className="lane-card-subtitle">How Meta reads you</span>
+          <span className="lane-card-title">Meta-signal stack</span>
+          <span className="lane-card-subtitle">How Meta indexes your page</span>
           <span className="lane-card-value-sm">
             ~{formatGBP(roundForDisplay(tl.lane3.low))}–{formatGBP(roundForDisplay(tl.lane3.high))} / mo
           </span>
           <span className="lane-card-badge lane-card-badge-locked">Requires audit</span>
           {respHasCro && (
-            <span className="lane-card-note">This one's yours — signal quality is a CRO lever.</span>
+            <span className="lane-card-note">This one's yours. Signal quality is a CRO lever.</span>
           )}
         </div>
       </div>
@@ -383,7 +385,7 @@ function ThreeLaneStack({ results, answers }) {
       <div className="lane-card lane-card-green lane-card-combined">
         <span className="lane-card-title">Combined opportunity</span>
         <span className="lane-card-value">
-          {formatGBP(roundForDisplay(tl.combined.low))}–{formatGBP(roundForDisplay(tl.combined.high))} / month
+          {formatGBP(roundForDisplay(tl.combined.low))}–{formatGBP(roundForDisplay(tl.combined.high))}{' '}/ month
         </span>
         {hasOrders && combinedOrdersLow > 0 && (
           <span className="lane-card-orders">
@@ -419,7 +421,7 @@ function ThreeLaneStack({ results, answers }) {
       )}
 
       <p className="lane-methodology">
-        Lanes 1 and 3 estimated based on industry benchmarks for brands at your spend level. Requires full audit to confirm.
+        Audience intelligence and meta-signal stack estimated based on industry benchmarks for brands at your spend level. Requires full audit to confirm.
       </p>
     </div>
   )
@@ -460,21 +462,27 @@ function CreditStack({ isHotLead }) {
         <div className="credit-stack-item credit-stack-unlocked">
           <span className="credit-stack-icon" aria-hidden="true">&#10003;</span>
           <span className="credit-stack-name">Audience Precision System</span>
-          <span className="credit-stack-status">FREE</span>
+          <span className="credit-stack-status">
+            <span className="credit-stack-original">£47</span> FREE
+          </span>
         </div>
         <div className="credit-stack-item credit-stack-unlocked">
           <span className="credit-stack-icon" aria-hidden="true">&#10003;</span>
           <span className="credit-stack-name">Atomic Audience & Ad Audit</span>
-          <span className="credit-stack-status">FREE</span>
+          <span className="credit-stack-status">
+            <span className="credit-stack-original">£403</span> FREE
+          </span>
         </div>
         <div className="credit-stack-item credit-stack-locked">
           <span className="credit-stack-icon" aria-hidden="true">&#128274;</span>
-          <span className="credit-stack-name">Signal Stack Guide</span>
+          <span className="credit-stack-name">Meta-signal Stack Guide</span>
           <span className="credit-stack-status">
+            <span className="credit-stack-original">£397</span>{' '}
             {isHotLead ? <span className="credit-stack-waived">WAIVED</span> : 'IN AUDIT'}
           </span>
         </div>
       </div>
+      <p className="credit-stack-total">£847 in diagnostic credit, yours free.</p>
     </div>
   )
 }
@@ -554,12 +562,12 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore, leakLow, leak
 
   const cliffX = x(cliff)
   const safeEnd = Math.max(0, cliff - 2)
-  const warnEnd = cliff + 1
+  const warnEnd = cliff
 
   let statusClass = 'decay-status-green'
   let statusText = ''
   if (weeksToCliff > 0.5) {
-    statusText = `You're ~${Math.round(weeksToCliff)} weeks from your fatigue cliff. Budget effectiveness still at ${markerEff}% — refresh now to stay safe.`
+    statusText = `You're ~${Math.round(weeksToCliff)} weeks from your fatigue cliff. Budget effectiveness still at ${markerEff}%. Refresh now to stay safe.`
   } else if (weeksPastCliff <= 0.5) {
     statusClass = 'decay-status-amber'
     statusText = `You're at your fatigue cliff right now. Performance has dropped to ${markerEff}% and is about to fall fast.`
@@ -579,6 +587,10 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore, leakLow, leak
   return (
     <div className="decay-curve">
       <p className="card-kicker">YOUR BUDGET EFFECTIVENESS CURVE</p>
+      <p className="decay-intro">
+        This shows how quickly your ad spend loses its impact without a creative refresh.
+        The longer you run the same messaging, the harder your budget has to work for the same results.
+      </p>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" aria-label="Budget effectiveness curve showing how your ad spend declines over weeks without a creative refresh">
         <defs>
           <clipPath id="curveClip">
@@ -636,12 +648,12 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore, leakLow, leak
         <div className="decay-zone decay-zone-warn">
           <span className="decay-zone-title">Warning zone</span>
           <span className="decay-zone-weeks">Weeks {Math.max(1, Math.round(safeEnd))}–{Math.round(warnEnd)}</span>
-          <span className="decay-zone-detail">CPA up 20–50% — refresh window closing</span>
+          <span className="decay-zone-detail">CPA up 20–50%, refresh window closing</span>
         </div>
         <div className="decay-zone decay-zone-cliff">
           <span className="decay-zone-title">Fatigue cliff</span>
           <span className="decay-zone-weeks">Weeks {Math.round(warnEnd)}+</span>
-          <span className="decay-zone-detail">CPA doubles or worse — burning budget</span>
+          <span className="decay-zone-detail">CPA doubles or worse, burning budget</span>
         </div>
       </div>
 
@@ -661,6 +673,9 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore, leakLow, leak
 
       <div className="decay-legend">
         <span className="decay-axis-label">Weeks since last creative refresh</span>
+        <p className="decay-takeaway">
+          Refreshing within {Math.max(1, Math.round(safeEnd))} weeks keeps your CPA stable. Beyond week {Math.round(cliff)}, performance drops fast and compounds.
+        </p>
       </div>
     </div>
   )
@@ -689,6 +704,11 @@ function RadarChart({ answers }) {
   return (
     <div className="radar-chart">
       <p className="card-kicker">YOUR CREATIVE ANGLE COVERAGE</p>
+      <p className="radar-intro">
+        This maps how many distinct messaging angles your ads cover. Brands in similar tiers to
+        yours should ideally hit the green benchmark. The yellow coverage is estimated from similar
+        brands and your quiz answers. A full audit is needed to map this properly.
+      </p>
       <div className="radar-legend">
         <span className="radar-legend-item"><span className="radar-dot radar-dot-user" /> Your estimated coverage</span>
         <span className="radar-legend-item"><span className="radar-dot radar-dot-ideal" /> Top-performing benchmark</span>
@@ -739,7 +759,7 @@ function RadarChart({ answers }) {
       </svg>
       <div className="radar-insight">
         <p className="radar-insight-text">
-          <strong>Biggest gap:</strong> {weakest.label} ({weakest.value}%) — this is likely your next creative brief.
+          <strong>Biggest gap:</strong> {weakest.label} ({weakest.value}%). This is likely your next creative brief.
           {strongest.label !== weakest.label && (
             <> Your strongest signal is {strongest.label} ({strongest.value}%).</>
           )}
@@ -804,7 +824,7 @@ export default function Results({ answers, results, insights }) {
         <section className="rsection validation-card" style={stagger()}>
           <p className="card-kicker">GOOD NEWS</p>
           <p className="quickwin-copy">
-            Your ads are holding up — your refresh habits and messaging variety are doing their
+            Your ads are holding up. Your refresh habits and messaging variety are doing their
             job. The patterns below are what brands like {brand} protect to keep it that way.
           </p>
         </section>
@@ -816,7 +836,7 @@ export default function Results({ answers, results, insights }) {
             <span className="leak-per"> / month</span>
           </p>
           <p className="leak-loss">
-            And it's monthly — every month it goes unaddressed, the same range walks out the
+            And it's monthly: every month it goes unaddressed, the same range walks out the
             door again.
           </p>
           <p className="leak-sub">
@@ -824,14 +844,19 @@ export default function Results({ answers, results, insights }) {
             {formatGBP(results.annualHigh)} a year that fresher, audience-driven ad messaging
             could capture for {brand}.
           </p>
+          {aovMid && aovMid > 0 && (
+            <p className="leak-orders">
+              At your average order value, that's roughly ~{Math.round(results.leakLow / aovMid)}–{Math.round(results.leakHigh / aovMid)} orders a month your ads could be recovering.
+            </p>
+          )}
           <p className="leak-note">
-            That's a {results.impLow}–{results.impHigh}% improvement on your current return —
+            That's a {results.impLow}–{results.impHigh}% improvement on your current return,
             conservative against benchmarks for optimised skincare brands.
           </p>
           {results.strongROAS && (
             <p className="leak-note">
               Returns over £4 usually mean your paid channel has more room to scale than it's
-              being given — the opportunity here is headroom, not repair.
+              being given. The opportunity here is headroom, not repair.
             </p>
           )}
         </section>
@@ -840,14 +865,7 @@ export default function Results({ answers, results, insights }) {
       {/* C — Three-Lane Impact Stack */}
       {!disqualified && results.threeLane && results.leakLow >= 200 && (
         <section className="rsection" style={stagger()}>
-          <ThreeLaneStack results={results} answers={answers} />
-        </section>
-      )}
-
-      {/* Spend Decoder — orders + revenue framing */}
-      {!disqualified && answers.aov && (
-        <section className="rsection" style={stagger()}>
-          <SpendDecoder answers={answers} results={results} />
+          <ThreeLaneStack results={results} answers={answers} showSpendDecoder={!!(answers.aov)} />
         </section>
       )}
 
@@ -886,7 +904,7 @@ export default function Results({ answers, results, insights }) {
       ) : (
         <section className="rsection" style={stagger()}>
           <p className="insight-fallback" style={{ color: 'var(--faint)', fontSize: '13px', fontStyle: 'italic', textAlign: 'center', padding: '24px 0' }}>
-            Personalised diagnosis unavailable — results based on quiz data only.
+            Your personalised diagnosis is being prepared. Everything else on this page is calculated directly from your answers.
           </p>
         </section>
       )}
@@ -907,20 +925,12 @@ export default function Results({ answers, results, insights }) {
         )}
       </div>
 
+      {/* Quick win */}
       {!isCold && (
-        <>
-          {/* Supporting evidence — competitor angles */}
-          <section className="rsection" style={stagger()}>
-            <h2 className="section-title">What competitors are saying that you're not</h2>
-            <AngleCards brandType={answers.brandType} showCreativeHeader={hasCreativeResp} />
-          </section>
-
-          {/* Quick win */}
-          <section className="rsection quickwin-card" style={stagger()}>
-            <p className="card-kicker">⚡ ONE THING TO TRY THIS WEEK</p>
-            <p className="quickwin-copy">{getQuickWin(answers.brandType)}</p>
-          </section>
-        </>
+        <section className="rsection quickwin-card" style={stagger()}>
+          <p className="card-kicker">⚡ ONE THING TO TRY THIS WEEK</p>
+          <p className="quickwin-copy">{getQuickWin(answers.brandType)}</p>
+        </section>
       )}
 
       {isHot && (
@@ -951,7 +961,7 @@ export default function Results({ answers, results, insights }) {
                 <div>
                   <span className="step-title">Watch, ask, decide</span>
                   <span className="step-desc">
-                    Free consultation — we walk through the findings and build an action plan
+                    Free consultation. We walk through the findings and build an action plan
                     together. No obligation.
                   </span>
                 </div>
@@ -963,7 +973,7 @@ export default function Results({ answers, results, insights }) {
             </p>
             {!loomClaimed && (
               <button className="cta-btn cta-full" onClick={claimLoom}>
-                Get your exclusive bonus A →
+                Get my exclusive bonus package →
               </button>
             )}
             <p className="powered-by">
@@ -977,7 +987,7 @@ export default function Results({ answers, results, insights }) {
       <section className="rsection formula-foot" style={stagger()}>
         <pre className="formula-text">
           {`Your score is based on: refresh cadence × messaging variety × creative volume × return on spend.
-Estimate assumes disciplined testing — brands that spray underfunded tests will read higher than they are.
+Estimate assumes disciplined testing. Brands that spray underfunded tests will read higher than they are.
 The range is capped against your revenue so it stays realistic. Treat it as a directional indicator, not a quote.`}
         </pre>
         <button

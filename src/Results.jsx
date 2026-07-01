@@ -909,6 +909,10 @@ export default function Results({ answers, results, insights }) {
         </section>
       )}
 
+      {/* ── Light section: white background from here to end ── */}
+      <div className="results-light-fade" aria-hidden="true" />
+      <div className="results-light-wrap">
+
       {/* Credit Stack — warm+ leads only */}
       {!isCold && !disqualified && (
         <div className="rsection" style={stagger()}>
@@ -1014,6 +1018,8 @@ display range   ±30% around the midpoint, floored at £700`}
           </pre>
         )}
       </section>
+
+      </div>{/* end results-light-wrap */}
     </main>
   )
 }

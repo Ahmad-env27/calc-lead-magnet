@@ -129,8 +129,11 @@ function toScoringInputs(answers) {
   }
 }
 
+const isPreviewMode = new URLSearchParams(window.location.search).get('preview') === 'results'
+
 export default function App() {
   const [phase, setPhaseRaw] = useState(() => {
+    if (isPreviewMode) return 'results'
     const url = phaseFromPath()
     const saved = ssLoad(SK.answers)
     if (url === 'results' && (!saved || !saved.email)) return 'landing'
@@ -139,12 +142,14 @@ export default function App() {
   })
 
   const [answers, setAnswersRaw] = useState(() => {
+    if (isPreviewMode) return SAMPLE_ANSWERS
     const url = phaseFromPath()
     if (url === 'landing') return INITIAL_ANSWERS
     return ssLoad(SK.answers) || INITIAL_ANSWERS
   })
 
   const [results, setResults] = useState(() => {
+    if (isPreviewMode) return computeResults(SAMPLE_ANSWERS)
     const url = phaseFromPath()
     if (url === 'results') {
       const saved = ssLoad(SK.answers)
@@ -154,6 +159,7 @@ export default function App() {
   })
 
   const [insights, setInsights] = useState(() => {
+    if (isPreviewMode) return null
     const url = phaseFromPath()
     if (url === 'results' || url === 'unlock') return ssLoad(SK.insights)
     return null

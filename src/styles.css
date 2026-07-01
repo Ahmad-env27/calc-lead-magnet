@@ -714,10 +714,90 @@ h2 {
    -------------------------------------------------------------------------- */
 
 .results {
-  padding: 36px 0 64px;
+  padding: 36px 0 0;
   display: flex;
   flex-direction: column;
   gap: 26px;
+}
+
+/* ── Light section — white background from CreditStack to end ── */
+.results-light-fade {
+  position: relative;
+  height: 72px;
+  pointer-events: none;
+}
+.results-light-fade::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  background: linear-gradient(to bottom, #0b0b0e, #ffffff);
+}
+
+.results-light-wrap {
+  position: relative;
+  padding-bottom: 64px;
+  isolation: isolate;
+}
+.results-light-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  background: #ffffff;
+  z-index: -1;
+}
+.results-light-wrap {
+  --bg: #ffffff;
+  --surface: #f4f2ee;
+  --surface-2: #ebe8e1;
+  --border: #dedad2;
+  --border-strong: #c8c3b8;
+  --text: #1a1a1f;
+  --muted: #4a4756;
+  --faint: #6b6878;
+  color: #1a1a1f;
+}
+.results-light-wrap .rsection {
+  color: #1a1a1f;
+}
+.results-light-wrap .credit-stack-title,
+.results-light-wrap .loom-title,
+.results-light-wrap .section-title {
+  color: #1a1a1f;
+}
+.results-light-wrap .credit-stack-name,
+.results-light-wrap .loom-body,
+.results-light-wrap .deliv-list li,
+.results-light-wrap .step-desc,
+.results-light-wrap .compound-note,
+.results-light-wrap .powered-by,
+.results-light-wrap .quickwin-copy,
+.results-light-wrap .derisk,
+.results-light-wrap .delivery-note {
+  color: #4a4756;
+}
+.results-light-wrap .formula-text {
+  color: #6b6878;
+  border-color: #dedad2;
+  background: #f4f2ee;
+}
+.results-light-wrap .expand-link {
+  color: #4a4756;
+}
+.results-light-wrap .locked-row {
+  border-color: #dedad2;
+  background: #f4f2ee;
+}
+.results-light-wrap .locked-name {
+  color: #4a4756;
+}
+.results-light-wrap .claim-confirm {
+  color: #4a4756;
 }
 
 /* Staggered entrance — pure CSS, browser paints each section as it appears */

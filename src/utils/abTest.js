@@ -23,7 +23,7 @@ export function getVariant() {
     localStorage.setItem(STORAGE_KEY, assigned)
     return assigned
   } catch {
-    return 'A'
+    return Math.random() < SPLIT ? 'A' : 'B'
   }
 }
 

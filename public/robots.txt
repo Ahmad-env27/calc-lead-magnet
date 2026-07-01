@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://audr.io/sitemap.xml
+Sitemap: https://leak.audr.app/sitemap.xml

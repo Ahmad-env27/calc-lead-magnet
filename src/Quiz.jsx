@@ -129,18 +129,28 @@ const STEP_NAMES = [
   'roas_bracket', 'creative_volume', 'best_hook', 'ads_made_by', 'frustrations', 'extra_context',
 ]
 
+function ssQuizFlag(key) {
+  try { return sessionStorage.getItem(key) === '1' } catch { return false }
+}
+
 export default function Quiz({ answers, setAnswers, onComplete }) {
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(() => {
+    try {
+      const s = parseInt(sessionStorage.getItem('audr_quiz_step'), 10)
+      return s >= 1 && s <= TOTAL_STEPS ? s : 1
+    } catch { return 1 }
+  })
   const [dir, setDir] = useState('fwd')
   const advancing = useRef(false)
-  const pixelFired = useRef(false)
-  const startedFired = useRef(false)
+  const pixelFired = useRef(ssQuizFlag('audr_qualified_fired'))
+  const startedFired = useRef(ssQuizFlag('audr_started_fired'))
 
   const set = (key, value) => setAnswers((a) => ({ ...a, [key]: value }))
 
   const goTo = (n, d = 'fwd') => {
     if (!startedFired.current) {
       startedFired.current = true
+      try { sessionStorage.setItem('audr_started_fired', '1') } catch {}
       const utms = getStoredUTMs()
       trackEvent('CalculatorStarted', {
         source: utms.utm_source || 'direct',
@@ -150,6 +160,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
     }
     setDir(d)
     setStep(n)
+    try { sessionStorage.setItem('audr_quiz_step', String(n)) } catch {}
     if (d === 'fwd' && STEP_NAMES[n]) trackStepProgress(n, STEP_NAMES[n])
   }
 
@@ -160,6 +171,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
     const qualifiedSpend = a.spendTier && a.spendTier !== 'under_10k'
     if (qualifiedBrand && qualifiedRevenue && qualifiedSpend) {
       pixelFired.current = true
+      try { sessionStorage.setItem('audr_qualified_fired', '1') } catch {}
       trackEvent('QualifiedLead', {
         brand_type: a.brandType,
         revenue_tier: a.revenue,

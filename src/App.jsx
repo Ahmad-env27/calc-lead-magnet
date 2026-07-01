@@ -13,6 +13,49 @@ import { trackEvent } from './utils/tracking.js'
 import { getStoredUTMs } from './utils/utm.js'
 import { fetchInsights } from './api.js'
 
+// ---------------------------------------------------------------------------
+// Session persistence — survives refresh within the same tab
+// ---------------------------------------------------------------------------
+
+const SK = {
+  answers: 'audr_answers',
+  insights: 'audr_insights',
+  pageviewFired: 'audr_pv',
+  webhookFired: 'audr_wh',
+}
+
+function ssSave(key, value) {
+  try { sessionStorage.setItem(key, JSON.stringify(value)) } catch {}
+}
+function ssLoad(key) {
+  try { const v = sessionStorage.getItem(key); return v ? JSON.parse(v) : null } catch { return null }
+}
+function ssFlag(key) {
+  try { return sessionStorage.getItem(key) === '1' } catch { return false }
+}
+function ssSetFlag(key) {
+  try { sessionStorage.setItem(key, '1') } catch {}
+}
+
+// ---------------------------------------------------------------------------
+// URL ↔ phase mapping (scoring/loading are transitional — no own slug)
+// ---------------------------------------------------------------------------
+
+const PHASE_PATH = {
+  landing: '/', quiz: '/quiz', scoring: '/unlock',
+  unlock: '/unlock', loading: '/results', results: '/results',
+}
+
+function phaseFromPath() {
+  const p = window.location.pathname
+  if (p === '/quiz') return 'quiz'
+  if (p === '/unlock') return 'unlock'
+  if (p === '/results') return 'results'
+  return 'landing'
+}
+
+// ---------------------------------------------------------------------------
+
 const INITIAL_ANSWERS = {
   brandName: '',
   websiteUrl: '',
@@ -34,6 +77,17 @@ const INITIAL_ANSWERS = {
   extraContext: '',
   name: '',
   email: '',
+}
+
+function computeResults(a) {
+  const inputs = toScoringInputs(a)
+  const computed = calculateScore(inputs)
+  const temperature = getLeadTemperature(inputs)
+  const threeLane = calculateThreeLaneImpact(computed.leakLow, computed.leakHigh, a.spendTier)
+  const aovMid = a.aov === 'aov_other' ? Number(a.aovCustom) : (AOV_MIDPOINTS[a.aov] || null)
+  const costOfInaction = calculateCostOfInaction(computed.leakLow, computed.leakHigh, aovMid)
+  const scenarioMatch = getScenarioMatch(computed.score)
+  return { ...computed, temperature, threeLane, costOfInaction, scenarioMatch }
 }
 
 // Sample data for the dev panel "Preview Results" jump
@@ -76,18 +130,86 @@ function toScoringInputs(answers) {
 }
 
 export default function App() {
-  // landing | quiz | scoring | unlock | loading | results
-  const [phase, setPhase] = useState('landing')
-  const [answers, setAnswers] = useState(INITIAL_ANSWERS)
-  const [results, setResults] = useState(null)
-  const [insights, setInsights] = useState(null)
+  const [phase, setPhaseRaw] = useState(() => {
+    const url = phaseFromPath()
+    const saved = ssLoad(SK.answers)
+    if (url === 'results' && (!saved || !saved.email)) return 'landing'
+    if (url === 'unlock' && (!saved || !saved.brandType)) return 'landing'
+    return url
+  })
+
+  const [answers, setAnswersRaw] = useState(() => {
+    const url = phaseFromPath()
+    if (url === 'landing') return INITIAL_ANSWERS
+    return ssLoad(SK.answers) || INITIAL_ANSWERS
+  })
+
+  const [results, setResults] = useState(() => {
+    const url = phaseFromPath()
+    if (url === 'results') {
+      const saved = ssLoad(SK.answers)
+      if (saved?.email) return computeResults(saved)
+    }
+    return null
+  })
+
+  const [insights, setInsights] = useState(() => {
+    const url = phaseFromPath()
+    if (url === 'results' || url === 'unlock') return ssLoad(SK.insights)
+    return null
+  })
+
   const [insightsPromise, setInsightsPromise] = useState(null)
-  const webhookFired = useRef(false)
+  const webhookFired = useRef(ssFlag(SK.webhookFired))
   const variant = useRef(getVariant()).current
 
+  const setPhase = (newPhase) => {
+    setPhaseRaw(newPhase)
+    const path = PHASE_PATH[newPhase] || '/'
+    if (window.location.pathname !== path) {
+      window.history.pushState({ phase: newPhase }, '', path)
+    }
+  }
+
+  const setAnswers = (updater) => {
+    setAnswersRaw((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      ssSave(SK.answers, next)
+      return next
+    })
+  }
+
   useEffect(() => {
-    trackEvent('PageView')
-    trackVariantView(variant)
+    // Set history state for current entry so popstate works
+    window.history.replaceState({ phase }, '', PHASE_PATH[phase] || '/')
+
+    // Tracking — fire only once per session
+    if (!ssFlag(SK.pageviewFired)) {
+      trackEvent('PageView')
+      trackVariantView(variant)
+      ssSetFlag(SK.pageviewFired)
+    }
+
+    // If restored to unlock without insights, silently re-fetch
+    if (phaseFromPath() === 'unlock' && !ssLoad(SK.insights)) {
+      const saved = ssLoad(SK.answers)
+      if (saved?.brandName) {
+        fetchInsights(saved).then((result) => {
+          setInsights(result)
+          ssSave(SK.insights, result)
+        }).catch(() => {})
+      }
+    }
+  }, [])
+
+  // Browser back / forward
+  useEffect(() => {
+    const onPop = (e) => {
+      const p = e.state?.phase || phaseFromPath()
+      setPhaseRaw(p)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
   }, [])
 
   const completeQuiz = () => {
@@ -99,43 +221,34 @@ export default function App() {
   const unlockReport = (email, name) => {
     if (webhookFired.current) return
     webhookFired.current = true
+    ssSetFlag(SK.webhookFired)
 
     const finalAnswers = { ...answers, email, name }
     setAnswers(finalAnswers)
 
-    const inputs = toScoringInputs(finalAnswers)
-    const computed = calculateScore(inputs)
-    const temperature = getLeadTemperature(inputs)
-
-    const threeLane = calculateThreeLaneImpact(computed.leakLow, computed.leakHigh, finalAnswers.spendTier)
-    const aovMid = finalAnswers.aov === 'aov_other'
-      ? Number(finalAnswers.aovCustom)
-      : (AOV_MIDPOINTS[finalAnswers.aov] || null)
-    const costOfInaction = calculateCostOfInaction(computed.leakLow, computed.leakHigh, aovMid)
-    const scenarioMatch = getScenarioMatch(computed.score)
-
-    const fullResults = { ...computed, temperature, threeLane, costOfInaction, scenarioMatch }
+    const fullResults = computeResults(finalAnswers)
     setResults(fullResults)
 
     const utms = getStoredUTMs()
     fireWebhook({ ...finalAnswers, ...fullResults }, utms)
 
     trackEvent('CalculatorCompleted', {
-      score: computed.score,
-      risk_level: temperature,
+      score: fullResults.score,
+      temperature: fullResults.temperature,
+      spend_tier: finalAnswers.spendTier,
       revenue_tier: finalAnswers.revenue,
       brand_type: finalAnswers.brandType,
     })
     trackEvent('calculator_scored', {
       content_name: 'calculator_scored',
-      value: computed.leakHigh,
+      value: fullResults.leakHigh,
       currency: 'GBP',
-      status: temperature,
+      status: fullResults.temperature,
     })
     trackEvent('calculator_lead', {
       content_name: 'calculator_lead',
       content_category: 'creative_fatigue',
-      value: computed.leakHigh,
+      value: fullResults.leakHigh,
       currency: 'GBP',
     })
 
@@ -144,23 +257,23 @@ export default function App() {
 
   const reset = () => {
     webhookFired.current = false
-    setAnswers(INITIAL_ANSWERS)
+    setAnswersRaw(INITIAL_ANSWERS)
     setResults(null)
     setInsights(null)
     setInsightsPromise(null)
-    setPhase('landing')
+    setPhaseRaw('landing')
+    try {
+      Object.values(SK).forEach((k) => sessionStorage.removeItem(k))
+      sessionStorage.removeItem('audr_quiz_step')
+      sessionStorage.removeItem('audr_started_fired')
+      sessionStorage.removeItem('audr_qualified_fired')
+    } catch {}
+    window.history.replaceState({ phase: 'landing' }, '', '/')
   }
 
   const previewResults = () => {
     setAnswers(SAMPLE_ANSWERS)
-    const inputs = toScoringInputs(SAMPLE_ANSWERS)
-    const computed = calculateScore(inputs)
-    const temperature = getLeadTemperature(inputs)
-    const threeLane = calculateThreeLaneImpact(computed.leakLow, computed.leakHigh, SAMPLE_ANSWERS.spendTier)
-    const aovMid = AOV_MIDPOINTS[SAMPLE_ANSWERS.aov] || 32
-    const costOfInaction = calculateCostOfInaction(computed.leakLow, computed.leakHigh, aovMid)
-    const scenarioMatch = getScenarioMatch(computed.score)
-    setResults({ ...computed, temperature, threeLane, costOfInaction, scenarioMatch })
+    setResults(computeResults(SAMPLE_ANSWERS))
     setPhase('results')
   }
 
@@ -180,6 +293,7 @@ export default function App() {
           insightsPromise={insightsPromise}
           onDone={(resolvedInsights) => {
             setInsights(resolvedInsights)
+            ssSave(SK.insights, resolvedInsights)
             setPhase('unlock')
           }}
         />

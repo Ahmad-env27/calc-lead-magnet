@@ -675,7 +675,6 @@ function SigmoidDecayCurve({ spendTier, refreshRate, fatigueScore, leakLow, leak
       )}
 
       <div className="decay-legend">
-        <span className="decay-axis-label">Weeks since last creative refresh</span>
         <p className="decay-takeaway">
           Refreshing within {Math.max(1, Math.round(safeEnd))} weeks keeps your CPA stable. Beyond week {Math.round(cliff)}, performance drops fast and compounds.
         </p>

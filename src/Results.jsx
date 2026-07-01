@@ -910,7 +910,6 @@ export default function Results({ answers, results, insights }) {
       )}
 
       {/* ── Light section: white background from here to end ── */}
-      <div className="results-light-fade" aria-hidden="true" />
       <div className="results-light-wrap">
 
       {/* Credit Stack — warm+ leads only */}

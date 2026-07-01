@@ -721,25 +721,25 @@ h2 {
 }
 
 /* ── Light section — white background from CreditStack to end ── */
-.results-light-fade {
-  position: relative;
-  height: 72px;
-  pointer-events: none;
-}
-.results-light-fade::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(50% - 50vw);
-  width: 100vw;
-  background: linear-gradient(to bottom, #0b0b0e, #ffffff);
-}
-
 .results-light-wrap {
   position: relative;
-  padding-bottom: 64px;
   isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding-top: 32px;
+  padding-bottom: 64px;
+  border-top: 1px solid #dedad2;
+  /* CSS variable overrides for dark-on-light */
+  --bg: #ffffff;
+  --surface: #f4f2ee;
+  --surface-2: #ebe8e1;
+  --border: #dedad2;
+  --border-strong: #c8c3b8;
+  --text: #1a1a1f;
+  --muted: #4a4756;
+  --faint: #6b6878;
+  color: #1a1a1f;
 }
 .results-light-wrap::before {
   content: '';
@@ -751,23 +751,13 @@ h2 {
   background: #ffffff;
   z-index: -1;
 }
-.results-light-wrap {
-  --bg: #ffffff;
-  --surface: #f4f2ee;
-  --surface-2: #ebe8e1;
-  --border: #dedad2;
-  --border-strong: #c8c3b8;
-  --text: #1a1a1f;
-  --muted: #4a4756;
-  --faint: #6b6878;
-  color: #1a1a1f;
-}
 .results-light-wrap .rsection {
   color: #1a1a1f;
 }
 .results-light-wrap .credit-stack-title,
 .results-light-wrap .loom-title,
-.results-light-wrap .section-title {
+.results-light-wrap .section-title,
+.results-light-wrap .step-title {
   color: #1a1a1f;
 }
 .results-light-wrap .credit-stack-name,
@@ -798,6 +788,13 @@ h2 {
 }
 .results-light-wrap .claim-confirm {
   color: #4a4756;
+}
+.results-light-wrap .step-num {
+  border-color: #c8c3b8;
+  color: var(--accent);
+}
+.results-light-wrap .powered-by {
+  border-color: #dedad2;
 }
 
 /* Staggered entrance — pure CSS, browser paints each section as it appears */

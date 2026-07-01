@@ -167,7 +167,7 @@ export default function App() {
 
   const [insightsPromise, setInsightsPromise] = useState(null)
   const webhookFired = useRef(ssFlag(SK.webhookFired))
-  const variant = useRef(getVariant()).current
+  const variant = useRef(isPreviewMode ? 'A' : getVariant()).current
 
   const setPhase = (newPhase) => {
     setPhaseRaw(newPhase)
@@ -187,17 +187,19 @@ export default function App() {
 
   useEffect(() => {
     // Set history state for current entry so popstate works
-    window.history.replaceState({ phase }, '', PHASE_PATH[phase] || '/')
+    if (!isPreviewMode) {
+      window.history.replaceState({ phase }, '', PHASE_PATH[phase] || '/')
+    }
 
-    // Tracking — fire only once per session
-    if (!ssFlag(SK.pageviewFired)) {
+    // Tracking — fire only once per session, never in preview mode
+    if (!isPreviewMode && !ssFlag(SK.pageviewFired)) {
       trackEvent('PageView')
       trackVariantView(variant)
       ssSetFlag(SK.pageviewFired)
     }
 
     // If restored to unlock without insights, silently re-fetch
-    if (phaseFromPath() === 'unlock' && !ssLoad(SK.insights)) {
+    if (!isPreviewMode && phaseFromPath() === 'unlock' && !ssLoad(SK.insights)) {
       const saved = ssLoad(SK.answers)
       if (saved?.brandName) {
         fetchInsights(saved).then((result) => {

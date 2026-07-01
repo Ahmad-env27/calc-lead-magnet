@@ -1721,6 +1721,21 @@ h2 {
    Credit Stack
    -------------------------------------------------------------------------- */
 
+.credit-headline {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1a1a1f;
+  text-align: center;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.credit-headline-amount {
+  color: var(--accent);
+}
+
 .credit-stack {
   background: var(--surface);
   border: 1px solid var(--border);

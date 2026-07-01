@@ -456,6 +456,8 @@ function CostOfInaction({ results, aovMid }) {
 
 function CreditStack({ isHotLead }) {
   return (
+    <>
+    <h2 className="credit-headline">You've Got <span className="credit-headline-amount">£847</span> to Spend</h2>
     <div className="credit-stack">
       <h3 className="credit-stack-title">You've unlocked diagnostic credit</h3>
       <div className="credit-stack-items">
@@ -484,6 +486,7 @@ function CreditStack({ isHotLead }) {
       </div>
       <p className="credit-stack-total">£847 in diagnostic credit, yours free.</p>
     </div>
+    </>
   )
 }
 

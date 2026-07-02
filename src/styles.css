@@ -485,6 +485,12 @@ h2 {
   }
 }
 
+.field-required {
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 400;
+}
+
 .field-error {
   display: block;
   color: var(--risk-critical);

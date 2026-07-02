@@ -120,7 +120,7 @@ export async function fireWebhook(data, utms = {}) {
   const tl = data.threeLane
   const coi = data.costOfInaction
   const raw = {
-    first_name: data.name || null,
+    name: data.name || null,
     email: data.email,
     brand_name: data.brandName,
     website_url: data.websiteUrl || null,

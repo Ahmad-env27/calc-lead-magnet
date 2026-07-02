@@ -39,7 +39,7 @@ export default function Unlock({ brandName, name, email, onSubmit, onBack }) {
         </p>
 
         <div className="field">
-          <label htmlFor="unlock-name">Name</label>
+          <label htmlFor="unlock-name">Name <span className="field-required">(required)</span></label>
           <input
             id="unlock-name"
             type="text"
@@ -51,14 +51,14 @@ export default function Unlock({ brandName, name, email, onSubmit, onBack }) {
               setNameValue(e.target.value)
               if (nameError) setNameError(false)
             }}
-            onBlur={() => setNameError(nameValue.length > 0 && !nameValid)}
+            onBlur={() => setNameError(!nameValid)}
             onKeyDown={(e) => e.key === 'Enter' && document.getElementById('unlock-email').focus()}
           />
           {nameError && <span className="field-error">Please enter your name</span>}
         </div>
 
         <div className="field">
-          <label htmlFor="unlock-email">Email</label>
+          <label htmlFor="unlock-email">Email <span className="field-required">(required)</span></label>
           <input
             id="unlock-email"
             type="email"
@@ -71,7 +71,7 @@ export default function Unlock({ brandName, name, email, onSubmit, onBack }) {
               setEmailValue(e.target.value)
               if (emailError) setEmailError(false)
             }}
-            onBlur={() => setEmailError(emailValue.length > 0 && !emailValid)}
+            onBlur={() => setEmailError(!emailValid)}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
           />
           {emailError && <span className="field-error">That email doesn’t look right</span>}

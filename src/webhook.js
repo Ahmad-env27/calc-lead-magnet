@@ -80,6 +80,14 @@ const LABEL_MAP = {
     aov_100_plus: 'Over £100',
     aov_other: 'Custom',
   },
+  responsibilities: {
+    resp_paid: 'Paid ads (Meta / social)',
+    resp_email: 'Email marketing',
+    resp_creative: 'Creative / Content',
+    resp_seo: 'SEO / Organic',
+    resp_cro: 'CRO / Landing pages',
+    resp_strategy: 'Strategy / Planning',
+  },
   frustrations: {
     stop_performing: 'Ads stop performing after a couple of weeks',
     same_message: 'Running variations of the same message',

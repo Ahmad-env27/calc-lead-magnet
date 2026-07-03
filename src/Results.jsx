@@ -774,6 +774,86 @@ function RadarChart({ answers }) {
   )
 }
 
+// --- Bonus Popup — timed lead magnet reminder --------------------------------
+
+const BONUS_POPUP_KEY = 'audr_bonus_seen'
+
+function BonusPopup({ alreadyClaimed }) {
+  const [show, setShow] = useState(false)
+  const cleanupRef = useRef(null)
+
+  useEffect(() => {
+    const isDismissed = () => {
+      try { return sessionStorage.getItem(BONUS_POPUP_KEY) === '1' } catch { return false }
+    }
+
+    if (isDismissed() || alreadyClaimed) return
+
+    const onBeforeUnload = (e) => {
+      if (isDismissed()) return
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+
+    const timer = setTimeout(() => {
+      if (!isDismissed()) setShow(true)
+    }, 15000)
+
+    let hasLeft = false
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') hasLeft = true
+      if (document.visibilityState === 'visible' && hasLeft && !isDismissed()) {
+        setShow(true)
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+
+    const cleanup = () => {
+      clearTimeout(timer)
+      window.removeEventListener('beforeunload', onBeforeUnload)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+    cleanupRef.current = cleanup
+
+    return cleanup
+  }, [alreadyClaimed])
+
+  const dismiss = () => {
+    try { sessionStorage.setItem(BONUS_POPUP_KEY, '1') } catch {}
+    setShow(false)
+    if (cleanupRef.current) cleanupRef.current()
+  }
+
+  const scrollToCTA = () => {
+    dismiss()
+    const el = document.querySelector('.loom-card')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
+  if (!show || alreadyClaimed) return null
+
+  return (
+    <div className="bonus-popup-overlay" onClick={dismiss}>
+      <div className="bonus-popup" onClick={(e) => e.stopPropagation()}>
+        <h2 className="bonus-popup-title">
+          Remember to Claim Your Exclusive Bonus Package
+        </h2>
+        <p className="bonus-popup-body">
+          Your personalised bonus package has been built from your quiz answers — it's ready
+          and waiting for you below. Claim it now before you leave this page.
+        </p>
+        <button className="cta-btn cta-full" onClick={scrollToCTA}>
+          Claim my bonus package →
+        </button>
+        <button className="bonus-popup-dismiss" type="button" onClick={dismiss}>
+          No thanks, I'll skip the bonus
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // --- Main results page -------------------------------------------------------
 
 export default function Results({ answers, results, insights }) {
@@ -814,6 +894,8 @@ export default function Results({ answers, results, insights }) {
 
   return (
     <main className="results">
+      <BonusPopup alreadyClaimed={isHot ? loomClaimed : courseClaimed} />
+
       {/* A — Score header & gauge with benchmark overlay */}
       <section className="rsection" style={stagger()}>
         <p className="eyebrow">YOUR AD FATIGUE RISK SCORE</p>

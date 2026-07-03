@@ -194,16 +194,54 @@ export async function fireWebhook(data, utms = {}) {
 }
 
 // Fires when someone clicks "Claim your free Loom teardown" or the email-course
-// CTA on the results page. Lets GHL distinguish "completed the quiz" from
-// "raised their hand" without a second form.
-export async function fireFollowupEvent(eventType, data) {
+// CTA on the results page. Sends the FULL payload (identical to the initial
+// webhook) plus an `event` field so GHL can distinguish the trigger without
+// overwriting contact data.
+export async function fireFollowupEvent(eventType, data, utms = {}) {
+  const tl = data.threeLane
+  const coi = data.costOfInaction
   const raw = {
     event: eventType,
     name: data.name || null,
     email: data.email,
     brand_name: data.brandName,
+    website_url: data.websiteUrl || null,
+    job_title: data.jobTitle,
+    responsibilities: data.responsibilities || [],
+    brand_type: data.brandType,
+    revenue_tier: data.revenue,
+    spend_tier: data.spendTier,
+    aov: data.aov,
+    aov_custom: data.aov === 'aov_other' ? data.aovCustom : null,
+    refresh_rate: data.refreshRate,
+    angle_diversity: data.angleDiversity,
+    cost_trend: data.costTrend,
+    roas_bracket: data.roasBracket,
+    creative_volume: data.creativeVolume,
+    best_hook: data.bestHook || null,
+    ads_made_by: data.adsMadeBy,
+    frustrations: data.frustrations,
+    extra_context: data.extraContext,
+    fatigue_score: data.score,
+    revenue_leak_low: data.leakLow,
+    revenue_leak_high: data.leakHigh,
     lead_temperature: data.temperature,
-    source: 'calculator_v1',
+    threeLane_lane2Low: tl?.lane2?.low || null,
+    threeLane_lane2High: tl?.lane2?.high || null,
+    threeLane_combinedLow: tl?.combined?.low || null,
+    threeLane_combinedHigh: tl?.combined?.high || null,
+    threeLane_sixMonthLow: tl?.sixMonth?.low || null,
+    threeLane_sixMonthHigh: tl?.sixMonth?.high || null,
+    threeLane_multiplierUsed: tl?.multiplier ? `${tl.multiplier.low}-${tl.multiplier.high}x` : null,
+    costOfInaction_90day: coi?.revenue?.high || null,
+    costOfInaction_orders: coi?.orders?.high || null,
+    scenarioMatch: data.scenarioMatch || null,
+    utm_source: utms.utm_source || null,
+    utm_medium: utms.utm_medium || null,
+    utm_campaign: utms.utm_campaign || null,
+    utm_content: utms.utm_content || null,
+    utm_term: utms.utm_term || null,
+    source: 'calculator_v2',
     timestamp: new Date().toISOString(),
   }
   const payload = mapPayload(raw)

@@ -17,8 +17,8 @@ const MESSAGES = [
   'Finalising your report…',
 ]
 
-const MIN_DURATION = 11000
-const MAX_DURATION = 15000
+const MIN_DURATION = 14000
+const MAX_DURATION = 20000
 const MSG_INTERVAL = 1400
 
 export default function Scoring({ brandName, insightsPromise, onDone }) {

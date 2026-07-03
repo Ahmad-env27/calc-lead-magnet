@@ -144,34 +144,41 @@ Rules:
 
 const PROHIBITED_TERMS = ['price', 'pricing', 'fee', 'cost you', 'guarantee', 'discount', 'offer', 'package']
 
+function stripProhibited(text) {
+  let cleaned = text
+  for (const term of PROHIBITED_TERMS) {
+    const regex = new RegExp(term, 'gi')
+    if (regex.test(cleaned)) {
+      console.warn(`[VALIDATE] Stripping prohibited term "${term}"`)
+      cleaned = cleaned.replace(regex, '').replace(/\s{2,}/g, ' ').trim()
+    }
+  }
+  return cleaned
+}
+
 function validateDiagnosis(obj) {
   if (!obj || typeof obj !== 'object') {
     console.warn('[VALIDATE] Input is not an object:', typeof obj)
     return null
   }
   const keys = ['whats_working', 'the_leak', 'missing_angle', 'test_brief']
-  // test_brief is the action field and runs longer when web search context is available
-  const maxLen = { test_brief: 900, default: 600 }
+  const maxLen = { test_brief: 1200, default: 800 }
   const result = {}
   for (const key of keys) {
-    const val = obj[key]
+    let val = obj[key]
     if (typeof val !== 'string') {
       console.warn(`[VALIDATE] Key "${key}" is not a string:`, typeof val)
       return null
     }
+    val = stripProhibited(val)
     if (val.length < 10) {
       console.warn(`[VALIDATE] Key "${key}" too short (${val.length} chars):`, val)
       return null
     }
     const limit = maxLen[key] ?? maxLen.default
     if (val.length > limit) {
-      console.warn(`[VALIDATE] Key "${key}" too long (${val.length} chars, limit ${limit})`)
-      return null
-    }
-    const hit = PROHIBITED_TERMS.find((t) => val.toLowerCase().includes(t))
-    if (hit) {
-      console.warn(`[VALIDATE] Key "${key}" contains prohibited term "${hit}"`)
-      return null
+      console.warn(`[VALIDATE] Key "${key}" too long (${val.length} chars, limit ${limit}), truncating`)
+      val = val.substring(0, limit)
     }
     result[key] = val
   }
@@ -248,7 +255,7 @@ export async function generateInsights(answers) {
     console.log('[INSIGHTS] Pass 2 — synthesising diagnosis')
     const synthesisResp = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1000,
+      max_tokens: 1500,
       temperature: 0.7,
       system: REFERENCE_DOC,
       messages: [

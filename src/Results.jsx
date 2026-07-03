@@ -6,6 +6,7 @@ import {
 } from './scoring.js'
 import { getAngles, getQuickWin } from './angles-data.js'
 import { fireFollowupEvent } from './webhook.js'
+import { getStoredUTMs } from './utils/utm.js'
 
 // Qualified (isHot) → bonus A; everyone else → bonus B. Button copy is placeholder
 // pending a copy pass. Light UTMs so growth.audr.app can attribute by tier.
@@ -873,12 +874,15 @@ export default function Results({ answers, results, insights }) {
     ? Number(answers.aovCustom)
     : (AOV_MIDPOINTS[answers.aov] || null)
 
+  const fullFollowupData = { ...answers, ...results }
+  const utms = getStoredUTMs()
+
   const claimLoom = () => {
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'lead_magnet_CTA_clicked', type: 'loom_teardown' })
     window.open(bonusUrl(BONUS_LINK_QUALIFIED, 'qualified'), '_blank', 'noopener,noreferrer')
     setLoomClaimed(true)
-    fireFollowupEvent('loom_claimed', { ...answers, temperature: temp })
+    fireFollowupEvent('loom_claimed', fullFollowupData, utms)
   }
 
   const claimCourse = () => {
@@ -886,7 +890,7 @@ export default function Results({ answers, results, insights }) {
     window.dataLayer.push({ event: 'lead_magnet_CTA_clicked', type: 'email_course' })
     window.open(bonusUrl(BONUS_LINK_UNQUALIFIED, 'unqualified'), '_blank', 'noopener,noreferrer')
     setCourseClaimed(true)
-    fireFollowupEvent('course_signup', { ...answers, temperature: temp })
+    fireFollowupEvent('course_signup', fullFollowupData, utms)
   }
 
   let sectionIndex = 0

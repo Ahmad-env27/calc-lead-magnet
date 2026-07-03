@@ -260,6 +260,11 @@ export default function App() {
       currency: 'GBP',
     })
 
+    if (!insights) {
+      console.log('[APP] Insights null at email submit — firing retry fetch')
+      setInsightsPromise(fetchInsights(finalAnswers))
+    }
+
     setPhase('loading')
   }
 
@@ -319,7 +324,14 @@ export default function App() {
         <Loading
           brandName={answers.brandName}
           brandType={answers.brandType}
-          onDone={() => setPhase('results')}
+          insightsPromise={!insights ? insightsPromise : null}
+          onDone={(retryInsights) => {
+            if (retryInsights && !insights) {
+              setInsights(retryInsights)
+              ssSave(SK.insights, retryInsights)
+            }
+            setPhase('results')
+          }}
         />
       )}
       {phase === 'results' && <Results answers={answers} results={results} insights={insights} />}

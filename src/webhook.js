@@ -1,9 +1,5 @@
-// ============================================
-// GHL WEBHOOK — COMMENTED OUT FOR LOCAL DEV
-// ACTIVATE: Uncomment the fetch() call below
-// and replace the URL with your GHL Inbound
-// Webhook URL from GoHighLevel > Automations
-// ============================================
+// GHL Inbound Webhook — sends quiz + scoring data on email unlock,
+// and full payload again on follow-up CTA clicks (loom / course).
 
 const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/bYHWAwpEHfl9GAV4TMqs/webhook-trigger/0a6a87b2-6547-4f8d-8f64-47878bbe1325'
 
@@ -128,10 +124,10 @@ export async function fireWebhook(data, utms = {}) {
   const tl = data.threeLane
   const coi = data.costOfInaction
   const raw = {
-    name: data.name || null,
+    first_name: data.name || null,
     email: data.email,
     brand_name: data.brandName,
-    website_url: data.websiteUrl || null,
+    website: data.websiteUrl || null,
     job_title: data.jobTitle,
     responsibilities: data.responsibilities || [],
     brand_type: data.brandType,
@@ -202,10 +198,10 @@ export async function fireFollowupEvent(eventType, data, utms = {}) {
   const coi = data.costOfInaction
   const raw = {
     event: eventType,
-    name: data.name || null,
+    first_name: data.name || null,
     email: data.email,
     brand_name: data.brandName,
-    website_url: data.websiteUrl || null,
+    website: data.websiteUrl || null,
     job_title: data.jobTitle,
     responsibilities: data.responsibilities || [],
     brand_type: data.brandType,

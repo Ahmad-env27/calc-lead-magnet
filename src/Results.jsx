@@ -10,7 +10,7 @@ import { getStoredUTMs } from './utils/utm.js'
 
 // Qualified (isHot) → bonus A; everyone else → bonus B. Button copy is placeholder
 // pending a copy pass. Light UTMs so growth.audr.app can attribute by tier.
-const BONUS_LINK_QUALIFIED = 'https://www.growth.audr.app/a-dtc-audience-precision-system'
+const BONUS_LINK_QUALIFIED = 'https://www.growth.audr.app/the-offer'
 const BONUS_LINK_UNQUALIFIED = 'https://www.growth.audr.app/b-dtc-audience-precision-system'
 
 function bonusUrl(base, tier) {

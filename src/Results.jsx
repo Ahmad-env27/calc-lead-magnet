@@ -945,7 +945,7 @@ export default function Results({ answers, results, insights }) {
         </section>
       )}
 
-      {!disqualified && (
+      {isHot && (
         <section className="rsection facts-cta" style={stagger()}>
           <h3 className="facts-cta__title">Get all of the facts</h3>
           <p className="facts-cta__body">

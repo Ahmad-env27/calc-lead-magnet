@@ -964,6 +964,18 @@ export default function Results({ answers, results, insights }) {
         </section>
       )}
 
+      {isHot && (
+        <section className="rsection facts-cta" style={stagger()}>
+          <h3 className="facts-cta__title">Get all of the facts</h3>
+          <p className="facts-cta__body">
+            Schedule a free custom Loom Teardown and walkthrough call to get all the details and actions to improve ROAS
+          </p>
+          <button className="cta-btn cta-full" onClick={claimLoom}>
+            Book your slot now (£0)
+          </button>
+        </section>
+      )}
+
       {/* Cost of Inaction countdown */}
       {!disqualified && results.costOfInaction && (
         <section className="rsection" style={stagger()}>

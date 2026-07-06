@@ -200,7 +200,7 @@ export default function Landing({ onStart }) {
         </div>
 
         <div style={{ marginTop: '20px' }}>
-          <button className="cta-btn cta-full" onClick={() => { pushStart('what_youll_get'); onStart() }}>Get my free report →</button>
+          <button className="cta-btn cta-full" onClick={() => { pushStart('what_youll_get'); onStart() }}>Show me what's leaking →</button>
         </div>
       </section>
 
@@ -326,7 +326,7 @@ export default function Landing({ onStart }) {
         <p className="section__eyebrow">Ready?</p>
         <h2 className="final-cta__title">Find out what your ads are costing you. <span className="highlight">In 3 minutes.</span></h2>
         <p className="final-cta__sub">16 questions. Instant results. Free Loom teardown. No strings.</p>
-        <button className="cta-btn cta-full" onClick={() => { pushStart('final_cta'); onStart() }}>Get my free report →</button>
+        <button className="cta-btn cta-full" onClick={() => { pushStart('final_cta'); onStart() }}>Tell me what to fix →</button>
         <div className="trust-zone" style={{ marginTop: '14px' }}>
           <p className="trust-line">Built for skincare brands doing <span className="pill">£100k+/month</span> in revenue</p>
         </div>

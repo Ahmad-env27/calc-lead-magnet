@@ -88,7 +88,7 @@ function interpretation(answers, results) {
   if (band === 'moderate')
     return `Your brand shows moderate signs of creative fatigue. Refreshing ${freq} with ${div} diversity means some of your spend is going toward messaging that's lost its edge. The opportunity below isn't a problem. It's upside you're not capturing yet.`
   if (band === 'high')
-    return `${brand} is showing strong signs of ad fatigue. At ${spend} per month with ${freq} refresh cycles, a meaningful portion of your budget isn't working optimally. The opportunity below is likely conservative.`
+    return `${brand} is showing strong signs of ad fatigue. At ${spend} per month, a meaningful portion of your budget is leaking. The opportunity below is likely conservative.`
   return `Your answers suggest significant creative fatigue across your account. At ${spend} per month, the same messaging patterns are leaving the most on the table. The range below is the floor of what's recoverable, not the ceiling.`
 }
 

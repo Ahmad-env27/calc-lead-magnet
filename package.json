@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:server": "node server/index.js",
-    "build": "vite build",
+    "build": "vite build && vite build --ssr src/entry-server.jsx --outDir dist-server --emptyOutDir && node scripts/prerender.mjs",
     "preview": "vite preview",
     "start": "node server/index.js",
     "test:scoring": "node tests/scoring-guardrails.mjs",

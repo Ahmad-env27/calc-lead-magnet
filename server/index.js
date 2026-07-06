@@ -46,6 +46,16 @@ app.post('/api/insights', rateLimit, async (req, res) => {
 
 // In production, serve the Vite-built static files
 const distPath = join(__dirname, '..', 'dist')
+
+// Funnel routes get their own prerendered shell (noindex, canonical -> '/')
+// so they resolve directly without an extra directory redirect.
+const FUNNEL_ROUTES = ['/quiz', '/unlock', '/results']
+for (const route of FUNNEL_ROUTES) {
+  app.get(route, (_req, res) => {
+    res.sendFile(join(distPath, route, 'index.html'))
+  })
+}
+
 app.use(express.static(distPath))
 app.get('*', (_req, res) => {
   res.sendFile(join(distPath, 'index.html'))

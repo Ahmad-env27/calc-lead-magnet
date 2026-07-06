@@ -862,6 +862,26 @@ h2 {
   padding: 22px 20px;
 }
 
+.facts-cta {
+  text-align: center;
+  padding: 8px 4px 4px;
+}
+
+.facts-cta__title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.facts-cta__body {
+  color: var(--muted);
+  font-size: 14.5px;
+  max-width: 46ch;
+  margin: 0 auto 18px;
+}
+
 /* The payoff card — opportunity framing in the accent, never loss-red */
 .opportunity-card {
   background: linear-gradient(

@@ -841,6 +841,12 @@ h2 {
   text-align: center;
 }
 
+@media (max-width: 480px) {
+  .gauge {
+    max-width: 224px;
+  }
+}
+
 .interp {
   color: var(--muted);
   font-size: 15px;

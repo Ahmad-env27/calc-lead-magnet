@@ -934,8 +934,7 @@ export default function Results({ answers, results, insights }) {
             </p>
           )}
           <p className="leak-note">
-            That's a {results.impLow}–{results.impHigh}% improvement on your current return,
-            conservative against benchmarks for optimised skincare brands.
+            That's a {results.impLow}–{results.impHigh}% improvement on your current ROAS.
           </p>
           {results.strongROAS && (
             <p className="leak-note">

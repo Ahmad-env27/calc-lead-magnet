@@ -4,7 +4,7 @@ import {
   getRadarScores, DECAY_PARAMS, effectiveness,
   getCPAEscalation, roundForDisplay, getScenarioMatch,
 } from './scoring.js'
-import { getAngles, getQuickWin } from './angles-data.js'
+import { getAngles } from './angles-data.js'
 import { fireFollowupEvent } from './webhook.js'
 import { getStoredUTMs } from './utils/utm.js'
 
@@ -1015,14 +1015,6 @@ export default function Results({ answers, results, insights }) {
           <CourseCard answers={answers} claimed={courseClaimed} onClaim={claimCourse} />
         )}
       </div>
-
-      {/* Quick win */}
-      {!isCold && (
-        <section className="rsection quickwin-card" style={stagger()}>
-          <p className="card-kicker">⚡ ONE THING TO TRY THIS WEEK</p>
-          <p className="quickwin-copy">{getQuickWin(answers.brandType)}</p>
-        </section>
-      )}
 
       {isHot && (
         <>

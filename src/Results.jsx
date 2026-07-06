@@ -923,10 +923,6 @@ export default function Results({ answers, results, insights }) {
             {formatGBP(results.leakLow)} – {formatGBP(results.leakHigh)}
             <span className="leak-per"> / month</span>
           </p>
-          <p className="leak-loss">
-            And it's monthly: every month it goes unaddressed, the same range walks out the
-            door again.
-          </p>
           <p className="leak-sub">
             Based on your answers, that's an estimated {formatGBP(results.annualLow)} –{' '}
             {formatGBP(results.annualHigh)} a year that fresher, audience-driven ad messaging

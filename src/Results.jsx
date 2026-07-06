@@ -902,7 +902,7 @@ export default function Results({ answers, results, insights }) {
 
       {/* A — Score header & gauge with benchmark overlay */}
       <section className="rsection" style={stagger()}>
-        <p className="eyebrow">YOUR AD FATIGUE RISK SCORE</p>
+        <h1 className="eyebrow">YOUR AD FATIGUE RISK SCORE</h1>
         <Gauge score={results.score} />
         <p className="interp">{interpretation(answers, results)}</p>
       </section>

@@ -114,6 +114,8 @@ h2 {
   letter-spacing: 0.22em;
   color: var(--accent);
   text-transform: uppercase;
+  margin: 0;
+  font-weight: 400;
 }
 
 .grad {

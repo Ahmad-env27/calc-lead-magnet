@@ -905,6 +905,14 @@ export default function Results({ answers, results, insights }) {
         <p className="eyebrow">YOUR AD FATIGUE RISK SCORE</p>
         <Gauge score={results.score} />
         <p className="interp">{interpretation(answers, results)}</p>
+        {isHot && (
+          <div className="top-cta">
+            <button className="cta-btn cta-full" onClick={claimLoom}>
+              Book your free Loom Teardown (£0)
+            </button>
+            <p className="top-cta__note">See exactly what's leaking &amp; how to fix it</p>
+          </div>
+        )}
       </section>
 
       {/* B — The number. Opportunity framing with role-conditional headline. */}

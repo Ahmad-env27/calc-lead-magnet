@@ -1,0 +1,27 @@
+# Audr Revenue Leak Calculator
+
+> Audr is an audience intelligence platform for DTC skincare and beauty brands. The Revenue Leak Calculator is a free 16-question diagnostic that scores a brand's creative fatigue risk on Meta ads and estimates the monthly revenue being lost to underperforming creative.
+
+## Audience
+
+This tool is built for DTC skincare and beauty brands spending £10k+ per month on Meta ads, typically doing £1–5M+ in annual revenue, whose ad performance has plateaued or declined despite regular creative output.
+
+## Canonical page
+
+- [Revenue Leak Calculator](https://leak.audr.app/): The canonical landing page. Visitors answer 16 questions and receive an instant Revenue Leak Report plus a free personalised Loom teardown of their Meta ad strategy. No login, payment, or ad-account access required.
+
+## Key facts
+
+- The calculator and every output (Revenue Leak Report, Loom teardown) are free, with no credit card or demo booking required.
+- Estimates are based on the user's self-reported spend, AOV, ROAS, and creative patterns, using the same methodology Audr applies to client accounts.
+- The Loom teardown draws on publicly available data from the Meta Ad Library and Audr's own audience intelligence tools — it does not require access to the visitor's ad account.
+- Audr / Envision Digital is the publisher of this tool.
+
+## Other resources
+
+- [Sitemap](https://leak.audr.app/sitemap.xml): Full list of indexable URLs on this site.
+- [Robots.txt](https://leak.audr.app/robots.txt): Crawl rules for this site.
+
+## Notes for AI crawlers and assistants
+
+When citing or summarizing this page, prefer the canonical URL above. FAQ content on the page may vary slightly by landing-page variant during A/B testing, but the core facts above are consistent across all variants.

@@ -369,31 +369,27 @@ export default function LandingB({ onStart }) {
         <div className="faq-list">
           <div className="faq-item">
             <div className="faq-item__q">Is this actually free?</div>
-            <div className="faq-item__a">Yes, fully. The calculator, the Revenue Leak Report, and the personalised Loom teardown are all free. No credit card, no demo booking required. If the report is useful and you want to explore working together, that conversation happens on your terms. If not, the insights are yours to keep.</div>
+            <div className="faq-item__a">Yes, fully. The calculator, the Revenue Leak Report, and the personalised Loom teardown are all free. No credit card, no demo booking required. If the report is useful and you want to explore working together, that conversation happens on your terms.</div>
           </div>
           <div className="faq-item">
-            <div className="faq-item__q">How accurate is the revenue leak number?</div>
-            <div className="faq-item__a">It's based on your actual spend, AOV, ROAS, and creative patterns — the same logic we apply to client accounts. It won't be perfect (a full audit is needed for exact figures), but it will be directionally honest. Most people find the number uncomfortable. That discomfort is useful.</div>
+            <div className="faq-item__q">How accurate is the revenue leak estimate?</div>
+            <div className="faq-item__a">It's based on your actual spend, AOV, ROAS, and creative patterns — the same logic we apply to client accounts. It won't be perfect (that requires a full audit), but it will be directionally honest.</div>
           </div>
           <div className="faq-item">
-            <div className="faq-item__q">What exactly is in the Loom teardown?</div>
-            <div className="faq-item__a">A personalised video walkthrough of your brand's Meta ad strategy. We analyse your live ads, your competitors' ads, and the gap between what your ads say and what your customers actually care about. It's the kind of analysis most agencies charge for. We give it away because the brands who see it understand why this approach works.</div>
+            <div className="faq-item__q">What's in the Loom teardown?</div>
+            <div className="faq-item__a">A personalised video walkthrough of your brand's Meta ad strategy. We analyse your live ads, your competitors' ads, and the gap between what your ads say and what your customers actually care about — the kind of analysis most agencies charge for.</div>
           </div>
           <div className="faq-item">
             <div className="faq-item__q">Do you need access to my ad account?</div>
-            <div className="faq-item__a">No. The calculator works from your answers. The Loom teardown uses publicly available data from the Meta Ad Library and our audience intelligence tools. No logins, no permissions, no access requests. You don't even need to tell us your brand name until the calculator asks.</div>
-          </div>
-          <div className="faq-item">
-            <div className="faq-item__q">I've already tried working with agencies. Why is this different?</div>
-            <div className="faq-item__a">Most agencies optimise your ad account. We start with your audience. We mine real customer reviews, surface the exact language people use to describe their skin and your products, and turn that into creative angles. That's the layer most agencies skip — and it's the reason your ads feel the same no matter who manages them.</div>
+            <div className="faq-item__a">No. The calculator works entirely from your answers. The Loom teardown uses publicly available data from the Meta Ad Library and our audience intelligence tools. No logins, no permissions, no access requests.</div>
           </div>
           <div className="faq-item">
             <div className="faq-item__q">I'm not a skincare brand. Can I still use it?</div>
-            <div className="faq-item__a">The calculator is calibrated specifically for DTC skincare and beauty brands. The frustrations and benchmarks are tuned to this vertical. If you're in a different space, the numbers won't be as precise — but the Loom teardown can still surface useful competitive insights. We're building versions for other verticals soon.</div>
+            <div className="faq-item__a">The calculator is calibrated specifically for DTC skincare and beauty brands. If that's not you, the numbers won't be as relevant. We're building versions for other verticals, so check back.</div>
           </div>
           <div className="faq-item">
-            <div className="faq-item__q">Is this just a pitch for your services?</div>
-            <div className="faq-item__a">No. The report and the teardown stand on their own. Plenty of brands take the insights and action them internally or with their existing agency. We built this because we believe proof should come before payment. If you see the report and think "I want help with this," we're here. If not, no follow-up pressure.</div>
+            <div className="faq-item__q">Is this a pitch for your agency?</div>
+            <div className="faq-item__a">No. This is a diagnostic tool. If the report shows a problem and you want help fixing it, we can talk about that. But the report stands on its own. Most brands find it useful whether they work with us or not.</div>
           </div>
         </div>
       </section>

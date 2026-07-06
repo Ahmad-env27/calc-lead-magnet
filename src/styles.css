@@ -263,6 +263,24 @@ h2 {
 .cta-zone .cta-btn {
   position: relative;
   width: 100%;
+  background: #0355FF;
+  color: #ffffff;
+  animation: glow-pulse-blue 3.2s ease-in-out infinite;
+  box-shadow: 0 0 24px rgba(3, 85, 255, 0.45);
+}
+
+.cta-zone .cta-btn:hover {
+  box-shadow: 0 0 36px rgba(3, 85, 255, 0.55);
+}
+
+@keyframes glow-pulse-blue {
+  0%,
+  100% {
+    box-shadow: 0 0 18px rgba(3, 85, 255, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(3, 85, 255, 0.6);
+  }
 }
 
 .trust-zone {

@@ -9,33 +9,6 @@ export default function Landing({ onStart }) {
       <main className="landing">
         <img src="/audr-logo.png" alt="Audr" className="landing-logo reveal" style={{ '--i': 0 }} />
 
-        <div className="ghost-gauge reveal" style={{ '--i': 1 }} aria-hidden="true">
-          <svg viewBox="0 0 120 68" width="110" height="62">
-            <path
-              d="M 12 60 A 48 48 0 0 1 108 60"
-              fill="none"
-              stroke="var(--border-strong)"
-              strokeWidth="6"
-              strokeLinecap="round"
-              strokeDasharray="2 9"
-            />
-            <text
-              x="60"
-              y="58"
-              textAnchor="middle"
-              fill="var(--muted)"
-              fontSize="26"
-              fontFamily="var(--font-display)"
-            >
-              ?
-            </text>
-          </svg>
-        </div>
-
-        <p className="eyebrow reveal" style={{ '--i': 2 }}>
-          AUDR · AD INTEL
-        </p>
-
         <h1 className="headline reveal" style={{ '--i': 3 }}>
           How much revenue is <span className="grad">silently draining</span> from
           your skincare brand?

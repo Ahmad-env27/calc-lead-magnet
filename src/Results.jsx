@@ -905,15 +905,19 @@ export default function Results({ answers, results, insights }) {
         <p className="eyebrow">YOUR AD FATIGUE RISK SCORE</p>
         <Gauge score={results.score} />
         <p className="interp">{interpretation(answers, results)}</p>
-        {isHot && (
-          <div className="top-cta">
-            <button className="cta-btn cta-full" onClick={claimLoom}>
-              Book your free Loom Teardown (£0)
-            </button>
-            <p className="top-cta__note">See exactly what's leaking &amp; how to fix it</p>
-          </div>
-        )}
       </section>
+
+      {isHot && (
+        <section className="rsection facts-cta" style={stagger()}>
+          <h3 className="facts-cta__title">Get all of the facts</h3>
+          <p className="facts-cta__body">
+            Schedule a free custom Loom Teardown and walkthrough call to get all the details and actions to improve ROAS
+          </p>
+          <button className="cta-btn cta-full" onClick={claimLoom}>
+            Book your slot now (£0)
+          </button>
+        </section>
+      )}
 
       {/* B — The number. Opportunity framing with role-conditional headline. */}
       {disqualified ? (
@@ -950,18 +954,6 @@ export default function Results({ answers, results, insights }) {
               being given. The opportunity here is headroom, not repair.
             </p>
           )}
-        </section>
-      )}
-
-      {isHot && (
-        <section className="rsection facts-cta" style={stagger()}>
-          <h3 className="facts-cta__title">Get all of the facts</h3>
-          <p className="facts-cta__body">
-            Schedule a free custom Loom Teardown and walkthrough call to get all the details and actions to improve ROAS
-          </p>
-          <button className="cta-btn cta-full" onClick={claimLoom}>
-            Book your slot now (£0)
-          </button>
         </section>
       )}
 

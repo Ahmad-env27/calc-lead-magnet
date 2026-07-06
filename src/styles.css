@@ -853,17 +853,6 @@ h2 {
   margin-top: 18px;
 }
 
-.top-cta {
-  margin-top: 22px;
-  text-align: center;
-}
-
-.top-cta__note {
-  color: var(--muted);
-  font-size: 13px;
-  margin-top: 10px;
-}
-
 /* Tinted cards */
 .opportunity-card,
 .validation-card,

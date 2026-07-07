@@ -5,36 +5,36 @@
    ========================================================================== */
 
 :root {
-  --bg: #0b0b0e;
-  --surface: #131318;
-  --surface-2: #1c1c23;
-  --border: #232329;
-  --border-strong: #34343d;
-  --text: #f4f2ec;
-  --muted: #a3a0a9;
-  --faint: #84818e;
+  --bg: #ffffff;
+  --surface: #f7f8fa;
+  --surface-2: #eef0f3;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --faint: #9ca3af;
 
-  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 
-  /* Accent — amber default; dev panel swaps via data-accent */
-  --accent: #f0a63c;
-  --accent-2: #ffd78f;
-  --on-accent: #1a1206;
-  --accent-glow: rgba(240, 166, 60, 0.28);
+  /* Accent — blue */
+  --accent: #2563eb;
+  --accent-2: #3b82f6;
+  --on-accent: #ffffff;
+  --accent-glow: rgba(37, 99, 235, 0.20);
 
-  /* Risk bands */
-  --risk-low: #54c97f;
-  --risk-moderate: #e3c14b;
-  --risk-high: #f0a63c;
-  --risk-critical: #e25c50;
+  /* Risk bands — darker shades for legibility on white */
+  --risk-low: #16a34a;
+  --risk-moderate: #b45309;
+  --risk-high: #ea580c;
+  --risk-critical: #dc2626;
 
   /* Tinted cards */
-  --tint-green-bg: linear-gradient(165deg, rgba(84, 201, 127, 0.13), rgba(84, 201, 127, 0.04));
-  --tint-green-border: rgba(84, 201, 127, 0.3);
-  --tint-purple-bg: linear-gradient(165deg, rgba(143, 124, 245, 0.18), rgba(143, 124, 245, 0.05));
-  --tint-purple-border: rgba(143, 124, 245, 0.35);
+  --tint-green-bg: linear-gradient(165deg, rgba(22, 163, 74, 0.10), rgba(22, 163, 74, 0.03));
+  --tint-green-border: rgba(22, 163, 74, 0.25);
+  --tint-purple-bg: linear-gradient(165deg, rgba(79, 70, 229, 0.12), rgba(79, 70, 229, 0.04));
+  --tint-purple-border: rgba(79, 70, 229, 0.28);
 }
 
 [data-accent='blue'] {
@@ -266,14 +266,14 @@ h2 {
 .cta-zone .cta-btn {
   position: relative;
   width: 100%;
-  background: #0355FF;
-  color: #ffffff;
+  background: var(--accent);
+  color: var(--on-accent);
   animation: glow-pulse-blue 3.2s ease-in-out infinite;
-  box-shadow: 0 0 24px rgba(3, 85, 255, 0.45);
+  box-shadow: 0 0 24px var(--accent-glow);
 }
 
 .cta-zone .cta-btn:hover {
-  box-shadow: 0 0 36px rgba(3, 85, 255, 0.55);
+  box-shadow: 0 0 36px var(--accent-glow);
 }
 
 @keyframes glow-pulse-blue {
@@ -749,7 +749,7 @@ h2 {
   gap: 26px;
 }
 
-/* ── Light section — white background from CreditStack to end ── */
+/* ── Light section — subtle off-white strip from CreditStack to end ── */
 .results-light-wrap {
   position: relative;
   isolation: isolate;
@@ -758,17 +758,7 @@ h2 {
   gap: 26px;
   padding-top: 32px;
   padding-bottom: 64px;
-  border-top: 1px solid #dedad2;
-  /* CSS variable overrides for dark-on-light */
-  --bg: #ffffff;
-  --surface: #f4f2ee;
-  --surface-2: #ebe8e1;
-  --border: #dedad2;
-  --border-strong: #c8c3b8;
-  --text: #1a1a1f;
-  --muted: #4a4756;
-  --faint: #6b6878;
-  color: #1a1a1f;
+  border-top: 1px solid var(--border);
 }
 .results-light-wrap::before {
   content: '';
@@ -777,53 +767,8 @@ h2 {
   bottom: 0;
   left: calc(50% - 50vw);
   width: 100vw;
-  background: #ffffff;
+  background: var(--surface);
   z-index: -1;
-}
-.results-light-wrap .rsection {
-  color: #1a1a1f;
-}
-.results-light-wrap .credit-stack-title,
-.results-light-wrap .loom-title,
-.results-light-wrap .section-title,
-.results-light-wrap .step-title {
-  color: #1a1a1f;
-}
-.results-light-wrap .credit-stack-name,
-.results-light-wrap .loom-body,
-.results-light-wrap .deliv-list li,
-.results-light-wrap .step-desc,
-.results-light-wrap .compound-note,
-.results-light-wrap .powered-by,
-.results-light-wrap .quickwin-copy,
-.results-light-wrap .derisk,
-.results-light-wrap .delivery-note {
-  color: #4a4756;
-}
-.results-light-wrap .formula-text {
-  color: #6b6878;
-  border-color: #dedad2;
-  background: #f4f2ee;
-}
-.results-light-wrap .expand-link {
-  color: #4a4756;
-}
-.results-light-wrap .locked-row {
-  border-color: #dedad2;
-  background: #f4f2ee;
-}
-.results-light-wrap .locked-name {
-  color: #4a4756;
-}
-.results-light-wrap .claim-confirm {
-  color: #4a4756;
-}
-.results-light-wrap .step-num {
-  border-color: #c8c3b8;
-  color: var(--accent);
-}
-.results-light-wrap .powered-by {
-  border-color: #dedad2;
 }
 
 /* Staggered entrance — pure CSS, browser paints each section as it appears */
@@ -1788,7 +1733,7 @@ h2 {
   font-size: clamp(28px, 6.5vw, 48px);
   font-weight: 700;
   line-height: 1.1;
-  color: #1a1a1f;
+  color: var(--text);
   text-align: center;
   margin: 0 auto 16px;
   letter-spacing: -0.02em;
@@ -2032,8 +1977,8 @@ h2 {
 }
 
 .bonus-popup {
-  background: #131318;
-  border: 1px solid #34343d;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 32px 24px;
   max-width: 420px;
@@ -2059,14 +2004,14 @@ h2 {
   font-size: 22px;
   font-weight: 700;
   line-height: 1.2;
-  color: #f4f2ec;
+  color: var(--text);
   margin-bottom: 12px;
 }
 
 .bonus-popup-body {
   font-size: 15px;
   line-height: 1.55;
-  color: #a3a0a9;
+  color: var(--muted);
   margin-bottom: 24px;
 }
 
@@ -2077,7 +2022,7 @@ h2 {
 .bonus-popup-dismiss {
   background: none;
   border: none;
-  color: #84818e;
+  color: var(--faint);
   font-size: 13px;
   padding: 8px 16px;
   min-height: 44px;
@@ -2085,7 +2030,7 @@ h2 {
 }
 
 .bonus-popup-dismiss:hover {
-  color: #a3a0a9;
+  color: var(--muted);
 }
 
 /* --------------------------------------------------------------------------

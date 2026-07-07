@@ -307,7 +307,7 @@ export default function LandingB({ onStart }) {
         <h2 className="section__title">A team that doesn't just manage ads. We understand <span className="highlight">why your brand exists.</span></h2>
 
         <div className="section__body">
-          <p>Audr was built by Envision Digital, a performance marketing agency that works exclusively with DTC skincare and beauty brands. We've spent 7+ years inside these accounts. We've seen the same pattern hundreds of times: brilliant product, genuine mission, ads that don't do either of them justice.</p>
+          <p>Audr was built by Envision Digital, a performance marketing agency that works exclusively with DTC skincare and beauty brands. We've spent 12+ years inside these accounts. We've seen the same pattern hundreds of times: brilliant product, genuine mission, ads that don't do either of them justice.</p>
           <p>We built this calculator because we were tired of watching brands spend thousands on ads that say what the marketing team thinks customers want to hear — instead of what customers actually say.</p>
         </div>
 
@@ -320,7 +320,7 @@ export default function LandingB({ onStart }) {
 
         <div className="cred-stats">
           <div className="cred-stat">
-            <div className="cred-stat__number">7+</div>
+            <div className="cred-stat__number">12+</div>
             <div className="cred-stat__label">Years in DTC skincare</div>
           </div>
           <div className="cred-stat">

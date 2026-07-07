@@ -233,7 +233,7 @@ export default function Landing({ onStart }) {
         <h2 className="section__title">We don't do discovery calls. We do audits.</h2>
 
         <div className="section__body">
-          <p>Audr is an audience intelligence platform built by a performance marketing agency that's spent 7+ years managing Meta ads for skincare and beauty DTC brands.</p>
+          <p>Audr is an audience intelligence platform built by a performance marketing agency that's spent 12+ years managing Meta ads for skincare and beauty DTC brands.</p>
           <p>We built this calculator because we kept finding the same problem: brands spending serious money on ads that say what the team thinks customers want to hear, not what customers actually say.</p>
         </div>
 
@@ -246,7 +246,7 @@ export default function Landing({ onStart }) {
 
         <div className="cred-stats">
           <div className="cred-stat">
-            <div className="cred-stat__number">7+</div>
+            <div className="cred-stat__number">12+</div>
             <div className="cred-stat__label">Years in Meta ads</div>
           </div>
           <div className="cred-stat">

@@ -166,10 +166,9 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
 
   const maybeFireQualificationPixel = (a) => {
     if (pixelFired.current) return
-    const qualifiedBrand = ['skincare', 'beauty'].includes(a.brandType)
     const qualifiedRevenue = ['80k_120k', '120k_plus'].includes(a.revenue)
     const qualifiedSpend = a.spendTier && a.spendTier !== 'under_10k'
-    if (qualifiedBrand && qualifiedRevenue && qualifiedSpend) {
+    if (qualifiedRevenue && qualifiedSpend) {
       pixelFired.current = true
       try { sessionStorage.setItem('audr_qualified_fired', '1') } catch {}
       trackEvent('QualifiedLead', {

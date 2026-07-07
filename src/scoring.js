@@ -171,18 +171,17 @@ export function getRiskBand(score) {
 }
 
 export function getLeadTemperature(inputs) {
-  const isSkincareBrand = ['skincare', 'beauty'].includes(inputs.brandType)
   const highRevenue = ['80k_120k', '120k_plus'].includes(inputs.revenue)
   const qualifiedSpend = !['under_10k'].includes(inputs.spendTier)
+  const highSpend = ['50k_100k', '100k_plus'].includes(inputs.spendTier)
   const highPain = inputs.frustrationCount >= 2
   const selectedDisqualifier = inputs.frustrations.includes('none')
 
   if (selectedDisqualifier) return 'cold'
-  if (!isSkincareBrand && inputs.brandType !== 'wellness') return 'cold'
 
-  if (isSkincareBrand && highRevenue && qualifiedSpend && highPain) return 'super_hot'
-  if (isSkincareBrand && highRevenue && qualifiedSpend) return 'hot'
-  if (isSkincareBrand || (highRevenue && qualifiedSpend)) return 'warm'
+  if (highRevenue && qualifiedSpend && highPain) return 'super_hot'
+  if (highRevenue && qualifiedSpend) return 'hot'
+  if (highRevenue || highSpend) return 'warm'
 
   return 'cold'
 }

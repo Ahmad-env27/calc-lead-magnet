@@ -914,7 +914,7 @@ export default function Results({ answers, results, insights }) {
             Schedule your FREE custom Loom teardown to get all the details.<br /><br />Absolutely no commitment; just all the actions you need to improve your ROAS.
           </p>
           <button className="cta-btn cta-full" onClick={claimLoom}>
-            Book your slot now (£0)
+            Book Your Free Consultation
           </button>
         </section>
       )}
@@ -971,7 +971,7 @@ export default function Results({ answers, results, insights }) {
             Schedule your FREE custom Loom teardown to get all the details.<br /><br />Absolutely no commitment; just all the actions you need to improve your ROAS.
           </p>
           <button className="cta-btn cta-full" onClick={claimLoom}>
-            Book your slot now (£0)
+            Book Your Free Consultation
           </button>
         </section>
       )}

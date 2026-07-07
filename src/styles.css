@@ -152,7 +152,10 @@ h2 {
 }
 
 .cta-full {
-  width: 100%;
+  width: 80%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
   text-align: center;
 }
 
@@ -265,7 +268,7 @@ h2 {
 
 .cta-zone .cta-btn {
   position: relative;
-  width: 100%;
+  width: 80%;
   background: var(--accent);
   color: var(--on-accent);
   animation: glow-pulse-blue 3.2s ease-in-out infinite;

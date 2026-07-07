@@ -78,6 +78,7 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
 .shell {
@@ -846,6 +847,12 @@ h2 {
 @media (max-width: 480px) {
   .gauge {
     max-width: 224px;
+  }
+}
+
+@media (max-width: 360px) {
+  .leak-number {
+    font-size: clamp(18px, 6.5vw, 22px);
   }
 }
 

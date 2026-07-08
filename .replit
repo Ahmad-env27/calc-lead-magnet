@@ -53,3 +53,9 @@ externalPort = 3000
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 60000
+
+[userenv]
+
+[userenv.shared]
+EMAIL_FROM = "users@audr.app"
+RESEND_API_KEY = "re_Ngkx4KSk_G7mzQkaK69kpuDD7hZEv3vna"

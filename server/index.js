@@ -6,6 +6,15 @@ import { generateInsights } from './insights.js'
 import { generatePdf } from './generate-pdf.js'
 import { sendReportEmail } from './send-report.js'
 
+let storage = null
+try {
+  const { Client } = await import('@replit/object-storage')
+  storage = new Client()
+  console.log('[SERVER] Replit Object Storage connected')
+} catch {
+  console.log('[SERVER] Object Storage not available — PDFs will be email-attached only')
+}
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
 const PORT = process.env.EXPRESS_PORT || 3002
@@ -51,15 +60,39 @@ app.post('/api/send-report', async (req, res) => {
   if (!answers?.email || !results) {
     return res.status(400).json({ error: 'Missing data' })
   }
+  const host = req.get('host')
   res.json({ queued: true })
 
   try {
     console.log('[REPORT] Generating PDF for:', answers.brandName)
     const pdf = await generatePdf(answers, results, insights)
     console.log('[REPORT] PDF generated (%d bytes), sending to: %s', pdf.length, answers.email)
-    await sendReportEmail(answers, pdf)
+
+    let pdfUrl = null
+    if (storage) {
+      const safeBrand = (answers.brandName || 'report').replace(/[^a-zA-Z0-9]/g, '')
+      const pdfKey = `${Date.now()}-${safeBrand}.pdf`
+      await storage.uploadFromBytes(pdfKey, pdf)
+      pdfUrl = `https://${host}/api/report/${pdfKey}`
+      console.log('[REPORT] PDF uploaded:', pdfKey)
+    }
+
+    await sendReportEmail(answers, pdf, pdfUrl)
   } catch (err) {
     console.error('[REPORT] Pipeline failed:', err.message)
+  }
+})
+
+app.get('/api/report/:filename', async (req, res) => {
+  if (!storage) return res.status(404).send('Not found')
+  try {
+    const result = await storage.downloadAsBytes(req.params.filename)
+    if (!result.ok) return res.status(404).send('Report not found')
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', 'inline')
+    res.send(Buffer.from(result.value))
+  } catch {
+    res.status(404).send('Report not found')
   }
 })
 

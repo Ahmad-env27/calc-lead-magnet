@@ -9,6 +9,7 @@ publicDir = "dist"
 
 [agent]
 expertMode = true
+integrations = ["javascript_object_storage:2.0.0"]
 
 [workflows]
 runButton = "Project"
@@ -59,3 +60,6 @@ timeoutMs = 60000
 [userenv.shared]
 EMAIL_FROM = "users@audr.app"
 RESEND_API_KEY = "re_Ngkx4KSk_G7mzQkaK69kpuDD7hZEv3vna"
+
+[nix]
+channel = "stable-25_05"

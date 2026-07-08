@@ -3,6 +3,8 @@ import express from 'express'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { generateInsights } from './insights.js'
+import { generatePdf } from './generate-pdf.js'
+import { sendReportEmail } from './send-report.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -42,6 +44,23 @@ app.post('/api/insights', rateLimit, async (req, res) => {
   const insights = await generateInsights(answers)
   console.log('[ROUTE] generateInsights returned:', insights ? 'valid object' : 'null')
   res.json({ insights })
+})
+
+app.post('/api/send-report', rateLimit, async (req, res) => {
+  const { answers, results, insights } = req.body
+  if (!answers?.email || !results) {
+    return res.status(400).json({ error: 'Missing data' })
+  }
+  res.json({ queued: true })
+
+  try {
+    console.log('[REPORT] Generating PDF for:', answers.brandName)
+    const pdf = await generatePdf(answers, results, insights)
+    console.log('[REPORT] PDF generated (%d bytes), sending to: %s', pdf.length, answers.email)
+    await sendReportEmail(answers, pdf)
+  } catch (err) {
+    console.error('[REPORT] Pipeline failed:', err.message)
+  }
 })
 
 // In production, serve the Vite-built static files

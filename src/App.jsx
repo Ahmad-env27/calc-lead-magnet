@@ -11,7 +11,7 @@ import { calculateScore, getLeadTemperature, calculateThreeLaneImpact, calculate
 import { fireWebhook } from './webhook.js'
 import { trackEvent } from './utils/tracking.js'
 import { getStoredUTMs } from './utils/utm.js'
-import { fetchInsights } from './api.js'
+import { fetchInsights, sendReport } from './api.js'
 
 // ---------------------------------------------------------------------------
 // Session persistence — survives refresh within the same tab
@@ -239,6 +239,7 @@ export default function App() {
 
     const utms = getStoredUTMs()
     fireWebhook({ ...finalAnswers, ...fullResults }, utms)
+    sendReport(finalAnswers, fullResults, insights)
 
     trackEvent('CalculatorCompleted', {
       score: fullResults.score,

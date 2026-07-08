@@ -1,3 +1,13 @@
+export function sendReport(answers, results, insights) {
+  fetch('/api/send-report', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers, results, insights }),
+  }).catch(err => {
+    console.warn('[REPORT] Send request failed:', err.message)
+  })
+}
+
 export function fetchInsights(answers) {
   console.log('[INSIGHTS] Sending request to /api/insights…')
   return fetch('/api/insights', {

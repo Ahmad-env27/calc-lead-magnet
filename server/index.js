@@ -46,7 +46,7 @@ app.post('/api/insights', rateLimit, async (req, res) => {
   res.json({ insights })
 })
 
-app.post('/api/send-report', rateLimit, async (req, res) => {
+app.post('/api/send-report', async (req, res) => {
   const { answers, results, insights } = req.body
   if (!answers?.email || !results) {
     return res.status(400).json({ error: 'Missing data' })

@@ -7,11 +7,11 @@ import { generatePdf } from './generate-pdf.js'
 import { sendReportEmail } from './send-report.js'
 import { buildWebhookPayload } from '../src/webhook.js'
 
-let storage = null
+let StorageClient = null
 try {
-  const { Client } = await import('@replit/object-storage')
-  storage = new Client()
-  console.log('[SERVER] Replit Object Storage connected')
+  const mod = await import('@replit/object-storage')
+  StorageClient = mod.Client
+  console.log('[SERVER] Replit Object Storage module loaded')
 } catch {
   console.log('[SERVER] Object Storage not available — PDFs will be email-attached only')
 }
@@ -70,24 +70,29 @@ app.post('/api/send-report', async (req, res) => {
     console.log('[REPORT] PDF generated (%d bytes), sending to: %s', pdf.length, answers.email)
 
     let pdfUrl = null
-    if (storage) {
-      const safeBrand = (answers.brandName || 'report').replace(/[^a-zA-Z0-9]/g, '')
-      const pdfKey = `${Date.now()}-${safeBrand}.pdf`
-      await storage.uploadFromBytes(pdfKey, pdf)
-      pdfUrl = `https://${host}/api/report/${pdfKey}`
-      console.log('[REPORT] PDF uploaded:', pdfKey)
+    if (StorageClient) {
+      try {
+        const storage = new StorageClient()
+        const safeBrand = (answers.brandName || 'report').replace(/[^a-zA-Z0-9]/g, '')
+        const pdfKey = `${Date.now()}-${safeBrand}.pdf`
+        await storage.uploadFromBytes(pdfKey, pdf)
+        pdfUrl = `https://${host}/api/report/${pdfKey}`
+        console.log('[REPORT] PDF uploaded:', pdfKey)
 
-      const ghlUrl = process.env.GHL_WEBHOOK_URL
-      if (ghlUrl) {
-        const data = { ...answers, ...results }
-        const payload = buildWebhookPayload(data, {}, { report_url: pdfUrl })
-        fetch(ghlUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-          .then(r => console.log('[REPORT] GHL updated with report_url, status:', r.status))
-          .catch(e => console.error('[REPORT] GHL update failed:', e.message))
+        const ghlUrl = process.env.GHL_WEBHOOK_URL
+        if (ghlUrl) {
+          const data = { ...answers, ...results }
+          const payload = buildWebhookPayload(data, {}, { report_url: pdfUrl })
+          fetch(ghlUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+            .then(r => console.log('[REPORT] GHL updated with report_url, status:', r.status))
+            .catch(e => console.error('[REPORT] GHL update failed:', e.message))
+        }
+      } catch (err) {
+        console.error('[REPORT] Storage upload failed:', err.message, '— sending email with attachment instead')
       }
     }
 
@@ -98,8 +103,9 @@ app.post('/api/send-report', async (req, res) => {
 })
 
 app.get('/api/report/:filename', async (req, res) => {
-  if (!storage) return res.status(404).send('Not found')
+  if (!StorageClient) return res.status(404).send('Not found')
   try {
+    const storage = new StorageClient()
     const result = await storage.downloadAsBytes(req.params.filename)
     if (!result.ok) return res.status(404).send('Report not found')
     res.setHeader('Content-Type', 'application/pdf')

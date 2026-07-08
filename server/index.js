@@ -5,6 +5,7 @@ import { dirname, join } from 'path'
 import { generateInsights } from './insights.js'
 import { generatePdf } from './generate-pdf.js'
 import { sendReportEmail } from './send-report.js'
+import { buildWebhookPayload } from '../src/webhook.js'
 
 let storage = null
 try {
@@ -75,6 +76,19 @@ app.post('/api/send-report', async (req, res) => {
       await storage.uploadFromBytes(pdfKey, pdf)
       pdfUrl = `https://${host}/api/report/${pdfKey}`
       console.log('[REPORT] PDF uploaded:', pdfKey)
+
+      const ghlUrl = process.env.GHL_WEBHOOK_URL
+      if (ghlUrl) {
+        const data = { ...answers, ...results }
+        const payload = buildWebhookPayload(data, {}, { report_url: pdfUrl })
+        fetch(ghlUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then(r => console.log('[REPORT] GHL updated with report_url, status:', r.status))
+          .catch(e => console.error('[REPORT] GHL update failed:', e.message))
+      }
     }
 
     await sendReportEmail(answers, pdf, pdfUrl)

@@ -1,7 +1,7 @@
 // GHL Inbound Webhook — sends quiz + scoring data on email unlock,
 // and full payload again on follow-up CTA clicks (loom / course).
 
-const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/bYHWAwpEHfl9GAV4TMqs/webhook-trigger/0a6a87b2-6547-4f8d-8f64-47878bbe1325'
+export const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/bYHWAwpEHfl9GAV4TMqs/webhook-trigger/0a6a87b2-6547-4f8d-8f64-47878bbe1325'
 
 const LABEL_MAP = {
   job_title: {

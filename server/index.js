@@ -5,7 +5,7 @@ import { dirname, join } from 'path'
 import { generateInsights } from './insights.js'
 import { generatePdf } from './generate-pdf.js'
 import { sendReportEmail } from './send-report.js'
-import { buildWebhookPayload } from '../src/webhook.js'
+import { buildWebhookPayload, GHL_WEBHOOK_URL } from '../src/webhook.js'
 
 let StorageClient = null
 const BUCKET_ID = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID
@@ -89,11 +89,10 @@ app.post('/api/send-report', async (req, res) => {
         pdfUrl = `https://${host}/api/report/${pdfKey}`
         console.log('[REPORT] PDF uploaded:', pdfKey)
 
-        const ghlUrl = process.env.GHL_WEBHOOK_URL
-        if (ghlUrl) {
+        if (GHL_WEBHOOK_URL) {
           const data = { ...answers, ...results }
           const payload = buildWebhookPayload(data, {}, { report_url: pdfUrl })
-          fetch(ghlUrl, {
+          fetch(GHL_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),

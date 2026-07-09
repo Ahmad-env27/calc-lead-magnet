@@ -101,6 +101,10 @@ function drawCard(doc, x, y, w, h, borderColor) {
 }
 
 function kicker(doc, text, y) {
+  // Never draw in the last 30pt: if the text auto-flowed to the next page,
+  // the returned y would go stale and the next ensureSpace would double-break,
+  // leaving a blank page with one stray line.
+  y = ensureSpace(doc, 30, y)
   doc.fontSize(9).fillColor(C.accent).font('Helvetica-Bold')
   doc.text(text, M, y, { width: CW, characterSpacing: 1.5 })
   return y + 16
@@ -134,43 +138,47 @@ function drawHeader(doc, answers) {
   return divider(doc, y + 12) + 4
 }
 
+// Mirrors the Gauge component in src/Results.jsx: same SVG geometry
+// (R=90, strokeWidth 12, round caps) mapped 1:1 from viewBox units to points.
 function drawGauge(doc, score, y) {
-  y = ensureSpace(doc, 160, y)
+  y = ensureSpace(doc, 175, y)
   y = kicker(doc, 'YOUR AD FATIGUE RISK SCORE', y)
 
   const band = getRiskBand(score)
   const color = RISK_COLORS[band.key]
   const cx = PAGE_W / 2
-  const cy = y + 80
-  const r = 65
+  const cy = y + 102 // arc outer edge starts 6pt below the kicker
+  const r = 90
+
+  const semicircle = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`
 
   doc.save().lineCap('round')
-  doc.path(`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`)
-    .lineWidth(10).strokeOpacity(0.3).strokeColor(C.border).stroke()
-  doc.strokeOpacity(1)
+  doc.path(semicircle).lineWidth(12).strokeColor(C.border).stroke()
 
   if (score > 0) {
-    if (score >= 99) {
-      doc.path(`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`)
-        .lineWidth(10).strokeColor(color).stroke()
-    } else {
+    let path = semicircle
+    if (score < 99) {
       const a = (score / 100) * Math.PI
-      const ex = (cx - r * Math.cos(a)).toFixed(1)
-      const ey = (cy - r * Math.sin(a)).toFixed(1)
-      doc.path(`M ${cx - r} ${cy} A ${r} ${r} 0 ${score > 50 ? 1 : 0} 1 ${ex} ${ey}`)
-        .lineWidth(10).strokeColor(color).stroke()
+      const ex = (cx - r * Math.cos(a)).toFixed(2)
+      const ey = (cy - r * Math.sin(a)).toFixed(2)
+      // large-arc-flag is always 0: the sweep from the left endpoint over the
+      // top never exceeds 180°. Flag 1 selects the mirrored 230°+ arc.
+      path = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${ex} ${ey}`
     }
+    doc.path(path).lineWidth(12).strokeColor(color).stroke()
   }
   doc.restore()
 
-  doc.fontSize(38).fillColor(color).font('Helvetica-Bold')
-  doc.text(String(score), cx - 40, cy - 30, { width: 80, align: 'center' })
-  doc.fontSize(12).fillColor(C.faint).font('Helvetica')
-  doc.text('/100', cx - 25, cy + 8, { width: 50, align: 'center' })
+  // Web baselines: score cy-10, /100 cy+8, label cy+32. PDFKit positions the
+  // top of the line, so shift each up by its Helvetica ascent (~0.72em).
+  doc.fontSize(46).fillColor(color).font('Helvetica-Bold')
+  doc.text(String(score), cx - 60, cy - 43, { width: 120, align: 'center' })
+  doc.fontSize(14).fillColor(C.faint).font('Helvetica')
+  doc.text('/100', cx - 40, cy - 2, { width: 80, align: 'center' })
   doc.fontSize(10).fillColor(color).font('Helvetica-Bold')
-  doc.text(band.label.toUpperCase(), cx - 60, cy + 24, { width: 120, align: 'center', characterSpacing: 1 })
+  doc.text(band.label.toUpperCase(), cx - 80, cy + 25, { width: 160, align: 'center', characterSpacing: 2 })
 
-  return cy + 50
+  return cy + 48
 }
 
 function drawInterpretation(doc, answers, results, y) {
@@ -258,6 +266,7 @@ function drawThreeLane(doc, answers, results, y) {
   y += 62
 
   if (answers.aov && aovMid && aovMid > 0) {
+    y = ensureSpace(doc, 90, y)
     y = kicker(doc, 'SPEND DECODER', y)
     const sd = calculateSpendDecoder(results.recoverableMonthly, aovMid)
     doc.fontSize(22).fillColor(C.accent).font('Helvetica-Bold')
@@ -265,6 +274,7 @@ function drawThreeLane(doc, answers, results, y) {
     doc.fontSize(10).fillColor(C.muted).font('Helvetica')
     doc.text('orders a month your brand is leaving on the table', M + 4, y + 24, { width: CW - 8 })
     y += 48
+    y = ensureSpace(doc, 70, y)
     doc.fontSize(16).fillColor(C.text).font('Helvetica-Bold')
     doc.text(`~${sd.ordersPerYear.toLocaleString('en-GB')}`, M, y)
     doc.fontSize(10).fillColor(C.muted).font('Helvetica')
@@ -278,9 +288,11 @@ function drawThreeLane(doc, answers, results, y) {
     y += 14
   }
 
+  // Reserve divider + kicker + lane cards as one block so the heading
+  // can't strand at a page bottom while the cards jump to the next page.
+  y = ensureSpace(doc, 150, y)
   y = divider(doc, y, 40)
   y = kicker(doc, 'THE FULL PICTURE: ALL THREE LEVERS', y)
-  y = ensureSpace(doc, 110, y)
 
   const cardW = (CW - 16) / 3
   const lanes = [
@@ -663,149 +675,6 @@ function drawDiagnosis(doc, insights, brandName, y) {
   return y
 }
 
-// --- New sections: Facts CTA, Credit Stack, Loom Card, How It Works ---
-
-function drawFactsCTA(doc, y) {
-  y = ensureSpace(doc, 90, y)
-  drawCard(doc, M, y, CW, 78)
-  doc.fontSize(14).fillColor(C.white).font('Helvetica-Bold')
-  doc.text('Get all of the facts', M + 14, y + 10, { width: CW - 28, align: 'center' })
-  doc.fontSize(9).fillColor(C.muted).font('Helvetica')
-  doc.text(
-    'Schedule your FREE custom Loom teardown to get all the details.',
-    M + 30, y + 30, { width: CW - 60, align: 'center' },
-  )
-  doc.text(
-    'Absolutely no commitment; just all the actions you need to improve your ROAS.',
-    M + 30, doc.y + 4, { width: CW - 60, align: 'center' },
-  )
-  return y + 90
-}
-
-function drawCreditStack(doc, isHot, y) {
-  y = ensureSpace(doc, 160, y)
-
-  doc.fontSize(20).fillColor(C.accent).font('Helvetica-Bold')
-  doc.text("You've Got £847 to Spend", M, y, { width: CW, align: 'center' })
-  y = doc.y + 16
-
-  const items = [
-    { unlocked: true, name: 'Audience Precision System', price: '£47', status: 'FREE', statusColor: C.green },
-    { unlocked: true, name: 'Atomic Audience & Ad Audit', price: '£403', status: 'FREE', statusColor: C.green },
-    { unlocked: false, name: 'Meta-signal Stack Guide', price: '£397', status: isHot ? 'WAIVED' : 'IN AUDIT', statusColor: isHot ? C.amber : C.faint },
-  ]
-
-  const stackH = 14 + items.length * 22 + 24
-  drawCard(doc, M, y, CW, stackH)
-  doc.fontSize(11).fillColor(C.text).font('Helvetica-Bold')
-  doc.text("You've unlocked diagnostic credit", M + 14, y + 10, { width: CW - 28 })
-  let iy = y + 30
-
-  items.forEach((item) => {
-    const dotColor = item.unlocked ? C.green : C.faint
-    doc.circle(M + 22, iy + 4, 3).fill(dotColor)
-    doc.fontSize(10).fillColor(C.text).font('Helvetica')
-    doc.text(item.name, M + 32, iy, { width: CW - 150 })
-    doc.fontSize(9).fillColor(C.faint).font('Helvetica')
-    doc.text(item.price, PAGE_W - M - 82, iy, { width: 30, align: 'right', strike: true })
-    doc.fontSize(9).fillColor(item.statusColor).font('Helvetica-Bold')
-    doc.text(item.status, PAGE_W - M - 48, iy, { width: 46 })
-    iy += 22
-  })
-
-  doc.fontSize(10).fillColor(C.accent).font('Helvetica')
-  doc.text('£847 in diagnostic credit, yours free.', M + 14, iy, { width: CW - 28, align: 'center' })
-
-  return y + stackH + 16
-}
-
-function drawLoomCard(doc, answers, y) {
-  y = ensureSpace(doc, 200, y)
-  const brand = answers.brandName || 'your brand'
-
-  doc.fontSize(14).fillColor(C.text).font('Helvetica-Bold')
-  doc.text('Want the full picture?', M, y, { width: CW })
-  y += 22
-
-  doc.fontSize(9).fillColor(C.muted).font('Helvetica')
-  doc.text(
-    `We'll prepare a personalised Loom teardown for ${brand}: a 5-minute video plus a 30-minute free consultation. It includes:`,
-    M, y, { width: CW, lineGap: 2 },
-  )
-  y = doc.y + 10
-
-  const deliverables = [
-    "Your competitor messaging analysis: what brands in your lane are saying that you're not",
-    "Your top 3 competitors run through our Spend Decoder: what they're spending and how hard they're testing",
-    'A concrete plan for your next creative batch',
-  ]
-
-  deliverables.forEach((d) => {
-    doc.fontSize(9).fillColor(C.muted).font('Helvetica')
-    doc.text(`— ${d}`, M + 8, y, { width: CW - 16, lineGap: 2 })
-    y = doc.y + 6
-  })
-
-  y += 4
-  const angleNums = ['04', '05']
-  angleNums.forEach((num) => {
-    y = ensureSpace(doc, 30, y)
-    drawCard(doc, M, y, CW, 24, C.border)
-    doc.fontSize(8).fillColor(C.accent).font('Helvetica-Bold')
-    doc.text(num, M + 10, y + 7, { width: 20 })
-    doc.fontSize(9).fillColor(C.faint).font('Helvetica')
-    doc.text('Angle held back for your walkthrough', M + 34, y + 7, { width: CW - 130 })
-    doc.fontSize(7).fillColor(C.faint).font('Helvetica-Bold')
-    doc.text('IN TEARDOWN', PAGE_W - M - 78, y + 8, { width: 64, align: 'right', characterSpacing: 0.5 })
-    y += 30
-  })
-
-  doc.fontSize(9).fillColor(C.text).font('Helvetica-Bold')
-  doc.text('The insights are yours whether we work together or not.', M, y, { width: CW })
-  y = doc.y + 8
-
-  doc.fontSize(8).fillColor(C.faint).font('Helvetica')
-  doc.text('Prepared within 48 hours of booking. We review every teardown with a human strategist, not just AI.', M, y, { width: CW, lineGap: 2 })
-
-  return doc.y + 16
-}
-
-function drawHowItWorks(doc, y) {
-  y = ensureSpace(doc, 180, y)
-
-  doc.fontSize(14).fillColor(C.text).font('Helvetica-Bold')
-  doc.text('How it works', M, y, { width: CW })
-  y += 22
-
-  const steps = [
-    { num: '1', title: 'Book a time', desc: "Pick a 30-minute slot. We'll confirm within 2 hours." },
-    { num: '2', title: 'We build your teardown', desc: "Our team analyses your ad account, competitor landscape, and audience data using Audr. You'll get a personalised Loom video within 48 hours." },
-    { num: '3', title: 'Watch, ask, decide', desc: 'Free consultation. We walk through the findings and build an action plan together. No obligation.' },
-  ]
-
-  steps.forEach((step) => {
-    y = ensureSpace(doc, 44, y)
-    doc.save()
-    doc.roundedRect(M, y, 20, 20, 4).lineWidth(0.5).strokeColor(C.border).stroke()
-    doc.restore()
-    doc.fontSize(10).fillColor(C.text).font('Helvetica-Bold')
-    doc.text(step.num, M, y + 5, { width: 20, align: 'center' })
-    doc.fontSize(10).fillColor(C.text).font('Helvetica-Bold')
-    doc.text(step.title, M + 28, y, { width: CW - 28 })
-    doc.fontSize(9).fillColor(C.muted).font('Helvetica')
-    doc.text(step.desc, M + 28, doc.y + 2, { width: CW - 28, lineGap: 2 })
-    y = doc.y + 12
-  })
-
-  doc.fontSize(9).fillColor(C.muted).font('Helvetica')
-  doc.text(
-    "Worth saying: this compounds. As the messaging improves month over month, each cycle builds on the last. That's the conversation worth having.",
-    M, y, { width: CW, lineGap: 2 },
-  )
-
-  return doc.y + 16
-}
-
 // --- CTA ---
 
 function drawCTA(doc, isHot, y) {
@@ -856,6 +725,7 @@ export async function generatePdf(answers, results, insights) {
     doc.on('data', chunk => chunks.push(chunk))
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)
+    doc.on('pageAdded', () => fillBg(doc))
 
     fillBg(doc)
     let y = drawHeader(doc, answers)
@@ -864,17 +734,12 @@ export async function generatePdf(answers, results, insights) {
 
     const temp = results.temperature
     const isHot = temp === 'super_hot' || temp === 'hot'
-    const isCold = temp === 'cold'
     const disqualified = (answers.frustrations || []).includes('none')
-
-    if (isHot) y = drawFactsCTA(doc, y)
 
     y = drawOpportunity(doc, answers, results, y)
 
     if (!disqualified) {
       y = drawThreeLane(doc, answers, results, y)
-      if (isHot) y = drawFactsCTA(doc, y)
-
       const aovMid = answers.aov === 'aov_other' ? Number(answers.aovCustom) : (AOV_MIDPOINTS[answers.aov] || null)
       y = drawCostOfInaction(doc, results, aovMid, y)
       y = drawDecayCurve(doc, answers, results, y)
@@ -882,16 +747,6 @@ export async function generatePdf(answers, results, insights) {
     }
 
     y = drawDiagnosis(doc, insights, answers.brandName, y)
-
-    if (!isCold && !disqualified) {
-      y = drawCreditStack(doc, isHot, y)
-    }
-
-    if (isHot) {
-      y = drawLoomCard(doc, answers, y)
-      y = drawHowItWorks(doc, y)
-    }
-
     drawCTA(doc, isHot, y)
 
     doc.end()

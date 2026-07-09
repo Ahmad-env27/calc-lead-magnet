@@ -63,3 +63,6 @@ RESEND_API_KEY = "re_Ngkx4KSk_G7mzQkaK69kpuDD7hZEv3vna"
 
 [nix]
 channel = "stable-25_05"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-752e3c81-1ea4-48bd-8dd2-69e6d9f49045"

@@ -105,7 +105,8 @@ app.post('/api/send-report', async (req, res) => {
       }
     }
 
-    await sendReportEmail(answers, pdf, pdfUrl)
+    // DEACTIVATED: email now sent via GHL after webhook delivers report_url
+    // await sendReportEmail(answers, pdf, pdfUrl)
   } catch (err) {
     console.error('[REPORT] Pipeline failed:', err.message)
   }

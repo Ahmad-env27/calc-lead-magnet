@@ -8,10 +8,20 @@ import { sendReportEmail } from './send-report.js'
 import { buildWebhookPayload } from '../src/webhook.js'
 
 let StorageClient = null
+const BUCKET_ID = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID
+  || process.env.REPLIT_DEFAULT_BUCKET_ID
+  || process.env.OBJECT_STORAGE_BUCKET_ID
+  || null
+
 try {
   const mod = await import('@replit/object-storage')
   StorageClient = mod.Client
-  console.log('[SERVER] Replit Object Storage module loaded')
+  if (BUCKET_ID) {
+    console.log('[SERVER] Object Storage module loaded, bucket:', BUCKET_ID.slice(0, 12) + '…')
+  } else {
+    console.log('[SERVER] Object Storage module loaded but NO bucket env var found')
+    console.log('[SERVER] Available REPLIT/OBJECT env vars:', Object.keys(process.env).filter(k => /replit|object|bucket|storage/i.test(k)).join(', ') || 'NONE')
+  }
 } catch {
   console.log('[SERVER] Object Storage not available — PDFs will be email-attached only')
 }
@@ -70,9 +80,9 @@ app.post('/api/send-report', async (req, res) => {
     console.log('[REPORT] PDF generated (%d bytes), sending to: %s', pdf.length, answers.email)
 
     let pdfUrl = null
-    if (StorageClient) {
+    if (StorageClient && BUCKET_ID) {
       try {
-        const storage = new StorageClient()
+        const storage = new StorageClient({ bucketId: BUCKET_ID })
         const safeBrand = (answers.brandName || 'report').replace(/[^a-zA-Z0-9]/g, '')
         const pdfKey = `${Date.now()}-${safeBrand}.pdf`
         await storage.uploadFromBytes(pdfKey, pdf)
@@ -103,9 +113,9 @@ app.post('/api/send-report', async (req, res) => {
 })
 
 app.get('/api/report/:filename', async (req, res) => {
-  if (!StorageClient) return res.status(404).send('Not found')
+  if (!StorageClient || !BUCKET_ID) return res.status(404).send('Not found')
   try {
-    const storage = new StorageClient()
+    const storage = new StorageClient({ bucketId: BUCKET_ID })
     const result = await storage.downloadAsBytes(req.params.filename)
     if (!result.ok) return res.status(404).send('Report not found')
     res.setHeader('Content-Type', 'application/pdf')

@@ -273,6 +273,9 @@ function drawThreeLane(doc, answers, results, y) {
       M + 4, y + 18, { width: CW - 8 },
     )
     y += 44
+    doc.fontSize(8).fillColor(C.faint).font('Helvetica')
+    doc.text('Based on your average order value and the opportunity range above.', M + 4, y, { width: CW - 8 })
+    y += 14
   }
 
   y = divider(doc, y, 40)
@@ -303,8 +306,9 @@ function drawThreeLane(doc, answers, results, y) {
   })
   y += 104
 
-  y = ensureSpace(doc, 60, y)
-  drawCard(doc, M, y, CW, 50, C.green)
+  y = ensureSpace(doc, 80, y)
+  const combinedH = (aovMid && aovMid > 0) ? 68 : 50
+  drawCard(doc, M, y, CW, combinedH, C.green)
   doc.fontSize(11).fillColor(C.text).font('Helvetica-Bold')
   doc.text('Combined opportunity', M + 14, y + 8)
   doc.fontSize(14).fillColor(C.green).font('Helvetica-Bold')
@@ -312,7 +316,16 @@ function drawThreeLane(doc, answers, results, y) {
     `${formatGBP(roundForDisplay(tl.combined.low))}–${formatGBP(roundForDisplay(tl.combined.high))} / month`,
     M + 14, y + 26,
   )
-  y += 62
+  if (aovMid && aovMid > 0) {
+    const ordLo = Math.round(tl.combined.low / aovMid)
+    const ordHi = Math.round(tl.combined.high / aovMid)
+    doc.fontSize(9).fillColor(C.muted).font('Helvetica')
+    doc.text(
+      `~ ${ordLo.toLocaleString('en-GB')}–${ordHi.toLocaleString('en-GB')} orders recovered monthly (at your AOV of ${formatGBP(aovMid)})`,
+      M + 14, y + 46, { width: CW - 28 },
+    )
+  }
+  y += combinedH + 12
 
   doc.fontSize(9).fillColor(C.muted).font('Helvetica')
   doc.text(`6-month projection: ~${formatGBP(roundForDisplay(tl.sixMonth.low))}–${formatGBP(roundForDisplay(tl.sixMonth.high))}`, M, y)
@@ -359,8 +372,15 @@ function drawDecayCurve(doc, answers, results, y) {
   const params = DECAY_PARAMS[answers.spendTier]?.[answers.refreshRate]
   if (!params) return y
 
-  y = ensureSpace(doc, 180, y)
+  y = ensureSpace(doc, 200, y)
   y = kicker(doc, 'YOUR BUDGET EFFECTIVENESS CURVE', y)
+
+  doc.fontSize(9).fillColor(C.muted).font('Helvetica')
+  doc.text(
+    'This shows how quickly your ad spend loses its impact without a creative refresh. The longer you run the same messaging, the harder your budget has to work for the same results.',
+    M, y, { width: CW, lineGap: 2 },
+  )
+  y = doc.y + 12
 
   const { cliff, steepness, markerWeek } = params
   const markerEff = effectiveness(markerWeek, cliff, steepness)
@@ -368,10 +388,22 @@ function drawDecayCurve(doc, answers, results, y) {
   const weeksToCliff = Math.max(0, cliff - markerWeek)
   const escalation = getCPAEscalation(weeksPastCliff)
 
-  const chartX = M, chartY = y, chartW = CW, chartH = 100
+  const labelW = 28
+  const chartX = M + labelW, chartY = y, chartW = CW - labelW, chartH = 100
   const safeEnd = Math.max(0, cliff - 2)
   const warnEnd = cliff
 
+  // Y-axis labels + grid lines
+  for (const pct of [0, 25, 50, 75, 100]) {
+    const ly = chartY + chartH - (pct / 100) * chartH
+    doc.fontSize(7).fillColor(C.faint).font('Helvetica')
+    doc.text(`${pct}%`, M, ly - 4, { width: labelW - 4, align: 'right' })
+    doc.save()
+    doc.moveTo(chartX, ly).lineTo(chartX + chartW, ly).lineWidth(0.3).strokeColor(C.border).stroke()
+    doc.restore()
+  }
+
+  // Colored zones
   doc.save()
   doc.fillOpacity(0.08)
   doc.rect(chartX, chartY, (safeEnd / 12) * chartW, chartH).fill(C.green)
@@ -383,6 +415,7 @@ function drawDecayCurve(doc, answers, results, y) {
   const px = (w) => chartX + (w / 12) * chartW
   const py = (eff) => chartY + chartH - (eff / 100) * chartH
 
+  // Curve line
   const first = { x: px(0), y: py(effectiveness(0, cliff, steepness)) }
   doc.moveTo(first.x, first.y)
   for (let w = 0.2; w <= 12; w += 0.2) {
@@ -390,24 +423,35 @@ function drawDecayCurve(doc, answers, results, y) {
   }
   doc.lineWidth(2).strokeColor(C.accent).stroke()
 
+  // Cliff marker
   if (cliff <= 12) {
     doc.save()
     doc.moveTo(px(cliff), chartY).lineTo(px(cliff), chartY + chartH)
     doc.lineWidth(0.5).strokeColor(C.red).dash(3, { space: 3 }).stroke()
     doc.undash().restore()
     doc.fontSize(7).fillColor(C.red).font('Helvetica')
-    doc.text('cliff', px(cliff) + 3, chartY + 3)
+    doc.text('fatigue cliff', px(cliff) + 3, chartY + 3)
   }
 
+  // Marker dot + pill label
   const mx = px(markerWeek), my = py(markerEff)
   doc.save()
   doc.moveTo(mx, chartY + chartH).lineTo(mx, my)
   doc.lineWidth(0.5).strokeColor(C.accent).dash(3, { space: 3 }).stroke()
   doc.undash().restore()
   doc.circle(mx, my, 4).fill(C.accent)
-  doc.fontSize(8).fillColor(C.accent).font('Helvetica-Bold')
-  doc.text(`${markerEff}%`, mx - 15, my - 14, { width: 30, align: 'center' })
 
+  const pillW = 68, pillH = 16
+  const pillX = Math.min(Math.max(mx - pillW / 2, chartX), chartX + chartW - pillW)
+  const pillY = my - pillH - 8
+  doc.save()
+  doc.roundedRect(pillX, pillY, pillW, pillH, 4).fill(C.card)
+  doc.roundedRect(pillX, pillY, pillW, pillH, 4).lineWidth(0.5).strokeColor(C.accent).stroke()
+  doc.restore()
+  doc.fontSize(8).fillColor(C.accent).font('Helvetica-Bold')
+  doc.text(`${markerEff}% effective`, pillX, pillY + 4, { width: pillW, align: 'center' })
+
+  // Week labels
   doc.fontSize(7).fillColor(C.faint).font('Helvetica')
   for (let w = 0; w <= 12; w += 2) {
     doc.text(`W${w}`, px(w) - 8, chartY + chartH + 4, { width: 16, align: 'center' })
@@ -415,6 +459,38 @@ function drawDecayCurve(doc, answers, results, y) {
 
   y = chartY + chartH + 18
 
+  // Cadence caption
+  const FREQ_SHORT = {
+    weekly: 'weekly', every_2_3_weeks: 'bi-weekly',
+    monthly_or_less: 'monthly', only_when_drops: 'reactive',
+  }
+  doc.fontSize(8).fillColor(C.faint).font('Helvetica')
+  doc.text(
+    `Your ${FREQ_SHORT[answers.refreshRate] || ''} refresh cadence places you here on the curve`,
+    M, y, { width: CW, align: 'center' },
+  )
+  y += 16
+
+  // Zone legend
+  y = ensureSpace(doc, 55, y)
+  const zoneW = (CW - 16) / 3
+  const zones = [
+    { title: 'Safe zone', color: C.green, weeks: `Weeks 1–${Math.max(1, Math.round(safeEnd))}`, detail: 'CPA within 10–15%' },
+    { title: 'Warning zone', color: C.amber, weeks: `Weeks ${Math.max(1, Math.round(safeEnd))}–${Math.round(warnEnd)}`, detail: 'CPA up 20–50%, refresh window closing' },
+    { title: 'Fatigue cliff', color: C.red, weeks: `Weeks ${Math.round(warnEnd)}+`, detail: 'CPA doubles or worse, burning budget' },
+  ]
+  zones.forEach((z, i) => {
+    const zx = M + i * (zoneW + 8)
+    doc.fontSize(8).fillColor(z.color).font('Helvetica-Bold')
+    doc.text(z.title, zx, y, { width: zoneW })
+    doc.fontSize(7).fillColor(C.faint).font('Helvetica')
+    doc.text(z.weeks, zx, y + 11, { width: zoneW })
+    doc.fontSize(7).fillColor(C.muted).font('Helvetica')
+    doc.text(z.detail, zx, y + 22, { width: zoneW, lineGap: 1 })
+  })
+  y += 42
+
+  // Status text
   let statusColor = C.green
   let statusText = ''
   if (weeksToCliff > 0.5) {
@@ -424,26 +500,51 @@ function drawDecayCurve(doc, answers, results, y) {
     statusText = `You're at your fatigue cliff right now. Performance has dropped to ${markerEff}% and is about to fall fast.`
   } else {
     statusColor = C.red
-    statusText = `You passed your cliff ~${Math.round(weeksPastCliff)} weeks ago. Roughly ${100 - markerEff}% of your ad budget is underperforming.`
+    statusText = `You passed your cliff ~${Math.round(weeksPastCliff)} weeks ago. Roughly ${100 - markerEff}% of your ad budget is underperforming. Every week of inaction deepens the bleed.`
   }
 
   doc.fontSize(9).fillColor(statusColor).font('Helvetica')
   doc.text(statusText, M, y, { width: CW, lineGap: 2 })
   y = doc.y + 6
 
+  // Escalation
   if (escalation && weeksPastCliff > 0.5) {
     doc.fontSize(9).fillColor(C.muted)
-    doc.text(`Your cost per acquisition has likely increased ${escalation.low}–${escalation.high}% since your cliff.`, M, y, { width: CW })
+    doc.text(`Based on your refresh cadence, your cost per acquisition has likely increased ${escalation.low}–${escalation.high}% since your cliff.`, M, y, { width: CW })
     y = doc.y + 6
   }
 
-  return y + 12
+  // Revenue context
+  if (results.leakLow && results.leakHigh && weeksPastCliff > 0.5) {
+    doc.fontSize(9).fillColor(C.muted)
+    doc.text(
+      `At your revenue level, this effectiveness drop represents approximately ${formatGBP(Math.round(results.leakLow * (1 - markerEff / 100)))}–${formatGBP(Math.round(results.leakHigh * (1 - markerEff / 100)))} in monthly revenue left on the table.`,
+      M, y, { width: CW, lineGap: 2 },
+    )
+    y = doc.y + 6
+  }
+
+  // Takeaway
+  doc.fontSize(9).fillColor(C.muted)
+  doc.text(
+    `Refreshing within ${Math.max(1, Math.round(safeEnd))} weeks keeps your CPA stable. Beyond week ${Math.round(cliff)}, performance drops fast and compounds.`,
+    M, y, { width: CW, lineGap: 2 },
+  )
+
+  return doc.y + 16
 }
 
 function drawRadar(doc, answers, y) {
   if ((answers.frustrations || []).includes('none')) return y
-  y = ensureSpace(doc, 250, y)
+  y = ensureSpace(doc, 280, y)
   y = kicker(doc, 'YOUR CREATIVE ANGLE COVERAGE', y)
+
+  doc.fontSize(9).fillColor(C.muted).font('Helvetica')
+  doc.text(
+    'This maps how many distinct messaging angles your ads cover. Brands in similar tiers to yours should ideally hit the green benchmark. The yellow coverage is estimated from similar brands and your quiz answers. A full audit is needed to map this properly.',
+    M, y, { width: CW, lineGap: 2 },
+  )
+  y = doc.y + 10
 
   const { scores, benchmark } = getRadarScores(answers.brandType, answers.angleDiversity)
   const N = 5, cx = PAGE_W / 2, cy = y + 100, r = 80
@@ -480,9 +581,19 @@ function drawRadar(doc, answers, y) {
   for (let i = 1; i < N; i++) doc.lineTo(ptx(i, scores[i]), pty(i, scores[i]))
   doc.closePath().lineWidth(2).strokeColor(C.amber).stroke()
 
-  // Dots + axis labels
+  // Dots + percentage labels + axis labels
   for (let i = 0; i < N; i++) {
-    doc.circle(ptx(i, scores[i]), pty(i, scores[i]), 3).fill(C.amber)
+    const dx = ptx(i, scores[i])
+    const dy = pty(i, scores[i])
+    doc.circle(dx, dy, 3).fill(C.amber)
+
+    // Percentage label offset outward from data point
+    const offX = Math.cos(ang(i)) * 14
+    const offY = Math.sin(ang(i)) * 14
+    doc.fontSize(7).fillColor(C.amber).font('Helvetica-Bold')
+    doc.text(`${scores[i]}%`, dx + offX - 14, dy + offY - 4, { width: 28, align: 'center' })
+
+    // Axis label
     const lx = cx + (r + 18) * Math.cos(ang(i))
     const ly = cy + (r + 18) * Math.sin(ang(i))
     doc.fontSize(7).fillColor(C.muted).font('Helvetica')
@@ -552,6 +663,151 @@ function drawDiagnosis(doc, insights, brandName, y) {
   return y
 }
 
+// --- New sections: Facts CTA, Credit Stack, Loom Card, How It Works ---
+
+function drawFactsCTA(doc, y) {
+  y = ensureSpace(doc, 90, y)
+  drawCard(doc, M, y, CW, 78)
+  doc.fontSize(14).fillColor(C.white).font('Helvetica-Bold')
+  doc.text('Get all of the facts', M + 14, y + 10, { width: CW - 28, align: 'center' })
+  doc.fontSize(9).fillColor(C.muted).font('Helvetica')
+  doc.text(
+    'Schedule your FREE custom Loom teardown to get all the details.',
+    M + 30, y + 30, { width: CW - 60, align: 'center' },
+  )
+  doc.text(
+    'Absolutely no commitment; just all the actions you need to improve your ROAS.',
+    M + 30, doc.y + 4, { width: CW - 60, align: 'center' },
+  )
+  return y + 90
+}
+
+function drawCreditStack(doc, isHot, y) {
+  y = ensureSpace(doc, 160, y)
+
+  doc.fontSize(20).fillColor(C.accent).font('Helvetica-Bold')
+  doc.text("You've Got £847 to Spend", M, y, { width: CW, align: 'center' })
+  y = doc.y + 16
+
+  const items = [
+    { unlocked: true, name: 'Audience Precision System', price: '£47', status: 'FREE', statusColor: C.green },
+    { unlocked: true, name: 'Atomic Audience & Ad Audit', price: '£403', status: 'FREE', statusColor: C.green },
+    { unlocked: false, name: 'Meta-signal Stack Guide', price: '£397', status: isHot ? 'WAIVED' : 'IN AUDIT', statusColor: isHot ? C.amber : C.faint },
+  ]
+
+  const stackH = 14 + items.length * 22 + 24
+  drawCard(doc, M, y, CW, stackH)
+  doc.fontSize(11).fillColor(C.text).font('Helvetica-Bold')
+  doc.text("You've unlocked diagnostic credit", M + 14, y + 10, { width: CW - 28 })
+  let iy = y + 30
+
+  items.forEach((item) => {
+    const dotColor = item.unlocked ? C.green : C.faint
+    doc.circle(M + 22, iy + 4, 3).fill(dotColor)
+    doc.fontSize(10).fillColor(C.text).font('Helvetica')
+    doc.text(item.name, M + 32, iy, { width: CW - 150 })
+    doc.fontSize(9).fillColor(C.faint).font('Helvetica')
+    doc.text(item.price, PAGE_W - M - 82, iy, { width: 30, align: 'right', strike: true })
+    doc.fontSize(9).fillColor(item.statusColor).font('Helvetica-Bold')
+    doc.text(item.status, PAGE_W - M - 48, iy, { width: 46 })
+    iy += 22
+  })
+
+  doc.fontSize(10).fillColor(C.accent).font('Helvetica')
+  doc.text('£847 in diagnostic credit, yours free.', M + 14, iy, { width: CW - 28, align: 'center' })
+
+  return y + stackH + 16
+}
+
+function drawLoomCard(doc, answers, y) {
+  y = ensureSpace(doc, 200, y)
+  const brand = answers.brandName || 'your brand'
+
+  doc.fontSize(14).fillColor(C.text).font('Helvetica-Bold')
+  doc.text('Want the full picture?', M, y, { width: CW })
+  y += 22
+
+  doc.fontSize(9).fillColor(C.muted).font('Helvetica')
+  doc.text(
+    `We'll prepare a personalised Loom teardown for ${brand}: a 5-minute video plus a 30-minute free consultation. It includes:`,
+    M, y, { width: CW, lineGap: 2 },
+  )
+  y = doc.y + 10
+
+  const deliverables = [
+    "Your competitor messaging analysis: what brands in your lane are saying that you're not",
+    "Your top 3 competitors run through our Spend Decoder: what they're spending and how hard they're testing",
+    'A concrete plan for your next creative batch',
+  ]
+
+  deliverables.forEach((d) => {
+    doc.fontSize(9).fillColor(C.muted).font('Helvetica')
+    doc.text(`— ${d}`, M + 8, y, { width: CW - 16, lineGap: 2 })
+    y = doc.y + 6
+  })
+
+  y += 4
+  const angleNums = ['04', '05']
+  angleNums.forEach((num) => {
+    y = ensureSpace(doc, 30, y)
+    drawCard(doc, M, y, CW, 24, C.border)
+    doc.fontSize(8).fillColor(C.accent).font('Helvetica-Bold')
+    doc.text(num, M + 10, y + 7, { width: 20 })
+    doc.fontSize(9).fillColor(C.faint).font('Helvetica')
+    doc.text('Angle held back for your walkthrough', M + 34, y + 7, { width: CW - 130 })
+    doc.fontSize(7).fillColor(C.faint).font('Helvetica-Bold')
+    doc.text('IN TEARDOWN', PAGE_W - M - 78, y + 8, { width: 64, align: 'right', characterSpacing: 0.5 })
+    y += 30
+  })
+
+  doc.fontSize(9).fillColor(C.text).font('Helvetica-Bold')
+  doc.text('The insights are yours whether we work together or not.', M, y, { width: CW })
+  y = doc.y + 8
+
+  doc.fontSize(8).fillColor(C.faint).font('Helvetica')
+  doc.text('Prepared within 48 hours of booking. We review every teardown with a human strategist, not just AI.', M, y, { width: CW, lineGap: 2 })
+
+  return doc.y + 16
+}
+
+function drawHowItWorks(doc, y) {
+  y = ensureSpace(doc, 180, y)
+
+  doc.fontSize(14).fillColor(C.text).font('Helvetica-Bold')
+  doc.text('How it works', M, y, { width: CW })
+  y += 22
+
+  const steps = [
+    { num: '1', title: 'Book a time', desc: "Pick a 30-minute slot. We'll confirm within 2 hours." },
+    { num: '2', title: 'We build your teardown', desc: "Our team analyses your ad account, competitor landscape, and audience data using Audr. You'll get a personalised Loom video within 48 hours." },
+    { num: '3', title: 'Watch, ask, decide', desc: 'Free consultation. We walk through the findings and build an action plan together. No obligation.' },
+  ]
+
+  steps.forEach((step) => {
+    y = ensureSpace(doc, 44, y)
+    doc.save()
+    doc.roundedRect(M, y, 20, 20, 4).lineWidth(0.5).strokeColor(C.border).stroke()
+    doc.restore()
+    doc.fontSize(10).fillColor(C.text).font('Helvetica-Bold')
+    doc.text(step.num, M, y + 5, { width: 20, align: 'center' })
+    doc.fontSize(10).fillColor(C.text).font('Helvetica-Bold')
+    doc.text(step.title, M + 28, y, { width: CW - 28 })
+    doc.fontSize(9).fillColor(C.muted).font('Helvetica')
+    doc.text(step.desc, M + 28, doc.y + 2, { width: CW - 28, lineGap: 2 })
+    y = doc.y + 12
+  })
+
+  doc.fontSize(9).fillColor(C.muted).font('Helvetica')
+  doc.text(
+    "Worth saying: this compounds. As the messaging improves month over month, each cycle builds on the last. That's the conversation worth having.",
+    M, y, { width: CW, lineGap: 2 },
+  )
+
+  return doc.y + 16
+}
+
+// --- CTA ---
+
 function drawCTA(doc, isHot, y) {
   y = ensureSpace(doc, 150, y)
   y = divider(doc, y, 60) + 8
@@ -605,11 +861,20 @@ export async function generatePdf(answers, results, insights) {
     let y = drawHeader(doc, answers)
     y = drawGauge(doc, results.score, y)
     y = drawInterpretation(doc, answers, results, y)
+
+    const temp = results.temperature
+    const isHot = temp === 'super_hot' || temp === 'hot'
+    const isCold = temp === 'cold'
+    const disqualified = (answers.frustrations || []).includes('none')
+
+    if (isHot) y = drawFactsCTA(doc, y)
+
     y = drawOpportunity(doc, answers, results, y)
 
-    const disqualified = (answers.frustrations || []).includes('none')
     if (!disqualified) {
       y = drawThreeLane(doc, answers, results, y)
+      if (isHot) y = drawFactsCTA(doc, y)
+
       const aovMid = answers.aov === 'aov_other' ? Number(answers.aovCustom) : (AOV_MIDPOINTS[answers.aov] || null)
       y = drawCostOfInaction(doc, results, aovMid, y)
       y = drawDecayCurve(doc, answers, results, y)
@@ -618,8 +883,15 @@ export async function generatePdf(answers, results, insights) {
 
     y = drawDiagnosis(doc, insights, answers.brandName, y)
 
-    const temp = results.temperature
-    const isHot = temp === 'super_hot' || temp === 'hot'
+    if (!isCold && !disqualified) {
+      y = drawCreditStack(doc, isHot, y)
+    }
+
+    if (isHot) {
+      y = drawLoomCard(doc, answers, y)
+      y = drawHowItWorks(doc, y)
+    }
+
     drawCTA(doc, isHot, y)
 
     doc.end()

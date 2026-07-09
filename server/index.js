@@ -71,7 +71,7 @@ app.post('/api/send-report', async (req, res) => {
   if (!answers?.email || !results) {
     return res.status(400).json({ error: 'Missing data' })
   }
-  const host = req.get('host')
+  const host = req.get('x-forwarded-host') || req.get('host')
   res.json({ queued: true })
 
   try {

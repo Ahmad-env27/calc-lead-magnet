@@ -198,16 +198,16 @@ export default function App() {
       ssSetFlag(SK.pageviewFired)
     }
 
-    // If restored to unlock without insights, silently re-fetch
-    if (!isPreviewMode && phaseFromPath() === 'unlock' && !ssLoad(SK.insights)) {
-      const saved = ssLoad(SK.answers)
-      if (saved?.brandName) {
-        fetchInsights(saved).then((result) => {
-          setInsights(result)
-          ssSave(SK.insights, result)
-        }).catch(() => {})
-      }
-    }
+    // FROZEN: LLM insights disabled
+    // if (!isPreviewMode && phaseFromPath() === 'unlock' && !ssLoad(SK.insights)) {
+    //   const saved = ssLoad(SK.answers)
+    //   if (saved?.brandName) {
+    //     fetchInsights(saved).then((result) => {
+    //       setInsights(result)
+    //       ssSave(SK.insights, result)
+    //     }).catch(() => {})
+    //   }
+    // }
   }, [])
 
   // Browser back / forward
@@ -221,7 +221,9 @@ export default function App() {
   }, [])
 
   const completeQuiz = () => {
-    const promise = fetchInsights(answers)
+    // FROZEN: LLM insights disabled — resolve immediately so Scoring animation still plays
+    // const promise = fetchInsights(answers)
+    const promise = Promise.resolve(null)
     setInsightsPromise(promise)
     setPhase('scoring')
   }
@@ -261,10 +263,11 @@ export default function App() {
       currency: 'GBP',
     })
 
-    if (!insights) {
-      console.log('[APP] Insights null at email submit — firing retry fetch')
-      setInsightsPromise(fetchInsights(finalAnswers))
-    }
+    // FROZEN: LLM insights disabled
+    // if (!insights) {
+    //   console.log('[APP] Insights null at email submit — firing retry fetch')
+    //   setInsightsPromise(fetchInsights(finalAnswers))
+    // }
 
     setPhase('loading')
   }

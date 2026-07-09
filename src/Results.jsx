@@ -1003,7 +1003,7 @@ export default function Results({ answers, results, insights }) {
         </section>
       )}
 
-      {/* 4-part AI diagnosis */}
+      {/* FROZEN: 4-part AI diagnosis — LLM insights disabled
       {insights && insights.whats_working ? (
         <section className="rsection" style={stagger()}>
           <DiagnosisSection insights={insights} brandName={answers.brandName} />
@@ -1015,6 +1015,7 @@ export default function Results({ answers, results, insights }) {
           </p>
         </section>
       )}
+      */}
 
       {/* ── Light section: white background from here to end ── */}
       <div className="results-light-wrap">

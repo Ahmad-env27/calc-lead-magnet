@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import {
   getRiskBand, formatGBP, calculateSpendDecoder, AOV_MIDPOINTS,
   getRadarScores, DECAY_PARAMS, effectiveness,
@@ -156,6 +156,42 @@ function Gauge({ score }) {
         </text>
       </svg>
     </div>
+  )
+}
+
+// --- GHL Booking Calendar embed ---------------------------------------------
+
+const GHL_BOOKING_BASE = 'https://api.satorifunnels.co/widget/booking/SV6P9ifpHW7nyaS9RZYp'
+const GHL_SCRIPT_SRC = 'https://api.satorifunnels.co/js/form_embed.js'
+
+function BookingCalendar({ name, email, title, sub }) {
+  useEffect(() => {
+    if (document.querySelector(`script[src="${GHL_SCRIPT_SRC}"]`)) return
+    const s = document.createElement('script')
+    s.src = GHL_SCRIPT_SRC
+    s.type = 'text/javascript'
+    document.body.appendChild(s)
+  }, [])
+
+  const params = new URLSearchParams()
+  if (name) params.set('name', name)
+  if (email) params.set('email', email)
+  const qs = params.toString()
+  const src = GHL_BOOKING_BASE + (qs ? '?' + qs : '')
+
+  return (
+    <section className="rsection booking-embed">
+      {title && <h3 className="booking-embed__title">{title}</h3>}
+      {sub && <p className="booking-embed__sub">{sub}</p>}
+      <div className="booking-embed__frame">
+        <iframe
+          src={src}
+          title="Book a free consultation"
+          scrolling="no"
+          id="SV6P9ifpHW7nyaS9RZYp_results"
+        />
+      </div>
+    </section>
   )
 }
 
@@ -907,6 +943,13 @@ export default function Results({ answers, results, insights }) {
         <p className="interp">{interpretation(answers, results)}</p>
       </section>
 
+      <BookingCalendar
+        name={answers.name}
+        email={answers.email}
+        title="Book your free 30-minute consultation"
+        sub="Pick a time. We'll walk through your report and build an action plan together."
+      />
+
       {isHot && (
         <section className="rsection facts-cta" style={stagger()}>
           <h3 className="facts-cta__title">Get all of the facts</h3>
@@ -1083,6 +1126,13 @@ export default function Results({ answers, results, insights }) {
               Powered by Audr audience intelligence + human creative strategists
             </p>
           </section>
+
+          <BookingCalendar
+            name={answers.name}
+            email={answers.email}
+            title="Ready to book?"
+            sub="Grab a slot below — 30 minutes, no strings."
+          />
         </>
       )}
 

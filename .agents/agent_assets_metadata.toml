@@ -6,3 +6,9 @@ id = "6o5_KYKi4-Hv0KjueRrf7"
 uri = "file://tracking-cheat-sheet.md"
 type = "text"
 title = "Audr Tracking Cheat Sheet"
+
+[[outputs]]
+id = "Sac_Fk3X2fujTDIQC-3XK"
+uri = "file://quiz-steps.md"
+type = "text"
+title = "Audr Quiz — All 16 Steps"

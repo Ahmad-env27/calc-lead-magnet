@@ -695,7 +695,125 @@ h2 {
 }
 
 /* --------------------------------------------------------------------------
-   Phase 3 — Loading
+   Processing page — 90s progress bar + embedded frustrations question
+   -------------------------------------------------------------------------- */
+
+.processing {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.processing-bar-track {
+  width: 100%;
+  height: 5px;
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+
+.processing-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s linear;
+}
+
+.processing-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 24px 40px;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.processing-msg {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  animation: msg-fade 0.4s ease both;
+}
+
+.processing-brand {
+  font-size: 14px;
+  color: var(--faint);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.processing-q {
+  width: 100%;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: reveal-fade 0.5s ease both;
+}
+
+@keyframes reveal-fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.processing-q__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.processing-q__sub {
+  font-size: 14px;
+  color: var(--subtle);
+  margin: 0;
+}
+
+.processing-q__note {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 500;
+  margin: 0;
+}
+
+.processing-cta {
+  margin-top: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Select input (dropdown)
+   -------------------------------------------------------------------------- */
+
+.select-input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-family: var(--font-display);
+  color: var(--text);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.select-input:focus {
+  border-color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   Phase 3 — Loading (legacy, kept for reference)
    -------------------------------------------------------------------------- */
 
 .loading {

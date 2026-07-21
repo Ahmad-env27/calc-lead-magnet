@@ -3,9 +3,7 @@ import LandingA from './LandingA.jsx'
 import LandingB from './LandingB.jsx'
 import { getVariant, trackVariantView, trackVariantCTA } from './utils/abTest.js'
 import Quiz from './Quiz.jsx'
-import Scoring from './Scoring.jsx'
-import Unlock from './Unlock.jsx'
-import Loading from './Loading.jsx'
+import Processing from './Processing.jsx'
 import Results from './Results.jsx'
 import { calculateScore, getLeadTemperature, calculateThreeLaneImpact, calculateCostOfInaction, getScenarioMatch, AOV_MIDPOINTS } from './scoring.js'
 import { fireWebhook } from './webhook.js'
@@ -50,15 +48,15 @@ function ssSetFlag(key) {
 // ---------------------------------------------------------------------------
 
 const PHASE_PATH = {
-  landing: BASE || '/', quiz: BASE + '/quiz', scoring: BASE + '/unlock',
-  unlock: BASE + '/unlock', loading: BASE + '/results', results: BASE + '/results',
+  landing: BASE || '/', quiz: BASE + '/quiz',
+  processing: BASE + '/processing', results: BASE + '/results',
 }
 
 function phaseFromPath() {
   let p = window.location.pathname
   if (BASE && p.startsWith(BASE)) p = p.slice(BASE.length) || '/'
   if (p === '/quiz') return 'quiz'
-  if (p === '/unlock') return 'unlock'
+  if (p === '/processing') return 'processing'
   if (p === '/results') return 'results'
   return 'landing'
 }
@@ -123,18 +121,26 @@ const SAMPLE_ANSWERS = {
   email: 'founder@glowtheory.co.uk',
 }
 
+const REVENUE_SPEND_DEFAULTS = {
+  under_30k: 'under_10k',
+  '30k_80k': '10k_30k',
+  '80k_120k': '30k_50k',
+  '120k_plus': '50k_100k',
+}
+
 function toScoringInputs(answers) {
+  const frList = answers.frustrations || []
   return {
     brandType: answers.brandType,
     revenue: answers.revenue,
-    spendTier: answers.spendTier,
-    refreshRate: answers.refreshRate,
+    spendTier: answers.spendTier || REVENUE_SPEND_DEFAULTS[answers.revenue] || '10k_30k',
+    refreshRate: answers.refreshRate || 'monthly_or_less',
     angleDiversity: answers.angleDiversity,
     costTrend: answers.costTrend,
-    roasBracket: answers.roasBracket,
-    creativeVolume: answers.creativeVolume,
-    frustrations: answers.frustrations,
-    frustrationCount: answers.frustrations.filter((f) => f !== 'none').length,
+    roasBracket: answers.roasBracket || 'not_sure',
+    creativeVolume: answers.creativeVolume || 'vol_3_7',
+    frustrations: frList,
+    frustrationCount: frList.filter((f) => f !== 'none').length,
   }
 }
 
@@ -146,7 +152,7 @@ export default function App() {
     const url = phaseFromPath()
     const saved = ssLoad(SK.answers)
     if (url === 'results' && (!saved || !saved.email)) return 'landing'
-    if (url === 'unlock' && (!saved || !saved.brandType)) return 'landing'
+    if (url === 'processing' && (!saved || !saved.brandName)) return 'landing'
     return url
   })
 
@@ -230,19 +236,15 @@ export default function App() {
   }, [])
 
   const completeQuiz = () => {
-    // FROZEN: LLM insights disabled — resolve immediately so Scoring animation still plays
-    // const promise = fetchInsights(answers)
-    const promise = Promise.resolve(null)
-    setInsightsPromise(promise)
-    setPhase('scoring')
+    setPhase('processing')
   }
 
-  const unlockReport = (email, name) => {
+  const completeProcessing = (selectedFrustrations) => {
     if (webhookFired.current) return
     webhookFired.current = true
     ssSetFlag(SK.webhookFired)
 
-    const finalAnswers = { ...answers, email, name }
+    const finalAnswers = { ...answers, frustrations: selectedFrustrations }
     setAnswers(finalAnswers)
 
     const fullResults = computeResults(finalAnswers)
@@ -250,12 +252,11 @@ export default function App() {
 
     const utms = getStoredUTMs()
     fireWebhook({ ...finalAnswers, ...fullResults }, utms, { source: SOURCE })
-    sendReport(finalAnswers, fullResults, insights)
+    sendReport(finalAnswers, fullResults, null)
 
     trackEvent('CalculatorCompleted', {
       score: fullResults.score,
       temperature: fullResults.temperature,
-      spend_tier: finalAnswers.spendTier,
       revenue_tier: finalAnswers.revenue,
       brand_type: finalAnswers.brandType,
     })
@@ -272,13 +273,7 @@ export default function App() {
       currency: 'GBP',
     })
 
-    // FROZEN: LLM insights disabled
-    // if (!insights) {
-    //   console.log('[APP] Insights null at email submit — firing retry fetch')
-    //   setInsightsPromise(fetchInsights(finalAnswers))
-    // }
-
-    setPhase('loading')
+    setPhase('results')
   }
 
   const reset = () => {
@@ -286,13 +281,10 @@ export default function App() {
     setAnswersRaw(INITIAL_ANSWERS)
     setResults(null)
     setInsights(null)
-    setInsightsPromise(null)
     setPhaseRaw('landing')
     try {
       Object.values(SK).forEach((k) => sessionStorage.removeItem(k))
       sessionStorage.removeItem('audr_quiz_step')
-      sessionStorage.removeItem('audr_started_fired')
-      sessionStorage.removeItem('audr_qualified_fired')
     } catch {}
     window.history.replaceState({ phase: 'landing' }, '', BASE || '/')
   }
@@ -313,38 +305,10 @@ export default function App() {
       {phase === 'quiz' && (
         <Quiz answers={answers} setAnswers={setAnswers} onComplete={completeQuiz} />
       )}
-      {phase === 'scoring' && (
-        <Scoring
+      {phase === 'processing' && (
+        <Processing
           brandName={answers.brandName}
-          insightsPromise={insightsPromise}
-          onDone={(resolvedInsights) => {
-            setInsights(resolvedInsights)
-            ssSave(SK.insights, resolvedInsights)
-            setPhase('unlock')
-          }}
-        />
-      )}
-      {phase === 'unlock' && (
-        <Unlock
-          brandName={answers.brandName}
-          name={answers.name}
-          email={answers.email}
-          onSubmit={unlockReport}
-          onBack={() => setPhase('quiz')}
-        />
-      )}
-      {phase === 'loading' && (
-        <Loading
-          brandName={answers.brandName}
-          brandType={answers.brandType}
-          insightsPromise={!insights ? insightsPromise : null}
-          onDone={(retryInsights) => {
-            if (retryInsights && !insights) {
-              setInsights(retryInsights)
-              ssSave(SK.insights, retryInsights)
-            }
-            setPhase('results')
-          }}
+          onComplete={completeProcessing}
         />
       )}
       {phase === 'results' && <Results answers={answers} results={results} insights={insights} />}

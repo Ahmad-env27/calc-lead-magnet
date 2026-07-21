@@ -75,8 +75,11 @@ export default function Processing({ brandName, onComplete }) {
 
   return (
     <main className="processing">
-      <div className="processing-bar-track">
-        <div className="processing-bar-fill" style={{ width: `${progress}%` }} />
+      <div className="processing-bar-wrap">
+        <div className="processing-bar-track">
+          <div className="processing-bar-fill" style={{ width: `${progress}%` }} />
+        </div>
+        <span className="processing-bar-pct">{Math.floor(progress)}%</span>
       </div>
 
       <div className="processing-body">

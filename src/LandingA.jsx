@@ -15,7 +15,7 @@ export default function Landing({ onStart }) {
         </h1>
 
         <p className="subhead reveal" style={{ '--i': 4 }}>
-          Answer 16 quick questions and get your Revenue Leak Report — your
+          Answer 5 quick questions and get your Revenue Leak Report — your
           creative fatigue risk score and how much monthly revenue your skincare
           brand is leaving behind.
         </p>
@@ -141,7 +141,7 @@ export default function Landing({ onStart }) {
               <div className="step__line"></div>
             </div>
             <div className="step__content">
-              <h3>Answer 16 quick questions</h3>
+              <h3>Answer 5 quick questions</h3>
               <p>About your ad spend, creative process, and what's been frustrating you. No fluff, just the signals that matter.</p>
               <span className="step__time">~3 min</span>
             </div>
@@ -325,7 +325,7 @@ export default function Landing({ onStart }) {
       <section className="final-cta">
         <p className="section__eyebrow">Ready?</p>
         <h2 className="final-cta__title">Find out what your ads are costing you. <span className="highlight">In 3 minutes.</span></h2>
-        <p className="final-cta__sub">16 questions. Instant results. Free Loom teardown. No strings.</p>
+        <p className="final-cta__sub">5 questions. Instant results. Free Loom teardown. No strings.</p>
         <button className="cta-btn cta-full" onClick={() => { pushStart('final_cta'); onStart() }}>Tell me what to fix →</button>
         <div className="trust-zone" style={{ marginTop: '14px' }}>
           <p className="trust-line">5 quick questions built for skincare brands doing <span className="pill">£100k+/month</span> in revenue</p>

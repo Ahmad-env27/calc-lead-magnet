@@ -24,6 +24,7 @@ export default function Landing({ onStart }) {
           <button className="cta-btn" onClick={() => { pushStart('hero'); onStart() }}>
             Get my free report →
           </button>
+          <p className="cta-social-proof">Used by 34 DTC brands this month</p>
         </div>
 
         <div className="trust-zone reveal" style={{ '--i': 6 }}>

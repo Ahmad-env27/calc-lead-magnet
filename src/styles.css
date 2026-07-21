@@ -290,6 +290,13 @@ h2 {
   }
 }
 
+.cta-social-proof {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 10px;
+}
+
 .trust-zone {
   display: flex;
   flex-direction: column;

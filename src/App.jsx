@@ -250,8 +250,20 @@ export default function App() {
     const fullResults = computeResults(finalAnswers)
     setResults(fullResults)
 
+    // Merge derived scoring inputs so webhook payload has non-null values for
+    // fields we no longer ask (spendTier, refreshRate, roasBracket, creativeVolume)
+    // — prevents GHL automation conditions from silently dropping the contact.
+    const derivedInputs = toScoringInputs(finalAnswers)
+    const webhookData = {
+      ...finalAnswers,
+      spendTier: derivedInputs.spendTier,
+      refreshRate: derivedInputs.refreshRate,
+      roasBracket: derivedInputs.roasBracket,
+      creativeVolume: derivedInputs.creativeVolume,
+    }
+
     const utms = getStoredUTMs()
-    fireWebhook({ ...finalAnswers, ...fullResults }, utms, { source: SOURCE })
+    fireWebhook({ ...webhookData, ...fullResults }, utms, { source: SOURCE })
     sendReport(finalAnswers, fullResults, null)
 
     trackEvent('CalculatorCompleted', {

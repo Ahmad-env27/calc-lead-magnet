@@ -120,9 +120,25 @@ export function mapPayload(raw) {
   return mapped
 }
 
+// Fallback spend tier derived from revenue when spendTier wasn't collected
+const REVENUE_SPEND_DEFAULTS = {
+  under_30k: 'under_10k',
+  '30k_80k': '10k_30k',
+  '80k_120k': '30k_50k',
+  '120k_plus': '50k_100k',
+}
+
 export function buildWebhookPayload(data, utms = {}, extra = {}) {
   const tl = data.threeLane
   const coi = data.costOfInaction
+
+  // Derive any fields that may be null because the new 5-step quiz no longer
+  // asks them — ensures GHL automations that filter on these fields still fire.
+  const spendTier = data.spendTier || REVENUE_SPEND_DEFAULTS[data.revenue] || null
+  const refreshRate = data.refreshRate || 'monthly_or_less'
+  const roasBracket = data.roasBracket || 'not_sure'
+  const creativeVolume = data.creativeVolume || 'vol_3_7'
+
   const raw = {
     first_name: data.name || null,
     email: data.email,
@@ -132,14 +148,14 @@ export function buildWebhookPayload(data, utms = {}, extra = {}) {
     responsibilities: data.responsibilities || [],
     brand_type: data.brandType,
     revenue_tier: data.revenue,
-    spend_tier: data.spendTier,
+    spend_tier: spendTier,
     aov: data.aov,
     aov_custom: data.aov === 'aov_other' ? data.aovCustom : null,
-    refresh_rate: data.refreshRate,
+    refresh_rate: refreshRate,
     angle_diversity: data.angleDiversity,
     cost_trend: data.costTrend,
-    roas_bracket: data.roasBracket,
-    creative_volume: data.creativeVolume,
+    roas_bracket: roasBracket,
+    creative_volume: creativeVolume,
     best_hook: data.bestHook || null,
     ads_made_by: data.adsMadeBy,
     frustrations: data.frustrations,

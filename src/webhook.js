@@ -170,8 +170,8 @@ export function buildWebhookPayload(data, utms = {}, extra = {}) {
   return mapPayload(raw)
 }
 
-export async function fireWebhook(data, utms = {}) {
-  const payload = buildWebhookPayload(data, utms)
+export async function fireWebhook(data, utms = {}, extra = {}) {
+  const payload = buildWebhookPayload(data, utms, extra)
   const body = JSON.stringify(payload)
 
   const fetchConfig = {

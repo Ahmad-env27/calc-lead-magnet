@@ -14,14 +14,22 @@ import { getStoredUTMs } from './utils/utm.js'
 import { fetchInsights, sendReport } from './api.js'
 
 // ---------------------------------------------------------------------------
+// Route variant detection — /dtc prefix runs a parallel copy of the funnel
+// ---------------------------------------------------------------------------
+
+const BASE = window.location.pathname.startsWith('/dtc') ? '/dtc' : ''
+const SOURCE = BASE ? 'dtc_calculator_v2' : 'calculator_v2'
+
+// ---------------------------------------------------------------------------
 // Session persistence — survives refresh within the same tab
 // ---------------------------------------------------------------------------
 
+const SK_PREFIX = BASE ? 'audr_dtc' : 'audr'
 const SK = {
-  answers: 'audr_answers',
-  insights: 'audr_insights',
-  pageviewFired: 'audr_pv',
-  webhookFired: 'audr_wh',
+  answers: SK_PREFIX + '_answers',
+  insights: SK_PREFIX + '_insights',
+  pageviewFired: SK_PREFIX + '_pv',
+  webhookFired: SK_PREFIX + '_wh',
 }
 
 function ssSave(key, value) {
@@ -42,12 +50,13 @@ function ssSetFlag(key) {
 // ---------------------------------------------------------------------------
 
 const PHASE_PATH = {
-  landing: '/', quiz: '/quiz', scoring: '/unlock',
-  unlock: '/unlock', loading: '/results', results: '/results',
+  landing: BASE || '/', quiz: BASE + '/quiz', scoring: BASE + '/unlock',
+  unlock: BASE + '/unlock', loading: BASE + '/results', results: BASE + '/results',
 }
 
 function phaseFromPath() {
-  const p = window.location.pathname
+  let p = window.location.pathname
+  if (BASE && p.startsWith(BASE)) p = p.slice(BASE.length) || '/'
   if (p === '/quiz') return 'quiz'
   if (p === '/unlock') return 'unlock'
   if (p === '/results') return 'results'
@@ -240,7 +249,7 @@ export default function App() {
     setResults(fullResults)
 
     const utms = getStoredUTMs()
-    fireWebhook({ ...finalAnswers, ...fullResults }, utms)
+    fireWebhook({ ...finalAnswers, ...fullResults }, utms, { source: SOURCE })
     sendReport(finalAnswers, fullResults, insights)
 
     trackEvent('CalculatorCompleted', {
@@ -285,7 +294,7 @@ export default function App() {
       sessionStorage.removeItem('audr_started_fired')
       sessionStorage.removeItem('audr_qualified_fired')
     } catch {}
-    window.history.replaceState({ phase: 'landing' }, '', '/')
+    window.history.replaceState({ phase: 'landing' }, '', BASE || '/')
   }
 
   const previewResults = () => {

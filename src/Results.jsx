@@ -164,7 +164,7 @@ function Gauge({ score }) {
 const GHL_BOOKING_BASE = 'https://api.satorifunnels.co/widget/booking/SV6P9ifpHW7nyaS9RZYp'
 const GHL_SCRIPT_SRC = 'https://api.satorifunnels.co/js/form_embed.js'
 
-function BookingCalendar({ name, email, title, sub }) {
+function BookingCalendar({ name, email, title, sub, anchorId }) {
   useEffect(() => {
     if (document.querySelector(`script[src="${GHL_SCRIPT_SRC}"]`)) return
     const s = document.createElement('script')
@@ -180,7 +180,7 @@ function BookingCalendar({ name, email, title, sub }) {
   const src = GHL_BOOKING_BASE + (qs ? '?' + qs : '')
 
   return (
-    <section className="rsection booking-embed">
+    <section id={anchorId} className="rsection booking-embed">
       {title && <h3 className="booking-embed__title">{title}</h3>}
       {sub && <p className="booking-embed__sub">{sub}</p>}
       <div className="booking-embed__frame">
@@ -864,8 +864,8 @@ function BonusPopup({ alreadyClaimed }) {
 
   const scrollToCTA = () => {
     dismiss()
-    const el = document.querySelector('.loom-card')
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const el = document.getElementById('book')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   if (!show || alreadyClaimed) return null
@@ -913,20 +913,24 @@ export default function Results({ answers, results, insights }) {
   const fullFollowupData = { ...answers, ...results }
   const utms = getStoredUTMs()
 
+  const scrollToBook = () => {
+    document.getElementById('book')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const claimLoom = () => {
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'lead_magnet_CTA_clicked', type: 'loom_teardown' })
-    window.open(bonusUrl(BONUS_LINK_QUALIFIED, 'qualified'), '_blank', 'noopener,noreferrer')
     setLoomClaimed(true)
     fireFollowupEvent('loom_claimed', fullFollowupData, utms)
+    scrollToBook()
   }
 
   const claimCourse = () => {
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'lead_magnet_CTA_clicked', type: 'email_course' })
-    window.open(bonusUrl(BONUS_LINK_UNQUALIFIED, 'unqualified'), '_blank', 'noopener,noreferrer')
     setCourseClaimed(true)
     fireFollowupEvent('course_signup', fullFollowupData, utms)
+    scrollToBook()
   }
 
   let sectionIndex = 0
@@ -943,24 +947,25 @@ export default function Results({ answers, results, insights }) {
         <p className="interp">{interpretation(answers, results)}</p>
       </section>
 
-      <BookingCalendar
-        name={answers.name}
-        email={answers.email}
-        title="Book your free 30-minute consultation"
-        sub="Pick a time. We'll walk through your report and build an action plan together."
-      />
-
       {isHot && (
         <section className="rsection facts-cta" style={stagger()}>
           <h3 className="facts-cta__title">Get all of the facts</h3>
           <p className="facts-cta__body">
             Schedule your FREE custom Loom teardown to get all the details.<br /><br />Absolutely no commitment; just all the actions you need to improve your ROAS.
           </p>
-          <button className="cta-btn cta-full" onClick={claimLoom}>
+          <button className="cta-btn cta-full" onClick={scrollToBook}>
             Book Your Free Consultation
           </button>
         </section>
       )}
+
+      <BookingCalendar
+        anchorId="book"
+        name={answers.name}
+        email={answers.email}
+        title="Book your free 30-minute consultation"
+        sub="Pick a time. We'll walk through your report and build an action plan together."
+      />
 
       {/* B — The number. Opportunity framing with role-conditional headline. */}
       {disqualified ? (
@@ -1013,7 +1018,7 @@ export default function Results({ answers, results, insights }) {
           <p className="facts-cta__body">
             Schedule your FREE custom Loom teardown to get all the details.<br /><br />Absolutely no commitment; just all the actions you need to improve your ROAS.
           </p>
-          <button className="cta-btn cta-full" onClick={claimLoom}>
+          <button className="cta-btn cta-full" onClick={scrollToBook}>
             Book Your Free Consultation
           </button>
         </section>
@@ -1127,12 +1132,6 @@ export default function Results({ answers, results, insights }) {
             </p>
           </section>
 
-          <BookingCalendar
-            name={answers.name}
-            email={answers.email}
-            title="Ready to book?"
-            sub="Grab a slot below — 30 minutes, no strings."
-          />
         </>
       )}
 

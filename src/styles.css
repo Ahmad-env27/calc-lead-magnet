@@ -965,7 +965,7 @@ h2 {
 .booking-embed__frame iframe {
   display: block;
   width: 100%;
-  min-height: 600px;
+  min-height: 480px;
   border: none;
 }
 

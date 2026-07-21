@@ -28,7 +28,7 @@ export default function Landing({ onStart }) {
 
         <div className="trust-zone reveal" style={{ '--i': 6 }}>
           <p className="trust-line">
-            Built for skincare brands doing{' '}
+            5 quick questions built for skincare brands doing{' '}
             <span className="pill">£100k+/month</span> in revenue
           </p>
           <p className="guarantee-line">
@@ -328,7 +328,7 @@ export default function Landing({ onStart }) {
         <p className="final-cta__sub">16 questions. Instant results. Free Loom teardown. No strings.</p>
         <button className="cta-btn cta-full" onClick={() => { pushStart('final_cta'); onStart() }}>Tell me what to fix →</button>
         <div className="trust-zone" style={{ marginTop: '14px' }}>
-          <p className="trust-line">Built for skincare brands doing <span className="pill">£100k+/month</span> in revenue</p>
+          <p className="trust-line">5 quick questions built for skincare brands doing <span className="pill">£100k+/month</span> in revenue</p>
         </div>
       </section>
     </>

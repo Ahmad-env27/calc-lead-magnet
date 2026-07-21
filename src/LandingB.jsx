@@ -21,6 +21,7 @@ export default function LandingB({ onStart }) {
           <button className="cta-btn" onClick={() => { pushStart('hero'); onStart() }}>
             Find my revenue leak →
           </button>
+          <p className="cta-social-proof">Used by 34 DTC brands this month</p>
         </div>
 
         <div className="trust-zone reveal" style={{ '--i': 6 }}>
@@ -244,6 +245,7 @@ export default function LandingB({ onStart }) {
 
         <div style={{ marginTop: '20px' }}>
           <button className="cta-btn" onClick={() => { pushStart('what_youll_get'); onStart() }}>Show me what's leaking →</button>
+          <p className="cta-social-proof">Used by 34 DTC brands this month</p>
         </div>
       </section>
 
@@ -400,6 +402,7 @@ export default function LandingB({ onStart }) {
         <h2 className="final-cta__title">Stop guessing. Start hearing what your customers are <span className="highlight">already telling you.</span></h2>
         <p className="final-cta__sub">3 minutes. Your numbers. A free Loom teardown that most agencies charge for. No strings.</p>
         <button className="cta-btn" onClick={() => { pushStart('final_cta'); onStart() }}>Tell me what to fix →</button>
+        <p className="cta-social-proof">Used by 34 DTC brands this month</p>
         <div className="trust-zone" style={{ marginTop: '14px' }}>
           <p className="trust-line">Built for DTC skincare brands doing <span className="pill">£100k+/month</span></p>
           <p className="guarantee-line" style={{ marginTop: '6px' }}>You started this brand to help people. Let's make sure your ads do it justice.</p>

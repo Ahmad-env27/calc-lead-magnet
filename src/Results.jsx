@@ -1086,6 +1086,17 @@ export default function Results({ answers, results, insights }) {
 
       {isHot && (
         <>
+          {/* CTA before How it works */}
+          <section className="rsection facts-cta" style={stagger()}>
+            <h3 className="facts-cta__title">Ready to stop the leak?</h3>
+            <p className="facts-cta__body">
+              Book your free 30-minute consultation and we'll walk through your report together — with a clear action plan you can use immediately.
+            </p>
+            <button className="cta-btn cta-full" onClick={scrollToBook}>
+              Book Your Free Consultation
+            </button>
+          </section>
+
           {/* How it works */}
           <section className="rsection" style={stagger()}>
             <h2 className="section-title">How it works</h2>

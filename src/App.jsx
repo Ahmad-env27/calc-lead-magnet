@@ -236,6 +236,27 @@ export default function App() {
   }, [])
 
   const completeQuiz = () => {
+    // Fire conversion events immediately when the quiz is finished —
+    // before the processing screen so they register even if the user drops off.
+    const previewResults = computeResults(answers)
+    trackEvent('CalculatorCompleted', {
+      score: previewResults.score,
+      temperature: previewResults.temperature,
+      revenue_tier: answers.revenue,
+      brand_type: answers.brandType,
+    })
+    trackEvent('calculator_scored', {
+      content_name: 'calculator_scored',
+      value: previewResults.leakHigh,
+      currency: 'GBP',
+      status: previewResults.temperature,
+    })
+    trackEvent('calculator_lead', {
+      content_name: 'calculator_lead',
+      content_category: 'creative_fatigue',
+      value: previewResults.leakHigh,
+      currency: 'GBP',
+    })
     setPhase('processing')
   }
 
@@ -265,25 +286,6 @@ export default function App() {
     const utms = getStoredUTMs()
     fireWebhook({ ...webhookData, ...fullResults }, utms, { source: SOURCE })
     sendReport(finalAnswers, fullResults, null)
-
-    trackEvent('CalculatorCompleted', {
-      score: fullResults.score,
-      temperature: fullResults.temperature,
-      revenue_tier: finalAnswers.revenue,
-      brand_type: finalAnswers.brandType,
-    })
-    trackEvent('calculator_scored', {
-      content_name: 'calculator_scored',
-      value: fullResults.leakHigh,
-      currency: 'GBP',
-      status: fullResults.temperature,
-    })
-    trackEvent('calculator_lead', {
-      content_name: 'calculator_lead',
-      content_category: 'creative_fatigue',
-      value: fullResults.leakHigh,
-      currency: 'GBP',
-    })
 
     setPhase('results')
   }

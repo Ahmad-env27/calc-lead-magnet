@@ -260,8 +260,8 @@ export default function App() {
     setPhase('processing')
   }
 
-  const completeProcessing = (selectedFrustrations) => {
-    const finalAnswers = { ...answers, frustrations: selectedFrustrations }
+  const completeProcessing = (selectedFrustrations, email) => {
+    const finalAnswers = { ...answers, frustrations: selectedFrustrations, email: email || answers.email }
     setAnswers(finalAnswers)
 
     const fullResults = computeResults(finalAnswers)

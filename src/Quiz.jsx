@@ -87,7 +87,6 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
   const step1Valid =
     answers.name?.trim().length > 0 &&
     answers.brandName?.trim().length > 0 &&
-    answers.email?.includes('@') &&
     answers.jobTitle
 
   return (
@@ -153,18 +152,6 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
                 placeholder="Your brand"
                 value={answers.brandName}
                 onChange={e => set('brandName', e.target.value)}
-              />
-            </div>
-
-            <div className="field">
-              <label htmlFor="email">Your email</label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@yourbrand.com"
-                value={answers.email}
-                onChange={e => set('email', e.target.value)}
               />
             </div>
 

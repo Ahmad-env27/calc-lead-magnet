@@ -261,31 +261,33 @@ export default function App() {
   }
 
   const completeProcessing = (selectedFrustrations) => {
-    if (webhookFired.current) return
-    webhookFired.current = true
-    ssSetFlag(SK.webhookFired)
-
     const finalAnswers = { ...answers, frustrations: selectedFrustrations }
     setAnswers(finalAnswers)
 
     const fullResults = computeResults(finalAnswers)
     setResults(fullResults)
 
-    // Merge derived scoring inputs so webhook payload has non-null values for
-    // fields we no longer ask (spendTier, refreshRate, roasBracket, creativeVolume)
-    // — prevents GHL automation conditions from silently dropping the contact.
-    const derivedInputs = toScoringInputs(finalAnswers)
-    const webhookData = {
-      ...finalAnswers,
-      spendTier: derivedInputs.spendTier,
-      refreshRate: derivedInputs.refreshRate,
-      roasBracket: derivedInputs.roasBracket,
-      creativeVolume: derivedInputs.creativeVolume,
-    }
+    // Guard webhook so it only fires once per session — does NOT block phase transition
+    if (!webhookFired.current) {
+      webhookFired.current = true
+      ssSetFlag(SK.webhookFired)
 
-    const utms = getStoredUTMs()
-    fireWebhook({ ...webhookData, ...fullResults }, utms, { source: SOURCE })
-    sendReport(finalAnswers, fullResults, null)
+      // Merge derived scoring inputs so webhook payload has non-null values for
+      // fields we no longer ask (spendTier, refreshRate, roasBracket, creativeVolume)
+      // — prevents GHL automation conditions from silently dropping the contact.
+      const derivedInputs = toScoringInputs(finalAnswers)
+      const webhookData = {
+        ...finalAnswers,
+        spendTier: derivedInputs.spendTier,
+        refreshRate: derivedInputs.refreshRate,
+        roasBracket: derivedInputs.roasBracket,
+        creativeVolume: derivedInputs.creativeVolume,
+      }
+
+      const utms = getStoredUTMs()
+      fireWebhook({ ...webhookData, ...fullResults }, utms, { source: SOURCE })
+      sendReport(finalAnswers, fullResults, null)
+    }
 
     setPhase('results')
   }

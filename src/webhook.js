@@ -186,7 +186,17 @@ export function buildWebhookPayload(data, utms = {}, extra = {}) {
   return mapPayload(raw)
 }
 
+// Module-level lock — survives React re-renders, HMR remounts, and StrictMode
+// double-invocations. Only one initial webhook fires per page load.
+let _webhookFiredThisLoad = false
+
 export async function fireWebhook(data, utms = {}, extra = {}) {
+  if (_webhookFiredThisLoad) {
+    console.warn('[WEBHOOK] Blocked duplicate fire — already sent this page load')
+    return
+  }
+  _webhookFiredThisLoad = true
+
   const payload = buildWebhookPayload(data, utms, extra)
   const body = JSON.stringify(payload)
 
@@ -197,7 +207,6 @@ export async function fireWebhook(data, utms = {}, extra = {}) {
   }
 
   console.log('[WEBHOOK] URL:', GHL_WEBHOOK_URL)
-  console.log('[WEBHOOK] Config:', JSON.stringify({ method: fetchConfig.method, headers: fetchConfig.headers }, null, 2))
   console.log('[WEBHOOK] Body:', body)
 
   try {
@@ -206,6 +215,7 @@ export async function fireWebhook(data, utms = {}, extra = {}) {
     const text = await res.text().catch(() => '(unreadable)')
     console.log('[WEBHOOK] Response body:', text)
   } catch (e) {
+    _webhookFiredThisLoad = false  // allow retry on network failure
     console.error('[WEBHOOK] Network error:', e)
   }
 }

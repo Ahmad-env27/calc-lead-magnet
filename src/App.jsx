@@ -289,6 +289,9 @@ export default function App() {
       sendReport(finalAnswers, fullResults, null)
     }
 
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'processing_completed' })
+
     setPhase('results')
   }
 

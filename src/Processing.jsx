@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
-const DURATION = 90000
+const DURATION = 60000
 const MSG_INTERVAL = 5500
-const FRUSTRATIONS_DELAY = 10000
+const FRUSTRATIONS_DELAY = 20000
 
 const MESSAGES = ['Crunching numbers', 'Assessing opportunities', 'Discussing gaps']
 

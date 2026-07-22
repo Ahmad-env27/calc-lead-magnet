@@ -41,6 +41,13 @@ const SPEND_LABELS = {
   '100k_plus': '£100k+',
 }
 
+const REVENUE_LABELS = {
+  under_30k: 'under £30k',
+  '30k_80k': '£30k–£80k',
+  '80k_120k': '£80k–£120k',
+  '120k_plus': '£120k+',
+}
+
 const JOB_TITLE_LABELS = {
   role_founder: 'Founder',
   role_md: 'Managing Director',
@@ -80,7 +87,7 @@ function interpretation(answers, results) {
   const brand = answers.brandName || 'Your brand'
   const freq = FREQUENCY_LABELS[answers.refreshRate]
   const div = DIVERSITY_LABELS[answers.angleDiversity]
-  const spend = SPEND_LABELS[answers.spendTier]
+  const spend = REVENUE_LABELS[answers.revenue] || SPEND_LABELS[answers.spendTier]
   const band = getRiskBand(results.score).key
 
   if (band === 'low')

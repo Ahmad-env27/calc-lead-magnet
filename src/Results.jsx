@@ -914,6 +914,8 @@ export default function Results({ answers, results, insights }) {
   const utms = getStoredUTMs()
 
   const scrollToBook = () => {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'call_booked_cta_clicked' })
     document.getElementById('book')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 

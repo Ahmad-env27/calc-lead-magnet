@@ -276,9 +276,6 @@ function LoomCard({ answers, claimed, onClaim }) {
             </div>
           </div>
           <p className="derisk">The insights are yours whether we work together or not.</p>
-          <button className="cta-btn cta-full" onClick={onClaim}>
-            Get my exclusive bonus package →
-          </button>
           <p className="delivery-note">
             Prepared within 48 hours of booking. We review every teardown with a human
             strategist, not just AI.
@@ -1135,11 +1132,6 @@ export default function Results({ answers, results, insights }) {
               Worth saying: this compounds. As the messaging improves month over month, each
               cycle builds on the last. That's the conversation worth having.
             </p>
-            {!loomClaimed && (
-              <button className="cta-btn cta-full" onClick={claimLoom}>
-                Get my exclusive bonus package →
-              </button>
-            )}
             <p className="powered-by">
               Powered by Audr audience intelligence + human creative strategists
             </p>

@@ -70,7 +70,7 @@ export default function Processing({ brandName, onComplete }) {
   const btnLabel = !barDone
     ? 'Building your report…'
     : frustrations.length < 1
-      ? 'Answer the question above to continue'
+      ? 'Select an option above to continue'
       : 'View my Revenue Leak Report →'
 
   return (
@@ -82,52 +82,58 @@ export default function Processing({ brandName, onComplete }) {
         <span className="processing-bar-pct">{Math.floor(progress)}%</span>
       </div>
 
-      <div className="processing-body">
-        <p className="processing-msg" key={msgIndex}>{MESSAGES[msgIndex]}</p>
-        <p className="processing-brand">
-          Building your report{brandName ? ` for ${brandName}` : ''}…
-        </p>
+      <div className="processing-scroll">
+        <div className="processing-body">
+          <p className="processing-msg" key={msgIndex}>{MESSAGES[msgIndex]}</p>
+          <p className="processing-brand">
+            Building your report{brandName ? ` for ${brandName}` : ''}…
+          </p>
 
-        {showFrustrations && (
-          <div className="processing-q reveal">
-            <h3 className="processing-q__title">
-              While we crunch your numbers — what's your biggest frustration with your ads right now?
-            </h3>
-            <p className="processing-q__sub">Pick up to 4</p>
+          {showFrustrations && (
+            <div className="processing-q reveal">
+              <h3 className="processing-q__title">
+                While we crunch your numbers — what's your biggest frustration with your ads right now?
+              </h3>
+              <p className="processing-q__sub">Pick up to 4</p>
 
-            <div className="chip-list">
-              {FRUSTRATIONS.map(f => {
-                const selected = frustrations.includes(f.id)
-                const maxed = !selected && f.id !== 'none' && frustrations.filter(x => x !== 'none').length >= 4
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    className={`chip${selected ? ' selected' : ''}${f.id === 'none' ? ' chip-none' : ''}`}
-                    disabled={maxed}
-                    aria-pressed={selected}
-                    onClick={() => toggleFrustration(f.id)}
-                  >
-                    {f.label}
-                  </button>
-                )
-              })}
+              <div className="chip-list">
+                {FRUSTRATIONS.map(f => {
+                  const selected = frustrations.includes(f.id)
+                  const maxed = !selected && f.id !== 'none' && frustrations.filter(x => x !== 'none').length >= 4
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      className={`chip${selected ? ' selected' : ''}${f.id === 'none' ? ' chip-none' : ''}`}
+                      disabled={maxed}
+                      aria-pressed={selected}
+                      onClick={() => toggleFrustration(f.id)}
+                    >
+                      {f.label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {frustrations.length > 0 && !frustrations.includes('none') && (
+                <p className="processing-q__note">These are exactly the patterns your report digs into.</p>
+              )}
             </div>
-
-            {frustrations.length > 0 && !frustrations.includes('none') && (
-              <p className="processing-q__note">These are exactly the patterns your report digs into.</p>
-            )}
-
-            <button
-              className="btn-primary processing-cta"
-              disabled={!canContinue}
-              onClick={() => onComplete(frustrations)}
-            >
-              {btnLabel}
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      {showFrustrations && (
+        <div className="processing-cta-wrap">
+          <button
+            className="btn-primary processing-cta"
+            disabled={!canContinue}
+            onClick={() => onComplete(frustrations)}
+          >
+            {btnLabel}
+          </button>
+        </div>
+      )}
     </main>
   )
 }

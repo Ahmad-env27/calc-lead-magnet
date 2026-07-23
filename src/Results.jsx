@@ -944,7 +944,7 @@ export default function Results({ answers, results, insights }) {
 
   return (
     <main className="results">
-      <BonusPopup alreadyClaimed={isHot ? loomClaimed : courseClaimed} />
+      {/* BonusPopup hidden — {<BonusPopup alreadyClaimed={isHot ? loomClaimed : courseClaimed} />} */}
 
       {/* A — Score header & gauge with benchmark overlay */}
       <section className="rsection" style={stagger()}>

@@ -2279,8 +2279,9 @@ h2 {
 }
 
 .email-report-link {
-  display: inline-block;
-  margin-top: 14px;
+  display: block;
+  margin: 14px auto 0;
+  text-align: center;
   background: none;
   border: none;
   padding: 0;

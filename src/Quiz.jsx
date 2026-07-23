@@ -55,6 +55,8 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
     setDir(d)
     setStep(n)
     try { sessionStorage.setItem('audr_quiz_step', String(n)) } catch {}
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'quiz_step', step: n, total_steps: TOTAL_STEPS })
   }
 
   const selectAndAdvance = (key, value, fromStep) => {

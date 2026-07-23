@@ -151,7 +151,7 @@ export default function App() {
     if (isPreviewMode) return 'results'
     const url = phaseFromPath()
     const saved = ssLoad(SK.answers)
-    if (url === 'results' && (!saved || !saved.email)) return 'landing'
+    if (url === 'results' && (!saved || !saved.brandName)) return 'landing'
     if (url === 'processing' && (!saved || !saved.brandName)) return 'landing'
     return url
   })
@@ -260,8 +260,8 @@ export default function App() {
     setPhase('processing')
   }
 
-  const completeProcessing = (selectedFrustrations, email) => {
-    const finalAnswers = { ...answers, frustrations: selectedFrustrations, email: email || answers.email }
+  const completeProcessing = (selectedFrustrations) => {
+    const finalAnswers = { ...answers, frustrations: selectedFrustrations }
     setAnswers(finalAnswers)
 
     const fullResults = computeResults(finalAnswers)

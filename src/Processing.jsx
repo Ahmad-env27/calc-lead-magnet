@@ -26,9 +26,6 @@ export default function Processing({ brandName, onComplete }) {
   const [showFrustrations, setShowFrustrations] = useState(false)
   const [frustrations, setFrustrations] = useState([])
   const [barDone, setBarDone] = useState(false)
-  const [showEmailModal, setShowEmailModal] = useState(false)
-  const [email, setEmail] = useState('')
-  const [emailError, setEmailError] = useState('')
   const startRef = useRef(Date.now())
   const doneRef = useRef(false)
 
@@ -68,21 +65,6 @@ export default function Processing({ brandName, onComplete }) {
       if (without.length >= 4) return prev
       return [...without, id]
     })
-  }
-
-  const handleCtaClick = () => {
-    setShowEmailModal(true)
-  }
-
-  const handleEmailSubmit = (e) => {
-    e.preventDefault()
-    const trimmed = email.trim()
-    if (!trimmed.includes('@') || !trimmed.includes('.')) {
-      setEmailError('Please enter a valid email address')
-      return
-    }
-    setEmailError('')
-    onComplete(frustrations, trimmed)
   }
 
   const btnLabel = !barDone
@@ -146,37 +128,10 @@ export default function Processing({ brandName, onComplete }) {
           <button
             className="btn-primary processing-cta"
             disabled={!canContinue}
-            onClick={handleCtaClick}
+            onClick={() => onComplete(frustrations)}
           >
             {btnLabel}
           </button>
-        </div>
-      )}
-
-      {showEmailModal && (
-        <div className="email-gate-overlay" onClick={() => setShowEmailModal(false)}>
-          <div className="email-gate" onClick={e => e.stopPropagation()}>
-            <h2 className="email-gate__title">Where should we send your report?</h2>
-            <p className="email-gate__sub">
-              Enter your email to unlock your Revenue Leak Report. We'll also send you a copy.
-            </p>
-            <form className="email-gate__form" onSubmit={handleEmailSubmit} noValidate>
-              <input
-                type="email"
-                className="email-gate__input"
-                placeholder="you@yourbrand.com"
-                autoComplete="email"
-                autoFocus
-                value={email}
-                onChange={e => { setEmail(e.target.value); setEmailError('') }}
-              />
-              {emailError && <p className="email-gate__error">{emailError}</p>}
-              <button type="submit" className="btn-primary email-gate__submit">
-                See my Revenue Leak Report →
-              </button>
-            </form>
-            <p className="email-gate__note">No spam. Unsubscribe any time.</p>
-          </div>
         </div>
       )}
     </main>

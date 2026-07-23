@@ -2,17 +2,6 @@ import { useRef, useState } from 'react'
 
 const TOTAL_STEPS = 5
 
-const JOB_TITLES = [
-  { value: 'role_founder', label: 'Owner / Founder' },
-  { value: 'role_md', label: 'Managing Director' },
-  { value: 'role_csuite', label: 'C-Suite' },
-  { value: 'role_marketing', label: 'Marketing Director / Manager' },
-  { value: 'role_growth', label: 'Head of Growth / Performance' },
-  { value: 'role_ecom', label: 'Ecommerce Director / Manager' },
-  { value: 'role_agency', label: 'Agency — managing client accounts' },
-  { value: 'role_freelance', label: 'Freelance / Consultant' },
-]
-
 const BRAND_TYPES = [
   { id: 'skincare', title: 'Skincare', desc: 'Serums, moisturisers, treatments, SPF' },
   { id: 'beauty', title: 'Beauty & cosmetics', desc: 'Makeup, colour cosmetics, tools' },
@@ -86,10 +75,7 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
       </button>
     ))
 
-  const step1Valid =
-    answers.name?.trim().length > 0 &&
-    answers.brandName?.trim().length > 0 &&
-    answers.jobTitle
+  const step1Valid = answers.brandName?.trim().length > 0
 
   return (
     <main className="quiz">
@@ -117,33 +103,6 @@ export default function Quiz({ answers, setAnswers, onComplete }) {
           <>
             <h2 className="step-header">Let's get your report started</h2>
             <p className="step-subtext">5 quick questions, about 60 seconds. We build your report from these.</p>
-
-            <div className="field">
-              <label htmlFor="name">Your name</label>
-              <input
-                id="name"
-                type="text"
-                autoComplete="given-name"
-                placeholder="First name"
-                value={answers.name}
-                onChange={e => set('name', e.target.value)}
-              />
-            </div>
-
-            <div className="field">
-              <label htmlFor="jobTitle">Your role</label>
-              <select
-                id="jobTitle"
-                className="select-input"
-                value={answers.jobTitle || ''}
-                onChange={e => set('jobTitle', e.target.value || null)}
-              >
-                <option value="">Select your role</option>
-                {JOB_TITLES.map(j => (
-                  <option key={j.value} value={j.value}>{j.label}</option>
-                ))}
-              </select>
-            </div>
 
             <div className="field">
               <label htmlFor="brandName">Brand name</label>

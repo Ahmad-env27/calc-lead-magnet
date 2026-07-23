@@ -8,6 +8,17 @@ import { getAngles } from './angles-data.js'
 import { fireFollowupEvent } from './webhook.js'
 import { getStoredUTMs } from './utils/utm.js'
 
+const JOB_TITLES = [
+  { value: 'role_founder', label: 'Owner / Founder' },
+  { value: 'role_md', label: 'Managing Director' },
+  { value: 'role_csuite', label: 'C-Suite' },
+  { value: 'role_marketing', label: 'Marketing Director / Manager' },
+  { value: 'role_growth', label: 'Head of Growth / Performance' },
+  { value: 'role_ecom', label: 'Ecommerce Director / Manager' },
+  { value: 'role_agency', label: 'Agency — managing client accounts' },
+  { value: 'role_freelance', label: 'Freelance / Consultant' },
+]
+
 // Qualified (isHot) → bonus A; everyone else → bonus B. Button copy is placeholder
 // pending a copy pass. Light UTMs so growth.audr.app can attribute by tier.
 const BONUS_LINK_QUALIFIED = 'https://www.growth.audr.app/the-offer'
@@ -901,6 +912,12 @@ export default function Results({ answers, results, insights }) {
   const [formulaOpen, setFormulaOpen] = useState(false)
   const [loomClaimed, setLoomClaimed] = useState(false)
   const [courseClaimed, setCourseClaimed] = useState(false)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [reportName, setReportName] = useState('')
+  const [reportJobTitle, setReportJobTitle] = useState('')
+  const [reportEmail, setReportEmail] = useState('')
+  const [reportEmailError, setReportEmailError] = useState('')
+  const [reportSent, setReportSent] = useState(false)
 
   const temp = results.temperature
   const isHot = temp === 'super_hot' || temp === 'hot'
@@ -939,6 +956,26 @@ export default function Results({ answers, results, insights }) {
     scrollToBook()
   }
 
+  const handleEmailSubmit = (e) => {
+    e.preventDefault()
+    const trimmed = reportEmail.trim()
+    if (!trimmed.includes('@') || !trimmed.includes('.')) {
+      setReportEmailError('Please enter a valid email address')
+      return
+    }
+    setReportEmailError('')
+    const payload = {
+      ...fullFollowupData,
+      name: reportName.trim(),
+      jobTitle: reportJobTitle || null,
+      email: trimmed,
+    }
+    fireFollowupEvent('email_report_requested', payload, utms)
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'email_report_requested' })
+    setReportSent(true)
+  }
+
   let sectionIndex = 0
   const stagger = () => ({ '--i': sectionIndex++ })
 
@@ -946,11 +983,67 @@ export default function Results({ answers, results, insights }) {
     <main className="results">
       {/* BonusPopup hidden — {<BonusPopup alreadyClaimed={isHot ? loomClaimed : courseClaimed} />} */}
 
+      {showEmailModal && (
+        <div className="email-gate-overlay" onClick={() => setShowEmailModal(false)}>
+          <div className="email-gate" onClick={e => e.stopPropagation()}>
+            {reportSent ? (
+              <>
+                <h2 className="email-gate__title">Report on its way ✓</h2>
+                <p className="email-gate__sub">We'll email your Revenue Leak Report to {reportEmail} within a few minutes.</p>
+                <button className="btn-primary email-gate__submit" onClick={() => setShowEmailModal(false)}>Close</button>
+              </>
+            ) : (
+              <>
+                <h2 className="email-gate__title">Email me this report</h2>
+                <p className="email-gate__sub">We'll send a copy of your Revenue Leak Report straight to your inbox.</p>
+                <form className="email-gate__form" onSubmit={handleEmailSubmit} noValidate>
+                  <input
+                    type="text"
+                    className="email-gate__input"
+                    placeholder="Your first name"
+                    autoComplete="given-name"
+                    value={reportName}
+                    onChange={e => setReportName(e.target.value)}
+                  />
+                  <select
+                    className="email-gate__input"
+                    value={reportJobTitle}
+                    onChange={e => setReportJobTitle(e.target.value)}
+                  >
+                    <option value="">Your role (optional)</option>
+                    {JOB_TITLES.map(j => (
+                      <option key={j.value} value={j.value}>{j.label}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="email"
+                    className="email-gate__input"
+                    placeholder="you@yourbrand.com"
+                    autoComplete="email"
+                    autoFocus
+                    value={reportEmail}
+                    onChange={e => { setReportEmail(e.target.value); setReportEmailError('') }}
+                  />
+                  {reportEmailError && <p className="email-gate__error">{reportEmailError}</p>}
+                  <button type="submit" className="btn-primary email-gate__submit">
+                    Send me the report →
+                  </button>
+                </form>
+                <p className="email-gate__note">No spam. Unsubscribe any time.</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* A — Score header & gauge with benchmark overlay */}
       <section className="rsection" style={stagger()}>
         <h1 className="eyebrow">YOUR AD FATIGUE RISK SCORE</h1>
         <Gauge score={results.score} />
         <p className="interp">{interpretation(answers, results)}</p>
+        <button className="email-report-link" onClick={() => setShowEmailModal(true)}>
+          📧 Email me this report
+        </button>
       </section>
 
       {isHot && (
